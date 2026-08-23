@@ -2,6 +2,11 @@ import { registerUser, loginUser, logoutUser, subscribeToAuthChanges, loginWithG
 import { getGames, getGamesPaged } from './src/store';
 import { db, auth } from './src/firebase';
 import { doc, getDoc, collection, getDocs, query, orderBy, limit } from "firebase/firestore";
+import { initLanguageSelectors, translations, getLanguage } from './src/i18n';
+
+// Initialize language selector and translate page
+initLanguageSelectors();
+
 
 const getAssetUrl = (path) => {
   if (!path) return `${import.meta.env.BASE_URL}images/placeholder.png`;
@@ -216,6 +221,10 @@ logoutBtn.onclick = async () => {
 
 // Store Handlers
 function createGameCard(game) {
+    const lang = getLanguage();
+    const dict = translations[lang] || translations['en'];
+    const includedTag = dict.game_included || '✓ Incluso con IndiePlay';
+
     const card = document.createElement('div');
     card.className = 'game-card';
     card.style.cursor = 'pointer';
@@ -227,7 +236,7 @@ function createGameCard(game) {
     card.innerHTML = `
         <img src="${imgUrl}" alt="${game.title}" onerror="this.onerror=null; this.src='${placeholderUrl}'">
         <div class="card-info">
-            <span class="prime-tag" style="color: #00a8e1; font-weight: bold; font-size: 0.8rem;">✓ Incluso con IndiePlay</span>
+            <span class="prime-tag" style="color: #00a8e1; font-weight: bold; font-size: 0.8rem;">${includedTag}</span>
             <h3>${game.title}</h3>
             <div class="price">${game.price === 'FREE' ? 'GRATIS' : '€' + game.price}</div>
         </div>

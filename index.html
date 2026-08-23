@@ -54,20 +54,34 @@
                     <span style="color: white; font-weight: 900; font-size: 1.5rem; letter-spacing: -1px;">INDIE<span style="color: var(--prime-blue);">PLAY-X</span></span>
                 </a>
                 <ul class="nav-links">
-                    <li><a href="#store" class="active">Home</a></li>
-                    <li><a href="account.html?tab=my-games" id="sell-link" class="hidden">Vendi</a></li>
+                    <li><a href="#store" class="active" data-i18n="nav_home">Home</a></li>
+                    <li><a href="account.html?tab=my-games" id="sell-link" class="hidden" data-i18n="nav_sell">Vendi</a></li>
                 </ul>
             </div>
             <div class="nav-right">
                 <div class="search-bar">
                     <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Cerca">
+                    <input type="text" data-i18n-placeholder="search_placeholder" placeholder="Cerca">
                 </div>
-                <div class="auth-buttons">
+                <div class="auth-buttons" style="display: flex; align-items: center; gap: 0.5rem;">
                     <a href="account.html" id="user-display" class="hidden" style="text-decoration: none; color: white; font-weight: 700; margin-right: 1rem;"></a>
-                    <button id="login-btn" class="btn btn-prime-outline">Accedi</button>
-                    <button id="register-btn" class="btn btn-prime">Registrati</button>
-                    <button id="logout-btn" class="btn btn-outline hidden">Esci</button>
+                    <button id="login-btn" class="btn btn-prime-outline" data-i18n="nav_login">Accedi</button>
+                    <button id="register-btn" class="btn btn-prime" data-i18n="nav_register">Registrati</button>
+                    <button id="logout-btn" class="btn btn-outline hidden" data-i18n="nav_logout">Esci</button>
+                    
+                    <!-- Language Selector -->
+                    <div class="lang-selector" style="display: inline-flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 6px 10px; margin-left: 0.5rem;">
+                        <i class="fas fa-globe" style="color: var(--text-gray); font-size: 0.9rem;"></i>
+                        <select class="lang-select-dropdown" style="background: transparent; border: none; color: white; font-size: 0.85rem; font-weight: 700; cursor: pointer; outline: none;">
+                            <option value="it" style="background: #1a242f; color: white;">IT</option>
+                            <option value="en" style="background: #1a242f; color: white;">EN</option>
+                            <option value="fr" style="background: #1a242f; color: white;">FR</option>
+                            <option value="es" style="background: #1a242f; color: white;">ES</option>
+                            <option value="ja" style="background: #1a242f; color: white;">JA</option>
+                            <option value="zh" style="background: #1a242f; color: white;">ZH</option>
+                            <option value="pt" style="background: #1a242f; color: white;">PT</option>
+                        </select>
+                    </div>
                 </div>
             </div>
         </nav>
@@ -119,78 +133,78 @@
     <main id="store">
         <section class="genre-section">
             <div class="section-header">
-                <h2>Categorie</h2>
+                <h2 data-i18n="categories_title">Categorie</h2>
             </div>
             <div class="genre-row">
                 <div class="genre-card">
                     <i class="fas fa-hand-fist"></i>
-                    <span>Picchiaduro ></span>
+                    <span><span data-i18n="genre_fight">Picchiaduro</span> &gt;</span>
                 </div>
                 <div class="genre-card">
                     <i class="fas fa-floppy-disk"></i>
-                    <span>Amiga & Retro ></span>
+                    <span><span data-i18n="genre_amiga">Amiga & Retro</span> &gt;</span>
                 </div>
                 <div class="genre-card">
                     <i class="fas fa-sword"></i>
-                    <span>Azione e avventura ></span>
+                    <span><span data-i18n="genre_action">Azione e avventura</span> &gt;</span>
                 </div>
                 <div class="genre-card">
                     <i class="fas fa-person-running"></i>
-                    <span>Giochi a piattaforme ></span>
+                    <span><span data-i18n="genre_platform">Giochi a piattaforme</span> &gt;</span>
                 </div>
                 <div class="genre-card">
                     <i class="fas fa-ghost"></i>
-                    <span>Horror e Survival ></span>
+                    <span><span data-i18n="genre_horror">Horror e Survival</span> &gt;</span>
                 </div>
                 <div class="genre-card">
                     <i class="fas fa-puzzle-piece"></i>
-                    <span>Puzzle e Rompicapo ></span>
+                    <span><span data-i18n="genre_puzzle">Puzzle e Rompicapo</span> &gt;</span>
                 </div>
                 <div class="genre-card">
                     <i class="fas fa-magic"></i>
-                    <span>Giochi di ruolo (GDR) ></span>
+                    <span><span data-i18n="genre_rpg">Giochi di ruolo (GDR)</span> &gt;</span>
                 </div>
                 <div class="genre-card">
                     <i class="fas fa-crosshairs"></i>
-                    <span>Sparatutto / FPS ></span>
+                    <span><span data-i18n="genre_fps">Sparatutto / FPS</span> &gt;</span>
                 </div>
                 <div class="genre-card">
                     <i class="fas fa-car"></i>
-                    <span>Corse e volo ></span>
+                    <span><span data-i18n="genre_race">Corse e volo</span> &gt;</span>
                 </div>
                 <div class="genre-card">
                     <i class="fas fa-chess"></i>
-                    <span>Strategia e Simulazione ></span>
+                    <span><span data-i18n="genre_strategy">Strategia e Simulazione</span> &gt;</span>
                 </div>
                 <div class="genre-card">
                     <i class="fas fa-basketball"></i>
-                    <span>Sport ></span>
+                    <span><span data-i18n="genre_sport">Sport</span> &gt;</span>
                 </div>
                 <div class="genre-card">
                     <i class="fas fa-face-smile"></i>
-                    <span>Bambini e famiglia ></span>
+                    <span><span data-i18n="genre_family">Bambini e famiglia</span> &gt;</span>
                 </div>
             </div>
         </section>
 
         <section class="game-section">
             <div class="section-header">
-                <h2>Aggiunti di recente su IndiePlay</h2>
+                <h2 data-i18n="title_added">Aggiunti di recente su IndiePlay</h2>
             </div>
             <div id="game-grid" class="game-row">
                 <div class="loading">Caricamento...</div>
             </div>
             <div style="text-align: center; margin-top: 1.5rem;">
-                <button id="load-more-btn" class="btn btn-prime-outline hidden" style="padding: 0.8rem 2.5rem;">Carica Altri</button>
+                <button id="load-more-btn" class="btn btn-prime-outline hidden" style="padding: 0.8rem 2.5rem;" data-i18n="btn_load_more">Carica Altri</button>
             </div>
         </section>
 
         <!-- YouTube Channel Embed Section -->
         <section class="youtube-section">
             <div class="section-header">
-                <h2>Indieplay TV</h2>
+                <h2 data-i18n="title_tv">Indieplay TV</h2>
                 <a href="https://www.youtube.com/@INDIE-PLAY" target="_blank" class="yt-channel-btn">
-                    <i class="fab fa-youtube"></i> Visita il Canale
+                    <i class="fab fa-youtube"></i> <span data-i18n="btn_visit_channel">Visita il Canale</span>
                 </a>
             </div>
             <div class="youtube-carousel-container">
@@ -264,7 +278,7 @@
 
         <section class="game-section">
             <div class="section-header">
-                <h2>Ultime novità</h2>
+                <h2 data-i18n="title_news">Ultime novità</h2>
             </div>
             <div id="news-grid" class="game-row">
                 <div class="loading">Caricamento...</div>
@@ -274,7 +288,7 @@
         <!-- New Merchandising Section -->
         <section class="merch-section">
             <div class="section-header">
-                <h2>Merchandising Ufficiale IndiePlay</h2>
+                <h2 data-i18n="title_merch">Merchandising Ufficiale IndiePlay</h2>
             </div>
             <div class="merch-grid-equal">
                 <div class="merch-card">
@@ -310,7 +324,7 @@
 
         <section class="game-section">
             <div class="section-header">
-                <h2>Aggiunti di Recente</h2>
+                <h2 data-i18n="title_recent">Aggiunti di Recente</h2>
             </div>
             <div id="recent-games-grid" class="game-row">
                 <div class="loading">Caricamento nuovi titoli...</div>
@@ -319,7 +333,7 @@
 
         <section class="game-section">
             <div class="section-header">
-                <h2>I più venduti</h2>
+                <h2 data-i18n="title_bestsellers">I più venduti</h2>
             </div>
             <div id="bestsellers-grid" class="game-row">
                 <div class="loading">Caricamento...</div>
@@ -328,7 +342,7 @@
 
         <section class="game-section">
             <div class="section-header">
-                <h2>Offerte</h2>
+                <h2 data-i18n="title_deals">Offerte</h2>
             </div>
             <div id="deals-grid" class="game-row">
                 <div class="loading">Caricamento...</div>
@@ -418,13 +432,13 @@
             <span style="color: white; font-weight: 900; font-size: 1.5rem; letter-spacing: -1px;">INDIE<span style="color: var(--prime-blue);">PLAY-X</span></span>
         </div>
         <div class="footer-links">
-            <a href="javascript:void(0)" class="open-privacy-link">Termini e informativa sulla privacy</a>
-            <a href="javascript:void(0)" class="open-cookie-link">Informativa sui cookie</a>
-            <a href="mailto:support@indieplay.it">Inviaci un feedback</a>
-            <a href="mailto:support@indieplay.it">Aiuto</a>
+            <a href="javascript:void(0)" class="open-privacy-link" data-i18n="footer_terms">Termini e informativa sulla privacy</a>
+            <a href="javascript:void(0)" class="open-cookie-link" data-i18n="footer_cookie">Informativa sui cookie</a>
+            <a href="mailto:support@indieplay.it" data-i18n="footer_feedback">Inviaci un feedback</a>
+            <a href="mailto:support@indieplay.it" data-i18n="footer_help">Aiuto</a>
         </div>
-        <div class="footer-legal">
-            © 2026 IndiePlay v2.4. Tutti i diritti riservati.
+        <div class="footer-legal" data-i18n="footer_rights">
+            © 2026 IndiePlay-X. Tutti i diritti riservati.
         </div>
     </footer>
 

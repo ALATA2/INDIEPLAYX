@@ -382,21 +382,35 @@
                     <span style="color: white; font-weight: 900; font-size: 1.5rem; letter-spacing: -1px;">INDIE<span style="color: var(--prime-blue);">PLAY-X</span></span>
                 </a>
                 <ul class="nav-links">
-                    <li><a href="/">Home</a></li>
-                    <li><a href="/" class="active">Giochi</a></li>
-                    <li><a href="account.html?tab=my-games" id="sell-link" class="hidden">Vendi</a></li>
+                    <li><a href="/" data-i18n="nav_home">Home</a></li>
+                    <li><a href="/" class="active" data-i18n="nav_home">Giochi</a></li>
+                    <li><a href="account.html?tab=my-games" id="sell-link" class="hidden" data-i18n="nav_sell">Vendi</a></li>
                 </ul>
             </div>
             <div class="nav-right" style="display: flex; align-items: center; gap: 1rem;">
                 <div class="search-bar">
                     <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Cerca">
+                    <input type="text" data-i18n-placeholder="search_placeholder" placeholder="Cerca">
                 </div>
-                <div class="auth-buttons" style="display: flex; align-items: center;">
+                <div class="auth-buttons" style="display: flex; align-items: center; gap: 0.5rem;">
                     <a href="account.html" id="user-display" class="hidden" style="text-decoration: none; color: white; font-weight: 700; margin-right: 1rem;"></a>
-                    <a href="account.html" id="login-btn" class="btn btn-prime-outline" style="text-decoration: none;">Accedi</a>
-                    <a href="account.html" id="register-btn" class="btn btn-prime" style="text-decoration: none; margin-left: 10px;">Registrati</a>
-                    <button id="logout-btn" class="btn btn-outline hidden" style="margin-left: 10px;">Esci</button>
+                    <a href="account.html" id="login-btn" class="btn btn-prime-outline" style="text-decoration: none;" data-i18n="nav_login">Accedi</a>
+                    <a href="account.html" id="register-btn" class="btn btn-prime" style="text-decoration: none; margin-left: 10px;" data-i18n="nav_register">Registrati</a>
+                    <button id="logout-btn" class="btn btn-outline hidden" style="margin-left: 10px;" data-i18n="nav_logout">Esci</button>
+                    
+                    <!-- Language Selector -->
+                    <div class="lang-selector" style="display: inline-flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 6px 10px; margin-left: 0.5rem;">
+                        <i class="fas fa-globe" style="color: var(--text-gray); font-size: 0.9rem;"></i>
+                        <select class="lang-select-dropdown" style="background: transparent; border: none; color: white; font-size: 0.85rem; font-weight: 700; cursor: pointer; outline: none;">
+                            <option value="it" style="background: #1a242f; color: white;">IT</option>
+                            <option value="en" style="background: #1a242f; color: white;">EN</option>
+                            <option value="fr" style="background: #1a242f; color: white;">FR</option>
+                            <option value="es" style="background: #1a242f; color: white;">ES</option>
+                            <option value="ja" style="background: #1a242f; color: white;">JA</option>
+                            <option value="zh" style="background: #1a242f; color: white;">ZH</option>
+                            <option value="pt" style="background: #1a242f; color: white;">PT</option>
+                        </select>
+                    </div>
                 </div>
             </div>
         </nav>
@@ -689,6 +703,11 @@
         import { sendEmailVerification } from "firebase/auth";
         import { doc, getDoc, updateDoc, arrayUnion, collection, addDoc, query, where, getDocs } from "firebase/firestore";
         import { subscribeToAuthChanges, logoutUser } from './src/auth';
+        import { initLanguageSelectors, translations, getLanguage } from './src/i18n';
+
+        // Initialize i18n
+        initLanguageSelectors();
+
         const getAssetUrl = (path) => {
           if (!path) return `${import.meta.env.BASE_URL}images/placeholder.png`;
           if (path.startsWith('data:') || path.startsWith('http://') || path.startsWith('https://')) {
@@ -788,6 +807,9 @@
                     const onlineUrl = game.onlineUrl || (game.content && game.content.startsWith('http') ? game.content : 'https://miogioco.com/play-demo-simulated');
                     const downloadPath = (game.content && !game.content.startsWith('http')) ? game.content : (game.downloadUrl || `games/${gameId}/game.zip`);
 
+                    const lang = getLanguage();
+                    const dict = translations[lang] || translations['en'];
+
                     let modalityLabel = 'Download';
                     if (hasOnline && hasDownload) modalityLabel = 'Online + Download';
                     else if (hasOnline) modalityLabel = 'Online Cloud';
@@ -795,7 +817,7 @@
                     // Update Meta info
                     const metaSection = document.querySelector('.detail-meta');
                     metaSection.innerHTML = `
-                        <span class="prime-badge-large">✓ Incluso con IndiePlay</span>
+                        <span class="prime-badge-large">${dict.game_included}</span>
                         <span>${game.category || 'Azione'} • ${modalityLabel}</span>
                         <span style="font-weight: bold; color: var(--prime-blue);">${priceLabel}</span>
                     `;
@@ -817,14 +839,14 @@
 
                     if (!user) {
                         if (extraDownloadBtn) extraDownloadBtn.remove();
-                        playBtn.innerHTML = isFree ? '<i class="fas fa-sign-in-alt"></i> Accedi per Giocare' : `<i class="fas fa-shopping-cart"></i> Accedi per acquistare`;
+                        playBtn.innerHTML = isFree ? `<i class="fas fa-sign-in-alt"></i> ${dict.game_login_to_play}` : `<i class="fas fa-shopping-cart"></i> ${dict.game_login_to_buy}`;
                         playBtn.onclick = () => {
                             showToast('Devi accedere per continuare.', 'fa-info-circle');
                             setTimeout(() => window.location.href = 'account.html', 1200);
                         };
                     } else if (isOwned) {
                         if (hasOnline && hasDownload) {
-                            playBtn.innerHTML = '<i class="fas fa-play"></i> Gioca Online';
+                            playBtn.innerHTML = `<i class="fas fa-play"></i> ${dict.game_play_online}`;
                             playBtn.onclick = () => {
                                 window.open(onlineUrl, '_blank');
                             };
@@ -842,19 +864,19 @@
                                 extraDownloadBtn.style.marginLeft = '10px';
                                 actionBar.appendChild(extraDownloadBtn);
                             }
-                            extraDownloadBtn.innerHTML = '<i class="fas fa-download"></i> Scarica Gioco (.ZIP)';
+                            extraDownloadBtn.innerHTML = `<i class="fas fa-download"></i> ${dict.game_download}`;
                             extraDownloadBtn.onclick = () => {
                                 openDisclaimerModal(downloadPath, game.title);
                             };
                         } else if (hasOnline) {
                             if (extraDownloadBtn) extraDownloadBtn.remove();
-                            playBtn.innerHTML = '<i class="fas fa-play"></i> Gioca ora';
+                            playBtn.innerHTML = `<i class="fas fa-play"></i> ${dict.game_play_now}`;
                             playBtn.onclick = () => {
                                 window.open(onlineUrl, '_blank');
                             };
                         } else {
                             if (extraDownloadBtn) extraDownloadBtn.remove();
-                            playBtn.innerHTML = '<i class="fas fa-download"></i> Scarica Gioco';
+                            playBtn.innerHTML = `<i class="fas fa-download"></i> ${dict.game_download}`;
                             playBtn.onclick = () => {
                                 openDisclaimerModal(downloadPath, game.title);
                             };
@@ -863,7 +885,7 @@
                         // Logged in but not owned
                         if (extraDownloadBtn) extraDownloadBtn.remove();
                         if (isFree) {
-                            playBtn.innerHTML = '<i class="fas fa-plus"></i> Aggiungi alla Libreria (Gratis)';
+                            playBtn.innerHTML = `<i class="fas fa-plus"></i> ${dict.game_buy_now} (Gratis)`;
                             playBtn.onclick = async () => {
                                 if (!user.emailVerified) {
                                     showToast('Devi verificare la tua email per aggiungere giochi alla tua libreria!', 'error');

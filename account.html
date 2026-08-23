@@ -330,8 +330,22 @@
                     <span style="color: white; font-weight: 900; font-size: 1.5rem; letter-spacing: -1px;">INDIE<span style="color: var(--prime-blue);">PLAY-X</span></span>
                 </a>
             </div>
-            <div class="nav-right">
-                <a href="/" class="btn btn-prime-outline">Torna allo Store</a>
+            <div class="nav-right" style="display: flex; align-items: center; gap: 0.5rem;">
+                <a href="/" class="btn btn-prime-outline" data-i18n="nav_back">Torna allo Store</a>
+                
+                <!-- Language Selector -->
+                <div class="lang-selector" style="display: inline-flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 6px 10px; margin-left: 0.5rem;">
+                    <i class="fas fa-globe" style="color: var(--text-gray); font-size: 0.9rem;"></i>
+                    <select class="lang-select-dropdown" style="background: transparent; border: none; color: white; font-size: 0.85rem; font-weight: 700; cursor: pointer; outline: none;">
+                        <option value="it" style="background: #1a242f; color: white;">IT</option>
+                        <option value="en" style="background: #1a242f; color: white;">EN</option>
+                        <option value="fr" style="background: #1a242f; color: white;">FR</option>
+                        <option value="es" style="background: #1a242f; color: white;">ES</option>
+                        <option value="ja" style="background: #1a242f; color: white;">JA</option>
+                        <option value="zh" style="background: #1a242f; color: white;">ZH</option>
+                        <option value="pt" style="background: #1a242f; color: white;">PT</option>
+                    </select>
+                </div>
             </div>
         </nav>
     </header>
@@ -350,13 +364,13 @@
                 <p id="profile-email" style="color: var(--text-gray); font-size: 0.9rem;"></p>
             </div>
 
-             <ul class="account-nav">
-                <li><a href="#" class="active" id="show-profile"><i class="fas fa-user"></i> Il mio Profilo</a></li>
-                <li><a href="#" id="show-purchases"><i class="fas fa-shopping-bag"></i> I miei Acquisti</a></li>
-                <li id="seller-nav-item" class="hidden"><a href="#" id="show-my-games"><i class="fas fa-gamepad"></i> I miei Giochi</a></li>
-                <li id="dashboard-nav-item" class="hidden"><a href="#" id="show-dashboard"><i class="fas fa-chart-bar"></i> Dashboard Vendite</a></li>
-                <li id="publish-nav-item" class="hidden"><a href="#" id="show-publish"><i class="fas fa-upload"></i> Pubblica Gioco</a></li>
-                <li><a href="#" id="show-payments"><i class="fas fa-credit-card"></i> Metodi di pagamento</a></li>
+              <ul class="account-nav">
+                <li><a href="#" class="active" id="show-profile"><i class="fas fa-user"></i> <span data-i18n="acc_tab_profile">Profilo</span></a></li>
+                <li><a href="#" id="show-purchases"><i class="fas fa-shopping-bag"></i> <span data-i18n="acc_tab_purchases">I miei Acquisti</span></a></li>
+                <li id="seller-nav-item" class="hidden"><a href="#" id="show-my-games"><i class="fas fa-gamepad"></i> <span data-i18n="acc_tab_my_games">I miei Giochi</span></a></li>
+                <li id="dashboard-nav-item" class="hidden"><a href="#" id="show-dashboard"><i class="fas fa-chart-bar"></i> <span data-i18n="acc_tab_dashboard">Dashboard</span></a></li>
+                <li id="publish-nav-item" class="hidden"><a href="#" id="show-publish"><i class="fas fa-upload"></i> <span data-i18n="acc_tab_publish">Pubblica Gioco</span></a></li>
+                <li><a href="#" id="show-payments"><i class="fas fa-credit-card"></i> <span data-i18n="acc_tab_payments">Incassi</span></a></li>
             </ul>
         </aside>
 
@@ -759,6 +773,11 @@
         import { subscribeToAuthChanges } from './src/auth';
         import { db, auth, storage } from './src/firebase';
         import { doc, getDoc, updateDoc, deleteDoc, addDoc, setDoc, collection, query, where, getDocs, orderBy } from "firebase/firestore";
+        import { initLanguageSelectors } from './src/i18n';
+
+        // Initialize i18n
+        initLanguageSelectors();
+
         const getAssetUrl = (path) => {
           if (!path) return `${import.meta.env.BASE_URL}images/placeholder.png`;
           if (path.startsWith('data:') || path.startsWith('http://') || path.startsWith('https://')) {
