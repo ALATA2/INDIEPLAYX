@@ -1,0 +1,1777 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Il mio Account - IndiePlay</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="./style.css">
+    <script>
+        window.showToast = function(message, typeOrIcon = 'success', icon = null) {
+            let type = 'success';
+            if (typeOrIcon.startsWith('fa-')) {
+                icon = typeOrIcon;
+                // Infer type from icon
+                if (icon === 'fa-check-circle' || icon === 'fa-check') {
+                    type = 'success';
+                } else if (icon === 'fa-exclamation-triangle' || icon === 'fa-exclamation-circle' || icon === 'fa-lock') {
+                    type = 'error';
+                } else {
+                    type = 'info';
+                }
+            } else {
+                type = typeOrIcon;
+            }
+
+            const toast = document.createElement('div');
+            if (!icon) {
+                if (type === 'success') icon = 'fa-check-circle';
+                else if (type === 'error') icon = 'fa-exclamation-triangle';
+                else icon = 'fa-info-circle';
+            }
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<i class="fas ${icon}"></i> <span>${message}</span>`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 500);
+            }, 4000);
+        };
+    </script>
+    <style>
+        .account-container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            min-height: 80vh;
+            padding: 2rem 5%;
+            gap: 4rem;
+            margin-top: 60px;
+        }
+
+        .account-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .profile-card-large {
+            background: rgba(255,255,255,0.05);
+            padding: 2rem;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .profile-img-wrapper {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 1.5rem;
+        }
+
+        .profile-img-wrapper img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--prime-blue);
+        }
+
+        .change-img-btn {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background: var(--prime-blue);
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 3px solid #1a242f;
+            transition: 0.3s;
+        }
+
+        .change-img-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .account-nav {
+            list-style: none;
+            padding: 0;
+        }
+
+        .account-nav li {
+            margin-bottom: 0.5rem;
+        }
+
+        .account-nav a {
+            display: block;
+            padding: 1rem 1.5rem;
+            color: var(--text-gray);
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .account-nav a:hover, .account-nav a.active {
+            background: rgba(0, 168, 225, 0.1);
+            color: var(--prime-blue);
+        }
+
+        .account-nav i {
+            margin-right: 12px;
+            width: 20px;
+        }
+
+        .account-main {
+            background: rgba(255,255,255,0.02);
+            padding: 3rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .settings-grid {
+            display: grid;
+            gap: 2rem;
+            max-width: 600px;
+        }
+
+        .purchase-item {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            transition: 0.3s;
+        }
+
+        .purchase-item:hover {
+            background: rgba(255,255,255,0.08);
+        }
+
+        .purchase-img {
+            width: 80px;
+            height: 110px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        .purchase-info h3 {
+            font-size: 1.1rem;
+            margin-bottom: 4px;
+        }
+
+        .purchase-date {
+            color: var(--text-gray);
+            font-size: 0.85rem;
+        }
+
+        /* Gallery Preview Styles */
+        .gallery-preview-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .preview-item {
+            position: relative;
+            aspect-ratio: 16/9;
+            border-radius: 4px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: #000;
+        }
+
+        .preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .preview-controls {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            opacity: 0;
+            transition: 0.2s;
+        }
+
+        .preview-item:hover .preview-controls {
+            opacity: 1;
+        }
+
+        .control-btn {
+            background: white;
+            color: black;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            cursor: pointer;
+            border: none;
+        }
+
+        .control-btn.remove { background: #ff4444; color: white; }
+
+        .upload-box {
+            border: 2px dashed rgba(255,255,255,0.1);
+            padding: 2rem;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .upload-box:hover {
+            background: rgba(255,255,255,0.05);
+            border-color: var(--prime-blue);
+        }
+
+        .mobile-back-btn {
+            display: none;
+        }
+
+        @media (max-width: 900px) {
+            .account-container {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .mobile-back-btn {
+                display: inline-flex !important;
+                align-items: center;
+                gap: 8px;
+                margin-bottom: 2rem;
+                width: fit-content;
+            }
+
+            .account-main > div:not(.hidden) {
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                width: 100vw !important;
+                height: 100vh !important;
+                background: #00050d !important; /* matches var(--prime-bg) */
+                z-index: 10000 !important;
+                overflow-y: auto !important;
+                padding: 2rem !important;
+                box-sizing: border-box !important;
+                display: flex !important;
+                flex-direction: column !important;
+            }
+
+            .account-main .form-row {
+                flex-direction: column !important;
+                gap: 1.5rem !important;
+            }
+            .account-main .form-group {
+                width: 100% !important;
+                flex: none !important;
+            }
+
+            /* Purchases stretch full screen width */
+            #purchases-list > div {
+                grid-template-columns: 1fr !important;
+            }
+            #purchases-list .game-card {
+                width: 100% !important;
+            }
+
+            /* My Games cards vertical layout */
+            #my-games-list .purchase-item {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 1rem !important;
+            }
+            #my-games-list .purchase-item img.purchase-img {
+                width: 100% !important;
+                height: 180px !important;
+                object-fit: cover !important;
+            }
+            #my-games-list .purchase-item div[style*="margin-left: auto"] {
+                margin-left: 0 !important;
+                display: flex !important;
+                width: 100% !important;
+                gap: 10px !important;
+            }
+            #my-games-list .purchase-item div[style*="margin-left: auto"] button {
+                flex: 1 !important;
+                text-align: center !important;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <header class="prime-header">
+        <nav>
+            <div class="nav-left">
+                <a href="/" class="prime-logo" style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
+                    <img src="/images/logo_litte.png" alt="Logo" style="height: 32px; width: auto; object-fit: contain;">
+                    <span style="color: white; font-weight: 900; font-size: 1.5rem; letter-spacing: -1px;">INDIE<span style="color: var(--prime-blue);">PLAY</span></span>
+                    <span style="font-size: 0.75rem; background: rgba(0, 168, 225, 0.15); color: var(--prime-blue); padding: 2px 8px; border-radius: 20px; font-weight: 700; border: 1px solid rgba(0, 168, 225, 0.3); text-transform: uppercase; letter-spacing: 0;">v.2.0</span>
+                </a>
+            </div>
+            <div class="nav-right">
+                <a href="/" class="btn btn-prime-outline">Torna allo Store</a>
+            </div>
+        </nav>
+    </header>
+
+    <div class="account-container">
+        <aside class="account-sidebar">
+            <div class="profile-card-large">
+                <div class="profile-img-wrapper">
+                    <img id="profile-img-display" src="/images/default_avatar.png" alt="Profile">
+                    <label for="profile-upload" class="change-img-btn">
+                        <i class="fas fa-camera"></i>
+                    </label>
+                    <input type="file" id="profile-upload" hidden accept="image/*">
+                </div>
+                <h2 id="profile-name">Caricamento...</h2>
+                <p id="profile-email" style="color: var(--text-gray); font-size: 0.9rem;"></p>
+            </div>
+
+             <ul class="account-nav">
+                <li><a href="#" class="active" id="show-profile"><i class="fas fa-user"></i> Il mio Profilo</a></li>
+                <li><a href="#" id="show-purchases"><i class="fas fa-shopping-bag"></i> I miei Acquisti</a></li>
+                <li id="seller-nav-item" class="hidden"><a href="#" id="show-my-games"><i class="fas fa-gamepad"></i> I miei Giochi</a></li>
+                <li id="dashboard-nav-item" class="hidden"><a href="#" id="show-dashboard"><i class="fas fa-chart-bar"></i> Dashboard Vendite</a></li>
+                <li id="publish-nav-item" class="hidden"><a href="#" id="show-publish"><i class="fas fa-upload"></i> Pubblica Gioco</a></li>
+                <li><a href="#" id="show-payments"><i class="fas fa-credit-card"></i> Metodi di pagamento</a></li>
+            </ul>
+        </aside>
+
+        <main class="account-main">
+            <div id="profile-section">
+                <button class="btn btn-prime-outline mobile-back-btn"><i class="fas fa-arrow-left"></i> Torna al Menu</button>
+                <h1 style="margin-bottom: 2rem;">Dati dell'account</h1>
+                <div class="settings-grid">
+                    <div class="form-row" style="display: flex; gap: 1rem;">
+                        <div class="form-group" style="flex: 1;">
+                            <label>Nome Completo</label>
+                            <input type="text" id="edit-name" value="">
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label>Età</label>
+                            <input type="number" id="edit-age" value="">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="edit-email" readonly disabled>
+                    </div>
+
+                    <div style="background: rgba(0, 168, 225, 0.1); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--prime-blue);">
+                        <label class="checkbox-container" style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                            <input type="checkbox" id="edit-is-seller" style="width: 20px; height: 20px;">
+                            <span style="font-weight: 700;">Attiva Account Venditore</span>
+                        </label>
+                        <p style="font-size: 0.85rem; color: var(--text-gray); margin-top: 5px;">Abilita questa opzione per pubblicare e vendere i tuoi giochi su IndiePlay.</p>
+                    </div>
+
+                    <div id="seller-info-fields" class="hidden">
+                        <div class="form-row" style="display: flex; gap: 1rem; margin-top: 1rem;">
+                            <div class="form-group" style="flex: 1;">
+                                <label>Codice Fiscale o Partita IVA</label>
+                                <input type="text" id="edit-piva" placeholder="Codice Fiscale o P.IVA">
+                            </div>
+                            <div class="form-group" style="flex: 1;">
+                                <label>IBAN</label>
+                                <input type="text" id="edit-iban">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="save-profile-btn" class="btn btn-prime" style="width: fit-content; padding: 1rem 3rem;">Salva Modifiche</button>
+                </div>
+            </div>
+
+            <div id="purchases-section" class="hidden">
+                <button class="btn btn-prime-outline mobile-back-btn"><i class="fas fa-arrow-left"></i> Torna al Menu</button>
+                <h1 style="margin-bottom: 2rem;">Storico Acquisti</h1>
+                <div id="purchases-list">
+                    <!-- Purchases populated by JS -->
+                </div>
+            </div>
+
+            <div id="publish-section" class="hidden">
+                <button class="btn btn-prime-outline mobile-back-btn"><i class="fas fa-arrow-left"></i> Torna al Menu</button>
+                <h1 style="margin-bottom: 2rem;">Pubblica un nuovo Gioco</h1>
+                <div class="settings-grid" style="max-width: 800px;">
+                    <div class="form-row" style="display: flex; gap: 1rem;">
+                        <div class="form-group" style="flex: 2;">
+                            <label>Nome del Gioco</label>
+                            <input type="text" id="game-title" placeholder="Es: Cyber Samurai 2">
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label>Prezzo (€)</label>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <input type="number" id="game-price" step="0.01" placeholder="19.99" style="flex: 1;">
+                                <label style="display: flex; align-items: center; gap: 5px; white-space: nowrap; cursor: pointer;">
+                                    <input type="checkbox" id="is-free" style="width: 18px; height: 18px;"> FREE
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row" style="display: flex; gap: 1rem;">
+                        <div class="form-group" style="flex: 1;">
+                            <label>Categoria</label>
+                            <select id="game-category" style="width: 100%; padding: 12px; background: #2a343f; border: 1px solid #3a444f; color: white; border-radius: 4px;">
+                                <option value="Azione">Azione</option>
+                                <option value="Avventura">Avventura</option>
+                                <option value="Picchiaduro">Picchiaduro</option>
+                                <option value="Amiga">Amiga / Retro Amiga</option>
+                                <option value="GDR">GDR / Giochi di Ruolo</option>
+                                <option value="Sparatutto">Sparatutto / FPS</option>
+                                <option value="Platform">Platform</option>
+                                <option value="Puzzle">Puzzle / Rompicapo</option>
+                                <option value="Strategia">Strategia</option>
+                                <option value="Simulazione">Simulazione</option>
+                                <option value="Horror">Horror / Survival</option>
+                                <option value="Corse">Corse e Volo</option>
+                                <option value="Sport">Sport</option>
+                                <option value="Carte">Carte e Deckbuilding</option>
+                                <option value="Roguelike">Roguelike / Roguelite</option>
+                                <option value="Indie">Indie e Casual</option>
+                                <option value="Bambini e Famiglia">Bambini e Famiglia</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label>Modalità di Fruizione</label>
+                            <select id="game-type" style="width: 100%; padding: 12px; background: #2a343f; border: 1px solid #3a444f; color: white; border-radius: 4px;">
+                                <option value="download">Solo Download (File ZIP)</option>
+                                <option value="online">Solo Gioca Online (Cloud URL)</option>
+                                <option value="browser">Solo Browser Game (HTML5 URL)</option>
+                                <option value="both">Download & Gioca Online (Entrambi)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="game-content-download" class="form-group">
+                        <label>Carica il Gioco (Archivio ZIP)</label>
+                        <div class="upload-box" onclick="document.getElementById('game-zip').click()">
+                            <i class="fas fa-file-archive" style="font-size: 1.5rem; margin-bottom: 8px; display: block;"></i>
+                            <span id="zip-name">Seleziona il file .zip del gioco</span>
+                            <input type="file" id="game-zip" hidden accept=".zip">
+                        </div>
+                    </div>
+
+                    <div id="game-content-url" class="form-group hidden">
+                        <label>Link al Gioco (URL Browser/Cloud)</label>
+                        <input type="text" id="game-external-url" placeholder="https://miogioco.com/play" style="width: 100%; padding: 12px; background: #2a343f; border: 1px solid #3a444f; color: white; border-radius: 4px;">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Immagine Header (Carica da computer) o Video YouTube</label>
+                        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                            <div class="upload-box" style="flex: 1; min-width: 250px;" onclick="document.getElementById('header-file').click()">
+                                <i class="fas fa-image" style="font-size: 1.5rem; margin-bottom: 8px; display: block;"></i>
+                                <span>Carica Immagine Header</span>
+                                <input type="file" id="header-file" hidden accept="image/*">
+                            </div>
+                            <div style="flex: 1; min-width: 250px; background: rgba(255,255,255,0.05); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
+                                <label style="font-size: 0.8rem; margin-bottom: 8px; display: block;">Link Video YouTube</label>
+                                <input type="text" id="game-header-yt" placeholder="https://www.youtube.com/watch?v=..." style="width: 100%; padding: 10px; background: #1a242f; border: 1px solid #3a444f; color: white; border-radius: 4px;">
+                                <p style="font-size: 0.75rem; color: var(--text-gray); margin-top: 5px;">Verrà usato il video come sfondo dell'header.</p>
+                            </div>
+                        </div>
+                        <div id="header-preview" class="preview-item hidden" style="width: 300px; margin-top: 1rem;"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Galleria Media (Caricamento Multiplo e YouTube)</label>
+                        <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
+                            <div class="upload-box" style="flex: 1; min-width: 250px;" onclick="document.getElementById('gallery-files').click()">
+                                <i class="fas fa-images" style="font-size: 1.5rem; margin-bottom: 8px; display: block;"></i>
+                                <span>Carica Foto da Computer</span>
+                                <input type="file" id="gallery-files" hidden multiple accept="image/*">
+                            </div>
+                            <div style="flex: 1; min-width: 250px; background: rgba(255,255,255,0.05); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
+                                <label style="font-size: 0.8rem; margin-bottom: 8px; display: block;">Aggiungi Video YouTube</label>
+                                <div style="display: flex; gap: 10px;">
+                                    <input type="text" id="game-gallery-yt" placeholder="URL YouTube" style="flex: 1; padding: 10px; background: #1a242f; border: 1px solid #3a444f; color: white; border-radius: 4px;">
+                                    <button class="btn btn-prime-outline" id="add-yt-gallery" style="padding: 0 1rem;">Aggiungi</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="gallery-previews" class="gallery-preview-container"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Merchandising Correlato (Nome e URL Immagine)</label>
+                        <textarea id="game-merch" rows="2" style="width: 100%; padding: 12px; background: #2a343f; border: 1px solid #3a444f; color: white; border-radius: 4px;" placeholder="Es: T-shirt Ufficiale, https://esempio.com/tshirt.png"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Descrizione Completa</label>
+                        <textarea id="game-desc" rows="5" style="width: 100%; padding: 12px; background: #2a343f; border: 1px solid #3a444f; color: white; border-radius: 4px;" placeholder="Descrivi il tuo gioco nei dettagli..."></textarea>
+                    </div>
+
+                    <button id="publish-game-btn" class="btn btn-prime" style="width: fit-content; padding: 1rem 3rem;">Invia per la Pubblicazione</button>
+                </div>
+            </div>
+
+            <div id="dashboard-section" class="hidden">
+                <button class="btn btn-prime-outline mobile-back-btn"><i class="fas fa-arrow-left"></i> Torna al Menu</button>
+                <h1 style="margin-bottom: 2rem;">Dashboard Vendite</h1>
+                
+                <!-- Stat Cards Grid -->
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 3rem;">
+                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 1.5rem; border-radius: 12px;">
+                        <span style="font-size: 0.85rem; color: var(--text-gray); font-weight: 700; text-transform: uppercase;">Ricavi Totali</span>
+                        <h2 id="db-total-revenue" style="font-size: 2.2rem; font-weight: 900; color: #00ff80; margin: 10px 0 5px;">€0.00</h2>
+                        <span style="font-size: 0.8rem; color: var(--text-gray);"><i class="fas fa-arrow-up" style="color: #00ff80;"></i> +12% rispetto al mese scorso</span>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 1.5rem; border-radius: 12px;">
+                        <span style="font-size: 0.85rem; color: var(--text-gray); font-weight: 700; text-transform: uppercase;">Copie Vendute</span>
+                        <h2 id="db-total-sales" style="font-size: 2.2rem; font-weight: 900; color: var(--prime-blue); margin: 10px 0 5px;">0</h2>
+                        <span style="font-size: 0.8rem; color: var(--text-gray);"><i class="fas fa-arrow-up" style="color: var(--prime-blue);"></i> +8% copie vendute</span>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 1.5rem; border-radius: 12px;">
+                        <span style="font-size: 0.85rem; color: var(--text-gray); font-weight: 700; text-transform: uppercase;">Download Totali</span>
+                        <h2 id="db-total-downloads" style="font-size: 2.2rem; font-weight: 900; color: #ffbb00; margin: 10px 0 5px;">0</h2>
+                        <span style="font-size: 0.8rem; color: var(--text-gray);"><i class="fas fa-arrow-up" style="color: #ffbb00;"></i> +15% download di gioco</span>
+                    </div>
+                </div>
+
+                <!-- Charts and Details Grid -->
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; margin-bottom: 3rem;">
+                    <!-- Sales Trend Chart Container -->
+                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 2rem; border-radius: 12px;">
+                        <h3 style="font-size: 1.2rem; color: white; margin-bottom: 1.5rem; font-weight: 800;">Andamento Mensile delle Vendite</h3>
+                        
+                        <!-- Visual bar chart in CSS/HTML -->
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end; height: 200px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 10px;">
+                            <div style="display: flex; flex-direction: column; align-items: center; width: 12%;">
+                                <div style="width: 100%; height: 35%; background: var(--prime-blue); border-radius: 4px 4px 0 0; transition: height 0.5s ease;"></div>
+                            </div>
+                            <div style="display: flex; flex-direction: column; align-items: center; width: 12%;">
+                                <div style="width: 100%; height: 55%; background: var(--prime-blue); border-radius: 4px 4px 0 0; transition: height 0.5s ease;"></div>
+                            </div>
+                            <div style="display: flex; flex-direction: column; align-items: center; width: 12%;">
+                                <div style="width: 100%; height: 45%; background: var(--prime-blue); border-radius: 4px 4px 0 0; transition: height 0.5s ease;"></div>
+                            </div>
+                            <div style="display: flex; flex-direction: column; align-items: center; width: 12%;">
+                                <div style="width: 100%; height: 75%; background: var(--prime-blue); border-radius: 4px 4px 0 0; transition: height 0.5s ease;"></div>
+                            </div>
+                            <div style="display: flex; flex-direction: column; align-items: center; width: 12%;">
+                                <div style="width: 100%; height: 90%; background: #00ff80; border-radius: 4px 4px 0 0; transition: height 0.5s ease;"></div>
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; color: var(--text-gray); font-size: 0.8rem;">
+                            <div style="width: 12%; text-align: center;">Feb</div>
+                            <div style="width: 12%; text-align: center;">Mar</div>
+                            <div style="width: 12%; text-align: center;">Apr</div>
+                            <div style="width: 12%; text-align: center;">Mag</div>
+                            <div style="width: 12%; text-align: center;">Giu</div>
+                        </div>
+                    </div>
+
+                    <!-- Single Game Metrics Container -->
+                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 2rem; border-radius: 12px; display: flex; flex-direction: column; gap: 1.5rem;">
+                        <h3 style="font-size: 1.2rem; color: white; font-weight: 800; margin-bottom: 0.5rem;">Performance Giochi</h3>
+                        <div id="dashboard-games-list" style="display: flex; flex-direction: column; gap: 1.5rem;">
+                            <!-- Performance rows per game dynamically loaded -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="my-games-section" class="hidden">
+                <button class="btn btn-prime-outline mobile-back-btn"><i class="fas fa-arrow-left"></i> Torna al Menu</button>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h1 style="margin: 0;">I miei Giochi in Vendita</h1>
+                    <button class="btn btn-prime-outline" onclick="document.getElementById('show-publish').click()" style="padding: 0.6rem 1.2rem;">
+                        <i class="fas fa-plus"></i> Pubblica un nuovo Gioco
+                    </button>
+                </div>
+                <div id="my-games-list" style="text-align: center; padding: 4rem 2rem; background: rgba(255,255,255,0.03); border-radius: 12px; border: 2px dashed rgba(255,255,255,0.1);">
+                    <i class="fas fa-gamepad" style="font-size: 3rem; color: rgba(255,255,255,0.1); margin-bottom: 1.5rem;"></i>
+                    <p style="color: var(--text-gray); font-size: 1.1rem; margin-bottom: 2rem;">Non hai ancora pubblicato nessun gioco su IndiePlay.</p>
+                    <button id="add-game-cta" class="btn btn-prime">Pubblica il tuo primo gioco</button>
+                </div>
+            </div>
+
+            <div id="onboarding-section" class="hidden">
+                <button class="btn btn-prime-outline mobile-back-btn"><i class="fas fa-arrow-left"></i> Torna al Menu</button>
+                <h1 style="margin-bottom: 1.5rem;">Diventa un Venditore su IndiePlay</h1>
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 2.5rem; max-width: 700px; text-align: left;">
+                    <i class="fas fa-rocket" style="font-size: 3rem; color: var(--prime-blue); margin-bottom: 1.5rem; display: block;"></i>
+                    <h2 style="font-size: 1.5rem; font-weight: 800; color: white; margin-bottom: 1rem;">Pubblica, Vendi e Monitora i tuoi Giochi</h2>
+                    <p style="color: var(--text-gray); line-height: 1.6; margin-bottom: 1.5rem;">
+                        Unisciti alla community di sviluppatori indipendenti di IndiePlay! Registrandoti come venditore, potrai caricare i tuoi titoli in formato ZIP, impostare prezzi personalizzati, monitorare le metriche di download e guadagno tramite una dashboard avanzata.
+                    </p>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
+                        <div style="display: flex; gap: 10px;">
+                            <i class="fas fa-percent" style="color: var(--prime-blue); font-size: 1.2rem; margin-top: 3px;"></i>
+                            <div>
+                                <h4 style="color: white; margin-bottom: 4px;">Zero Costi Iniziali</h4>
+                                <p style="font-size: 0.85rem; color: var(--text-gray);">Pubblica i tuoi giochi gratuitamente e paga solo una piccola commissione sul venduto.</p>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <i class="fas fa-chart-line" style="color: var(--prime-blue); font-size: 1.2rem; margin-top: 3px;"></i>
+                            <div>
+                                <h4 style="color: white; margin-bottom: 4px;">Statistiche Dettagliate</h4>
+                                <p style="font-size: 0.85rem; color: var(--text-gray);">Visualizza grafici dettagliati per download, ricavi e trend di vendita storici.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <button id="activate-seller-btn" class="btn btn-prime" style="padding: 1rem 2rem; font-size: 1rem;">Diventa Venditore Ora</button>
+                </div>
+            </div>
+
+            <div id="payments-section" class="hidden">
+                <button class="btn btn-prime-outline mobile-back-btn"><i class="fas fa-arrow-left"></i> Torna al Menu</button>
+                <h1 style="margin-bottom: 2rem;">Metodi di Pagamento</h1>
+                <div class="settings-grid">
+                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <i class="fab fa-cc-visa" style="font-size: 2rem; color: #1a73e8;"></i>
+                                <div>
+                                    <div style="font-weight: 700; color: white;">Visa terminante in 4242</div>
+                                    <div style="font-size: 0.85rem; color: var(--text-gray);">Scadenza 12/28</div>
+                                </div>
+                            </div>
+                            <span style="font-size: 0.75rem; background: rgba(0,168,225,0.15); color: var(--prime-blue); padding: 2px 8px; border-radius: 20px; font-weight: 700;">Predefinito</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-prime-outline" style="width: 100%;"><i class="fas fa-plus"></i> Aggiungi un nuovo metodo di pagamento</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Privacy Policy Modal -->
+    <div id="privacy-modal" class="lightbox" style="display: none; justify-content: center; align-items: center; z-index: 2200;">
+        <div class="modal-content glass" style="background: rgba(26, 36, 47, 0.98); border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; padding: 2.5rem; max-width: 680px; width: 90%; color: white; position: relative; backdrop-filter: blur(25px); box-shadow: 0 20px 50px rgba(0,0,0,0.7); max-height: 85vh; display: flex; flex-direction: column;">
+            <span class="close-lightbox" id="close-privacy" style="position: absolute; top: 1rem; right: 1.5rem; font-size: 2.5rem; cursor: pointer; color: var(--text-gray);">&times;</span>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 1.2rem;">
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(0, 168, 225, 0.15); border: 1px solid rgba(0, 168, 225, 0.4); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i class="fas fa-user-shield" style="color: var(--prime-blue); font-size: 1.4rem;"></i>
+                </div>
+                <div>
+                    <h2 style="font-size: 1.5rem; font-weight: 800; margin: 0; color: white;">Informativa sulla Privacy (GDPR)</h2>
+                    <span style="font-size: 0.8rem; color: var(--text-gray);">Ai sensi del Regolamento UE 2016/679 (GDPR)</span>
+                </div>
+            </div>
+
+            <div style="overflow-y: auto; padding-right: 10px; font-size: 0.9rem; line-height: 1.6; color: #d0dbe5; flex: 1;">
+                <h4 style="color: white; margin: 1rem 0 0.4rem;">1. Titolare del Trattamento</h4>
+                <p>Il Titolare del trattamento dei dati è <strong>IndiePlay</strong>. Per qualsiasi richiesta relativa alla protezione dei dati puoi contattarci all'indirizzo email: <a href="mailto:privacy@indieplay.it" style="color: var(--prime-blue);">privacy@indieplay.it</a>.</p>
+
+                <h4 style="color: white; margin: 1rem 0 0.4rem;">2. Dati Raccolti</h4>
+                <p>Raccogliamo i seguenti dati personali al fine di erogare i nostri servizi:</p>
+                <ul style="margin-left: 1.2rem; margin-bottom: 0.5rem; list-style-type: disc;">
+                    <li><strong>Dati di Registrazione:</strong> Indirizzo email, nome, cognome ed eventuale foto del profilo.</li>
+                    <li><strong>Dati di Fatturazione Venditori:</strong> Codice Fiscale / Partita IVA e coordinate bancarie (IBAN) necessarie per l'accredito dei ricavi dalle vendite dei giochi.</li>
+                    <li><strong>Dati di Utilizzo & Libreria:</strong> Cronologia degli acquisti, giochi aggiunti alla libreria, download effettuati e recensioni pubblicate.</li>
+                </ul>
+
+                <h4 style="color: white; margin: 1rem 0 0.4rem;">3. Finalità del Trattamento</h4>
+                <p>I dati vengono trattati esclusivamente per consentire l'accesso alla piattaforma, la gestione degli acquisti, il download sicuro dei giochi indie, la pubblicazione di contenuti e l'adempimento degli obblighi legali e fiscali.</p>
+
+                <h4 style="color: white; margin: 1rem 0 0.4rem;">4. Conservazione e Sicurezza</h4>
+                <p>I dati sono archiviati su infrastrutture cloud conformi agli standard internazionali di sicurezza con crittografia e protocolli TLS/HTTPS. I dati non vengono ceduti a terze parti per finalità di marketing.</p>
+
+                <h4 style="color: white; margin: 1rem 0 0.4rem;">5. Diritti dell'Utente (Artt. 15-22 GDPR)</h4>
+                <p>Hai il diritto di richiedere in qualsiasi momento l'accesso, la rettifica, la cancellazione (diritto all'oblio), la limitazione del trattamento o la portabilità dei tuoi dati personali scrivendo a <a href="mailto:privacy@indieplay.it" style="color: var(--prime-blue);">privacy@indieplay.it</a>.</p>
+            </div>
+
+            <div style="margin-top: 1.5rem; text-align: right;">
+                <button type="button" id="confirm-privacy-btn" class="btn btn-prime" style="padding: 0.7rem 2rem;">Chiudi</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cookie Policy Modal -->
+    <div id="cookie-modal" class="lightbox" style="display: none; justify-content: center; align-items: center; z-index: 2200;">
+        <div class="modal-content glass" style="background: rgba(26, 36, 47, 0.98); border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; padding: 2.5rem; max-width: 680px; width: 90%; color: white; position: relative; backdrop-filter: blur(25px); box-shadow: 0 20px 50px rgba(0,0,0,0.7); max-height: 85vh; display: flex; flex-direction: column;">
+            <span class="close-lightbox" id="close-cookie" style="position: absolute; top: 1rem; right: 1.5rem; font-size: 2.5rem; cursor: pointer; color: var(--text-gray);">&times;</span>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 1.2rem;">
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(0, 255, 128, 0.15); border: 1px solid rgba(0, 255, 128, 0.4); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i class="fas fa-cookie-bite" style="color: #00ff80; font-size: 1.4rem;"></i>
+                </div>
+                <div>
+                    <h2 style="font-size: 1.5rem; font-weight: 800; margin: 0; color: white;">Informativa sui Cookie</h2>
+                    <span style="font-size: 0.8rem; color: var(--text-gray);">Uso dei cookie e tecnologie di tracciamento</span>
+                </div>
+            </div>
+
+            <div style="overflow-y: auto; padding-right: 10px; font-size: 0.9rem; line-height: 1.6; color: #d0dbe5; flex: 1;">
+                <h4 style="color: white; margin: 1rem 0 0.4rem;">1. Cosa sono i Cookie?</h4>
+                <p>I cookie sono piccoli file di testo che i siti salvano sul tuo dispositivo durante la navigazione. Sono utilizzati per garantire il corretto funzionamento delle sessioni e migliorare l'esperienza utente.</p>
+
+                <h4 style="color: white; margin: 1rem 0 0.4rem;">2. Cookie Utilizzati da IndiePlay</h4>
+                <ul style="margin-left: 1.2rem; margin-bottom: 0.5rem; list-style-type: disc;">
+                    <li><strong>Cookie Tecnici e di Sessione (Strettamente Necessari):</strong> Gestiti tramite Firebase Auth e LocalStorage per mantenere sicuro il login, identificare l'utente verificato e consentire il download dei giochi acquistati.</li>
+                    <li><strong>Cookie di Funzionalità e Preferenze:</strong> Utilizzati per ricordare le scelte di navigazione, filtri di ricerca e la lingua dell'interfaccia.</li>
+                    <li><strong>Cookie di Terze Parti (YouTube & Media):</strong> Utilizzati nei video trailer dei giochi incorporati via YouTube / Google per consentire lo streaming multimediale.</li>
+                </ul>
+
+                <h4 style="color: white; margin: 1rem 0 0.4rem;">3. Come Gestire o Disabilitare i Cookie</h4>
+                <p>Puoi gestire le preferenze sui cookie o bloccarli direttamente dalle impostazioni del tuo browser web (Chrome, Firefox, Safari, Edge). La disattivazione dei cookie tecnici potrebbe compromettere il corretto funzionamento del login e del download dei giochi.</p>
+            </div>
+
+            <div style="margin-top: 1.5rem; text-align: right;">
+                <button type="button" id="confirm-cookie-btn" class="btn btn-prime" style="padding: 0.7rem 2rem;">Chiudi</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="prime-footer">
+        <div class="footer-logo">
+            <span style="color: white; font-weight: 900; font-size: 1.5rem; letter-spacing: -1px;">INDIE<span style="color: var(--prime-blue);">PLAY</span></span>
+        </div>
+        <div class="footer-links">
+            <a href="javascript:void(0)" class="open-privacy-link">Termini e informativa sulla privacy</a>
+            <a href="javascript:void(0)" class="open-cookie-link">Informativa sui cookie</a>
+            <a href="mailto:support@indieplay.it">Inviaci un feedback</a>
+            <a href="mailto:support@indieplay.it">Aiuto</a>
+        </div>
+        <div class="footer-legal">
+            © 2026 IndiePlay v2.4. Tutti i diritti riservati.
+        </div>
+    </footer>
+
+    <script type="module">
+        import { subscribeToAuthChanges } from './src/auth';
+        import { db, auth, storage } from './src/firebase';
+        import { doc, getDoc, updateDoc, deleteDoc, addDoc, setDoc, collection, query, where, getDocs, orderBy } from "firebase/firestore";
+        import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+
+        // DOM Elements
+        const profileName = document.getElementById('profile-name');
+        const profileEmail = document.getElementById('profile-email');
+        const editName = document.getElementById('edit-name');
+        const editEmail = document.getElementById('edit-email');
+        const editAge = document.getElementById('edit-age');
+        const saveBtn = document.getElementById('save-profile-btn');
+        const editIsSeller = document.getElementById('edit-is-seller');
+        const sellerInfoFields = document.getElementById('seller-info-fields');
+        const editPiva = document.getElementById('edit-piva');
+        const editIban = document.getElementById('edit-iban');
+        
+        const showProfileBtn = document.getElementById('show-profile');
+        const showPurchasesBtn = document.getElementById('show-purchases');
+        const showMyGamesBtn = document.getElementById('show-my-games');
+        const showPublishBtn = document.getElementById('show-publish');
+        const showPaymentsBtn = document.getElementById('show-payments');
+        const showDashboardBtn = document.getElementById('show-dashboard');
+
+        const profileSection = document.getElementById('profile-section');
+        const purchasesSection = document.getElementById('purchases-section');
+        const publishSection = document.getElementById('publish-section');
+        const myGamesSection = document.getElementById('my-games-section');
+        const myGamesList = document.getElementById('my-games-list');
+        const paymentsSection = document.getElementById('payments-section');
+        const onboardingSection = document.getElementById('onboarding-section');
+        const activateSellerBtn = document.getElementById('activate-seller-btn');
+        const dashboardSection = document.getElementById('dashboard-section');
+
+        const sellerNavItem = document.getElementById('seller-nav-item');
+        const publishNavItem = document.getElementById('publish-nav-item');
+        const dashboardNavItem = document.getElementById('dashboard-nav-item');
+
+        const publishGameBtn = document.getElementById('publish-game-btn');
+        const addGameCta = document.getElementById('add-game-cta');
+        const upload = document.getElementById('profile-upload');
+        const display = document.getElementById('profile-img-display');
+
+        let currentUser = null;
+        let currentUserData = null;
+        let profileImageBase64 = null;
+        let editingGameId = null;
+
+
+
+        // Utility to automatically scale down and compress any image (File, Blob, or Base64)
+        async function compressAndScaleImage(input, maxWidth = 1000, maxHeight = 800, quality = 0.75) {
+            return new Promise((resolve, reject) => {
+                const processDataUrl = (dataUrl) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > maxWidth || height > maxHeight) {
+                            if (width / maxWidth > height / maxHeight) {
+                                height = Math.round((height * maxWidth) / width);
+                                width = maxWidth;
+                            } else {
+                                width = Math.round((width * maxHeight) / height);
+                                height = maxHeight;
+                            }
+                        }
+
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        const compressed = canvas.toDataURL('image/jpeg', quality);
+                        resolve(compressed);
+                    };
+                    img.onerror = (err) => {
+                        console.error('Image load error for compression:', err);
+                        resolve(dataUrl); // Fallback to original if canvas fails
+                    };
+                    img.src = dataUrl;
+                };
+
+                if (input instanceof File || input instanceof Blob) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => processDataUrl(e.target.result);
+                    reader.onerror = (e) => reject(e);
+                    reader.readAsDataURL(input);
+                } else if (typeof input === 'string') {
+                    processDataUrl(input);
+                } else {
+                    reject(new Error('Formato immagine non supportato'));
+                }
+            });
+        }
+        const compressImage = compressAndScaleImage; // Backward compatibility alias
+
+        // Load User Library (Games they "added" or "bought")
+        async function loadUserLibrary(uid) {
+            const purchasesList = document.getElementById('purchases-list');
+            purchasesList.innerHTML = '<p>Caricamento libreria...</p>';
+            
+            try {
+                const q = query(collection(db, "users", uid, "library"), orderBy("addedAt", "desc"));
+                const snap = await getDocs(q);
+                
+                if (snap.empty) {
+                    purchasesList.innerHTML = '<p style="color: var(--text-gray);">La tua libreria è vuota. Aggiungi dei giochi dallo store!</p>';
+                    return;
+                }
+
+                purchasesList.innerHTML = '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.5rem;"></div>';
+                const grid = purchasesList.querySelector('div');
+                const seenGames = new Set();
+
+                snap.forEach(doc => {
+                    const data = doc.data();
+                    if (seenGames.has(data.gameId)) return; // Skip duplicates
+                    seenGames.add(data.gameId);
+
+                    const card = document.createElement('div');
+                    card.className = 'game-card';
+                    card.style.cursor = 'pointer';
+                    card.onclick = () => {
+                        window.location.href = window.location.origin + '/game.html?id=' + data.gameId;
+                    };
+                    card.innerHTML = `
+                        <img src="${data.imageUrl || '/images/placeholder.png'}" alt="${data.title}" style="width: 100%; height: 250px; object-fit: cover; border-radius: 8px;">
+                        <div style="padding: 10px;">
+                            <h3 style="font-size: 1rem; color: white;">${data.title}</h3>
+                            <span style="font-size: 0.8rem; color: var(--prime-blue);">Aggiunto il ${data.addedAt?.toDate().toLocaleDateString()}</span>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+            } catch (err) {
+                console.error("Library load error:", err);
+                purchasesList.innerHTML = '<p>Errore nel caricamento della libreria.</p>';
+            }
+        }
+
+        // Load Seller Published Games
+        const loadSellerGames = (uid) => {
+            if (typeof loadMyGames === 'function') {
+                loadMyGames();
+            }
+        };
+
+
+
+        // Section Toggling
+        const hideAllSections = () => {
+            profileSection.classList.add('hidden');
+            purchasesSection.classList.add('hidden');
+            publishSection.classList.add('hidden');
+            myGamesSection.classList.add('hidden');
+            paymentsSection.classList.add('hidden');
+            onboardingSection.classList.add('hidden');
+            dashboardSection.classList.add('hidden');
+            
+            showProfileBtn.classList.remove('active');
+            showPurchasesBtn.classList.remove('active');
+            showMyGamesBtn.classList.remove('active');
+            showPublishBtn.classList.remove('active');
+            showPaymentsBtn.classList.remove('active');
+            showDashboardBtn.classList.remove('active');
+        };
+
+        // Mobile back buttons setup
+        document.querySelectorAll('.mobile-back-btn').forEach(btn => {
+            btn.onclick = (e) => {
+                e.preventDefault();
+                hideAllSections();
+            };
+        });
+
+        // Hide all sections on mobile load so they see sidebar first
+        if (window.innerWidth <= 900) {
+            hideAllSections();
+        }
+
+        const resetPublishForm = () => {
+            editingGameId = null;
+            const heading = document.querySelector('#publish-section h1');
+            if (heading) heading.innerText = 'Pubblica un nuovo Gioco';
+            publishGameBtn.innerText = 'Invia per la Pubblicazione';
+            headerData = null;
+            galleryData = [];
+            headerPreview.innerHTML = '';
+            headerPreview.classList.add('hidden');
+            galleryPreviews.innerHTML = '';
+            zipName.innerText = 'Seleziona il file .zip del gioco';
+            gameZip.value = '';
+            const publishInputs = document.querySelectorAll('#publish-section input, #publish-section textarea');
+            publishInputs.forEach(input => {
+                if (input.type === 'checkbox') input.checked = false;
+                else input.value = '';
+            });
+        };
+
+        const startEditingGame = async (id) => {
+            try {
+                showToast('Caricamento dati gioco...', 'info');
+                const gameSnap = await getDoc(doc(db, "games", id));
+                if (!gameSnap.exists()) {
+                    showToast('Gioco non trovato!', 'error');
+                    return;
+                }
+                const game = gameSnap.data();
+                if (game.sellerId && currentUser && game.sellerId !== currentUser.uid) {
+                    showToast('Non sei autorizzato a modificare questo gioco!', 'error');
+                    return;
+                }
+                editingGameId = id;
+
+                // Update form title and button text
+                const heading = document.querySelector('#publish-section h1');
+                if (heading) heading.innerText = 'Modifica il tuo Gioco';
+                publishGameBtn.innerText = 'Salva Modifiche Gioco';
+
+                // Pre-fill inputs
+                document.getElementById('game-title').value = game.title || '';
+                document.getElementById('game-price').value = game.price === 'FREE' ? '' : (game.price || '');
+                document.getElementById('is-free').checked = (game.price === 'FREE');
+                document.getElementById('game-desc').value = game.desc || '';
+                document.getElementById('game-category').value = game.category || 'Azione';
+                document.getElementById('game-type').value = game.type || 'download';
+                document.getElementById('game-merch').value = game.merch || '';
+
+                // Handle game content URL & ZIP
+                if (game.type === 'download') {
+                    contentDownload.classList.remove('hidden');
+                    contentUrl.classList.add('hidden');
+                    zipName.innerText = game.content ? `File precedentemente caricato: ${game.content}` : 'Seleziona il file .zip del gioco';
+                    gameExternalUrl.value = '';
+                } else if (game.type === 'online' || game.type === 'browser') {
+                    contentDownload.classList.add('hidden');
+                    contentUrl.classList.remove('hidden');
+                    zipName.innerText = 'Seleziona il file .zip del gioco';
+                    gameExternalUrl.value = game.onlineUrl || game.content || '';
+                } else if (game.type === 'both') {
+                    contentDownload.classList.remove('hidden');
+                    contentUrl.classList.remove('hidden');
+                    const existingZip = (game.content && !game.content.startsWith('http')) ? game.content : (game.downloadUrl || '');
+                    zipName.innerText = existingZip ? `File precedentemente caricato: ${existingZip}` : 'Seleziona il file .zip del gioco';
+                    gameExternalUrl.value = game.onlineUrl || (game.content && game.content.startsWith('http') ? game.content : '');
+                }
+
+                // Handle header preview
+                headerData = game.header || null;
+                if (headerData) {
+                    if (headerData.type === 'image') {
+                        headerPreview.innerHTML = `<img src="${headerData.src}">`;
+                    } else if (headerData.type === 'youtube') {
+                        headerPreview.innerHTML = `<iframe src="${headerData.src}" style="width: 100%; height: 100%; border: none;"></iframe>`;
+                    }
+                    headerPreview.classList.remove('hidden');
+                } else {
+                    headerPreview.innerHTML = '';
+                    headerPreview.classList.add('hidden');
+                }
+
+                // Handle gallery preview
+                galleryData = game.gallery || [];
+                renderGallery();
+
+                // Show section
+                hideAllSections();
+                publishSection.classList.remove('hidden');
+                showPublishBtn.classList.add('active');
+            } catch (err) {
+                showToast('Errore nel caricamento del gioco: ' + err.message, 'error');
+            }
+        };
+
+        async function loadDashboardMetrics() {
+            const listEl = document.getElementById('dashboard-games-list');
+            listEl.innerHTML = '<p>Caricamento statistiche...</p>';
+            
+            try {
+                const q = query(collection(db, "games"), where("sellerId", "==", currentUser.uid));
+                const snap = await getDocs(q);
+                
+                let totalRevenue = 0;
+                let totalSales = 0;
+                let totalDownloads = 0;
+                
+                listEl.innerHTML = '';
+                
+                if (snap.empty) {
+                    listEl.innerHTML = '<p style="color: var(--text-gray); font-size: 0.9rem;">Nessun gioco pubblicato.</p>';
+                    document.getElementById('db-total-revenue').innerText = '€0.00';
+                    document.getElementById('db-total-sales').innerText = '0';
+                    document.getElementById('db-total-downloads').innerText = '0';
+                    return;
+                }
+                
+                snap.forEach(doc => {
+                    const game = doc.data();
+                    const gameId = doc.id;
+                    const price = game.price === 'FREE' ? 0 : parseFloat(game.price || 0);
+                    
+                    // Generate stable deterministic metrics based on game ID
+                    let seed = 0;
+                    for (let i = 0; i < gameId.length; i++) {
+                        seed += gameId.charCodeAt(i);
+                    }
+                    
+                    const downloads = (seed % 180) + 15;
+                    const sales = price === 0 ? 0 : (seed % 90) + 5;
+                    const revenue = sales * price;
+                    
+                    totalDownloads += downloads;
+                    totalSales += sales;
+                    totalRevenue += revenue;
+                    
+                    const row = document.createElement('div');
+                    row.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+                    row.style.paddingBottom = '10px';
+                    row.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <span style="font-weight: 700; color: white;">${game.title}</span>
+                            <span style="color: #00ff80; font-weight: 700;">€${revenue.toFixed(2)}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-gray);">
+                            <span>${sales} copie vendute</span>
+                            <span>${downloads} download</span>
+                        </div>
+                    `;
+                    listEl.appendChild(row);
+                });
+                
+                document.getElementById('db-total-revenue').innerText = `€${totalRevenue.toFixed(2)}`;
+                document.getElementById('db-total-sales').innerText = totalSales;
+                document.getElementById('db-total-downloads').innerText = totalDownloads;
+            } catch (err) {
+                console.error("Dashboard metrics load error:", err);
+                listEl.innerHTML = '<p>Errore nel caricamento delle metriche.</p>';
+            }
+        }
+
+        showDashboardBtn.onclick = (e) => {
+            e.preventDefault();
+            hideAllSections();
+            if (currentUserData && currentUserData.isSeller) {
+                dashboardSection.classList.remove('hidden');
+                showDashboardBtn.classList.add('active');
+                loadDashboardMetrics();
+            } else {
+                onboardingSection.classList.remove('hidden');
+            }
+        };
+
+        showProfileBtn.onclick = (e) => { e.preventDefault(); hideAllSections(); profileSection.classList.remove('hidden'); showProfileBtn.classList.add('active'); };
+        showPurchasesBtn.onclick = (e) => { e.preventDefault(); hideAllSections(); purchasesSection.classList.remove('hidden'); showPurchasesBtn.classList.add('active'); };
+        
+        showMyGamesBtn.onclick = (e) => { 
+            if (e && e.preventDefault) e.preventDefault(); 
+            hideAllSections(); 
+            if (currentUserData && currentUserData.isSeller) {
+                myGamesSection.classList.remove('hidden'); 
+                showMyGamesBtn.classList.add('active'); 
+                loadMyGames();
+            } else {
+                onboardingSection.classList.remove('hidden');
+                showMyGamesBtn.classList.add('active');
+            }
+        };
+
+        showPublishBtn.onclick = (e) => { 
+            e.preventDefault(); 
+            resetPublishForm();
+            hideAllSections(); 
+            if (currentUserData && currentUserData.isSeller) {
+                publishSection.classList.remove('hidden'); 
+                showPublishBtn.classList.add('active'); 
+            } else {
+                onboardingSection.classList.remove('hidden');
+            }
+        };
+        
+        showPaymentsBtn.onclick = (e) => {
+            e.preventDefault();
+            hideAllSections();
+            paymentsSection.classList.remove('hidden');
+            showPaymentsBtn.classList.add('active');
+        };
+
+        addGameCta.onclick = (e) => { 
+            e.preventDefault(); 
+            resetPublishForm();
+            hideAllSections(); 
+            if (currentUserData && currentUserData.isSeller) {
+                publishSection.classList.remove('hidden'); 
+                showPublishBtn.classList.add('active'); 
+            } else {
+                onboardingSection.classList.remove('hidden');
+            }
+        };
+
+        activateSellerBtn.onclick = async (e) => {
+            e.preventDefault();
+            if (!currentUser) return;
+            activateSellerBtn.disabled = true;
+            activateSellerBtn.innerText = 'Attivazione in corso...';
+            try {
+                // Update Firestore user document
+                await updateDoc(doc(db, "users", currentUser.uid), {
+                    isSeller: true,
+                    role: 'seller'
+                });
+                showToast('Profilo Venditore attivato! Completa i tuoi dati bancari.', 'success');
+                
+                // Update local data state
+                if (currentUserData) {
+                    currentUserData.isSeller = true;
+                    currentUserData.role = 'seller';
+                }
+                editIsSeller.checked = true;
+                sellerInfoFields.classList.remove('hidden');
+                sellerNavItem.classList.remove('hidden');
+                publishNavItem.classList.remove('hidden');
+                dashboardNavItem.classList.remove('hidden');
+                
+                // Show publish section
+                hideAllSections();
+                publishSection.classList.remove('hidden');
+                showPublishBtn.classList.add('active');
+            } catch (err) {
+                showToast('Errore durante l\'attivazione: ' + err.message, 'error');
+            } finally {
+                activateSellerBtn.disabled = false;
+                activateSellerBtn.innerText = 'Diventa Venditore Ora';
+            }
+        };
+
+        // Seller Toggle Logic
+        editIsSeller.onchange = () => {
+            if (editIsSeller.checked) {
+                sellerInfoFields.classList.remove('hidden');
+            } else {
+                sellerInfoFields.classList.add('hidden');
+            }
+        };
+
+        // Load My Games
+        const loadMyGames = async () => {
+            if (!currentUser) return;
+            myGamesList.innerHTML = '<p style="color: var(--text-gray);">Caricamento giochi...</p>';
+            
+            try {
+                const q = query(collection(db, "games"), where("sellerId", "==", currentUser.uid));
+                const querySnapshot = await getDocs(q);
+                
+                if (querySnapshot.empty) {
+                    myGamesList.innerHTML = `
+                        <div style="text-align: center; padding: 4rem 2rem; background: rgba(255,255,255,0.03); border-radius: 12px; border: 2px dashed rgba(255,255,255,0.1);">
+                            <i class="fas fa-gamepad" style="font-size: 3rem; color: rgba(255,255,255,0.1); margin-bottom: 1.5rem;"></i>
+                            <p style="color: var(--text-gray); font-size: 1.1rem; margin-bottom: 2rem;">Non hai ancora pubblicato nessun gioco su IndiePlay.</p>
+                            <button onclick="document.getElementById('show-publish').click()" class="btn btn-prime">Pubblica il tuo primo gioco</button>
+                        </div>
+                    `;
+                    return;
+                }
+
+                myGamesList.innerHTML = '';
+                querySnapshot.forEach((doc) => {
+                    const game = doc.data();
+                    const card = document.createElement('div');
+                    card.className = 'purchase-item';
+                    card.style.background = 'rgba(255,255,255,0.05)';
+                    card.style.padding = '1rem';
+                    card.style.borderRadius = '8px';
+                    card.style.marginBottom = '1rem';
+                    
+                    const headerSrc = (game.header && game.header.type === 'image') ? game.header.src : (game.gallery && game.gallery[0] ? game.gallery[0].src : '/images/placeholder.png');
+
+                    card.innerHTML = `
+                        <img src="${headerSrc}" class="purchase-img" style="width: 150px; height: 85px; object-fit: cover; border-radius: 4px;">
+                        <div class="purchase-info">
+                            <h3 style="color: white; margin-bottom: 5px;">${game.title}</h3>
+                            <p style="color: var(--text-gray); font-size: 0.9rem;">Categoria: ${game.category} | Stato: <span style="color: #44ff44;">Pubblicato</span></p>
+                            <p style="color: var(--prime-blue); font-weight: 700; margin-top: 5px;">${game.price === 'FREE' ? 'GRATIS' : '€' + game.price}</p>
+                        </div>
+                        <div style="margin-left: auto; display: flex; gap: 10px;">
+                            <button class="btn btn-outline edit-game-btn" data-id="${doc.id}" style="padding: 0.5rem 1rem; font-size: 0.8rem;">Modifica</button>
+                            <button class="btn btn-outline delete-game-btn" data-id="${doc.id}" style="padding: 0.5rem 1rem; font-size: 0.8rem; color: #ff4444; border-color: #ff4444;">Elimina</button>
+                        </div>
+                    `;
+                    myGamesList.appendChild(card);
+                });
+
+                // Attach event listeners for Modifica
+                const editButtons = myGamesList.querySelectorAll('.edit-game-btn');
+                editButtons.forEach(btn => {
+                    btn.onclick = async (e) => {
+                        e.preventDefault();
+                        const id = btn.getAttribute('data-id');
+                        await startEditingGame(id);
+                    };
+                });
+
+                // Attach event listeners for Elimina
+                const deleteButtons = myGamesList.querySelectorAll('.delete-game-btn');
+                deleteButtons.forEach(btn => {
+                    btn.onclick = async (e) => {
+                        e.preventDefault();
+                        const id = btn.getAttribute('data-id');
+                        if (confirm('Sei sicuro di voler eliminare questo gioco?')) {
+                            try {
+                                await deleteDoc(doc(db, "games", id));
+                                showToast('Gioco eliminato con successo!');
+                                loadMyGames();
+                            } catch (err) {
+                                showToast('Errore durante l\'eliminazione: ' + err.message, 'error');
+                            }
+                        }
+                    };
+                });
+
+            } catch (err) {
+                myGamesList.innerHTML = `<p style="color: #ff4444;">Errore nel caricamento: ${err.message}</p>`;
+            }
+        };
+
+        // Auth Logic
+        subscribeToAuthChanges(async (user) => {
+            if (user) {
+                currentUser = user;
+                profileEmail.innerText = user.email;
+                editEmail.value = user.email;
+                
+                // Load library and published games
+                loadUserLibrary(user.uid);
+                loadMyGames();
+
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists()) {
+                    const data = userDoc.data();
+                    currentUserData = data;
+                    profileName.innerText = `${data.firstName} ${data.lastName}`;
+                    editName.value = `${data.firstName} ${data.lastName}`;
+                    editAge.value = data.age || '';
+                    editIsSeller.checked = data.isSeller || false;
+                    editPiva.value = data.piva || '';
+                    editIban.value = data.iban || '';
+
+                    if (data.isSeller) {
+                        sellerInfoFields.classList.remove('hidden');
+                        sellerNavItem.classList.remove('hidden');
+                        publishNavItem.classList.remove('hidden');
+                        dashboardNavItem.classList.remove('hidden');
+                    }
+
+                    if (data.photoURL) {
+                        display.src = data.photoURL;
+                    }
+                }
+
+                // Handle URL parameters or hash tab routing
+                const handleRoute = () => {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const tabParam = urlParams.get('tab') || window.location.hash.replace('#', '');
+                    const editParam = urlParams.get('edit') || (tabParam === 'edit' ? urlParams.get('id') : null);
+
+                    if (editParam) {
+                        startEditingGame(editParam);
+                        return;
+                    }
+
+                    if (tabParam === 'my-games' || tabParam === 'mygames' || tabParam === 'i-miei-giochi' || tabParam === 'vendi' || tabParam === 'giochi') {
+                        showMyGamesBtn.click();
+                    } else if (tabParam === 'purchases' || tabParam === 'acquisti') {
+                        showPurchasesBtn.click();
+                    } else if (tabParam === 'dashboard') {
+                        showDashboardBtn.click();
+                    } else if (tabParam === 'publish' || tabParam === 'pubblica') {
+                        showPublishBtn.click();
+                    } else if (tabParam === 'payments' || tabParam === 'pagamenti') {
+                        showPaymentsBtn.click();
+                    } else if (tabParam === 'profile' || tabParam === 'profilo') {
+                        showProfileBtn.click();
+                    }
+                };
+
+                handleRoute();
+                window.addEventListener('hashchange', handleRoute);
+            } else {
+                window.location.href = 'index.html';
+            }
+        });
+
+        function validateCForPIVA(value) {
+            const val = value.trim().toUpperCase();
+            const cfRegex = /^[A-Z]{6}[0-9LMNPQRSTUV]{2}[A-EHLMPR-T][0-9LMNPQRSTUV]{2}[A-Z][0-9LMNPQRSTUV]{3}[A-Z]$/;
+            const pivaRegex = /^\d{11}$/;
+            return cfRegex.test(val) || pivaRegex.test(val);
+        }
+
+        function validateIBAN(value) {
+            const iban = value.replace(/\s+/g, '').toUpperCase();
+            if (iban.startsWith('IT')) {
+                if (iban.length !== 27) return false;
+                const itRegex = /^IT\d{2}[A-Z]\d{10}[A-Z0-9]{12}$/;
+                if (!itRegex.test(iban)) return false;
+            } else {
+                if (iban.length < 15 || iban.length > 34) return false;
+                const genericRegex = /^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/;
+                if (!genericRegex.test(iban)) return false;
+            }
+            const rearranged = iban.slice(4) + iban.slice(0, 4);
+            let numericString = '';
+            for (let i = 0; i < rearranged.length; i++) {
+                const code = rearranged.charCodeAt(i);
+                if (code >= 65 && code <= 90) {
+                    numericString += (code - 55).toString();
+                } else {
+                    numericString += rearranged[i];
+                }
+            }
+            let remainder = 0;
+            for (let i = 0; i < numericString.length; i += 7) {
+                const chunk = remainder.toString() + numericString.slice(i, i + 7);
+                remainder = parseInt(chunk, 10) % 97;
+            }
+            return remainder === 1;
+        }
+
+        // Save Profile
+        saveBtn.onclick = async () => {
+            if (!currentUser) return;
+
+            if (editIsSeller.checked) {
+                const pivaVal = editPiva.value;
+                const ibanVal = editIban.value;
+                if (!pivaVal || !validateCForPIVA(pivaVal)) {
+                    showToast('Codice Fiscale o Partita IVA non valido! Inserisci un Codice Fiscale di 16 caratteri o una P.IVA di 11 cifre.', 'error');
+                    return;
+                }
+                if (!ibanVal || !validateIBAN(ibanVal)) {
+                    showToast('IBAN non valido! Inserisci un formato IBAN corretto (es: IT00...).', 'error');
+                    return;
+                }
+            }
+            
+            const fullName = editName.value.split(' ');
+            const firstName = fullName[0] || '';
+            const lastName = fullName.slice(1).join(' ') || '';
+            
+            saveBtn.disabled = true;
+            saveBtn.innerText = 'Salvataggio in corso...';
+
+            try {
+                const updateData = {
+                    firstName: firstName,
+                    lastName: lastName,
+                    age: parseInt(editAge.value),
+                    isSeller: editIsSeller.checked,
+                    piva: editIsSeller.checked ? editPiva.value.trim().toUpperCase() : '',
+                    iban: editIsSeller.checked ? editIban.value.replace(/\s+/g, '').toUpperCase() : '',
+                    role: editIsSeller.checked ? 'seller' : 'user'
+                };
+
+                if (profileImageBase64) {
+                    // Compress before saving to Firestore
+                    const optimized = await compressImage(profileImageBase64, 400, 0.7);
+                    updateData.photoURL = optimized;
+                }
+                
+                await updateDoc(doc(db, "users", currentUser.uid), updateData);
+                profileName.innerText = editName.value;
+                
+                if (updateData.isSeller) {
+                    sellerNavItem.classList.remove('hidden');
+                    publishNavItem.classList.remove('hidden');
+                    dashboardNavItem.classList.remove('hidden');
+                } else {
+                    sellerNavItem.classList.add('hidden');
+                    publishNavItem.classList.add('hidden');
+                    dashboardNavItem.classList.add('hidden');
+                }
+                
+                showToast('Profilo aggiornato con successo!', 'success');
+            } catch (err) {
+                showToast('Errore durante l\'aggiornamento: ' + err.message, 'error');
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.innerText = 'Salva Modifiche';
+            }
+        };
+
+        // Publish Game Logic
+        let galleryData = []; // Array of base64 strings
+        let headerData = null;
+
+        const headerFile = document.getElementById('header-file');
+        const galleryFiles = document.getElementById('gallery-files');
+        const headerPreview = document.getElementById('header-preview');
+        const galleryPreviews = document.getElementById('gallery-previews');
+
+        // YouTube Helper
+        const getYouTubeEmbedUrl = (url) => {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            if (match && match[2].length == 11) {
+                return `https://www.youtube.com/embed/${match[2]}`;
+            }
+            return null;
+        };
+
+        const getYouTubeThumbnail = (url) => {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            if (match && match[2].length == 11) {
+                return `https://img.youtube.com/vi/${match[2]}/0.jpg`;
+            }
+            return null;
+        };
+
+        headerFile.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                try {
+                    showToast('Ottimizzazione immagine in corso...', 'info');
+                    const optimized = await compressAndScaleImage(file, 1200, 700, 0.75);
+                    headerData = { type: 'image', src: optimized };
+                    headerPreview.innerHTML = `<img src="${optimized}">`;
+                    headerPreview.classList.remove('hidden');
+                    document.getElementById('game-header-yt').value = '';
+                    headerFile.value = '';
+                    showToast('Immagine header caricata e ridimensionata!', 'success');
+                } catch (err) {
+                    showToast('Errore durante il caricamento dell\'immagine: ' + err.message, 'error');
+                }
+            }
+        };
+
+        document.getElementById('game-header-yt').oninput = (e) => {
+            const url = e.target.value;
+            const embed = getYouTubeEmbedUrl(url);
+            if (embed) {
+                headerData = { type: 'youtube', src: embed };
+                headerPreview.innerHTML = `<iframe src="${embed}" style="width: 100%; height: 100%; border: none;"></iframe>`;
+                headerPreview.classList.remove('hidden');
+                headerFile.value = '';
+            }
+        };
+
+        document.getElementById('add-yt-gallery').onclick = (e) => {
+            e.preventDefault();
+            const urlInput = document.getElementById('game-gallery-yt');
+            const embed = getYouTubeEmbedUrl(urlInput.value);
+            if (embed) {
+                galleryData.push({ type: 'youtube', src: embed, thumb: getYouTubeThumbnail(urlInput.value) });
+                urlInput.value = '';
+                renderGallery();
+            } else {
+                showToast('URL YouTube non valido!', 'error');
+            }
+        };
+
+        galleryFiles.onchange = async (e) => {
+            const files = Array.from(e.target.files);
+            if (files.length > 0) {
+                showToast(`Ottimizzazione di ${files.length} immagini...`, 'info');
+                for (const file of files) {
+                    try {
+                        const optimized = await compressAndScaleImage(file, 1000, 600, 0.75);
+                        galleryData.push({ type: 'image', src: optimized });
+                    } catch (err) {
+                        console.error("Errore aggiunta immagine galleria:", err);
+                    }
+                }
+                renderGallery();
+                galleryFiles.value = '';
+                showToast('Immagini galleria aggiunte e ridimensionate con successo!', 'success');
+            }
+        };
+
+        const gameType = document.getElementById('game-type');
+        const gameZip = document.getElementById('game-zip');
+        const zipName = document.getElementById('zip-name');
+        const contentDownload = document.getElementById('game-content-download');
+        const contentUrl = document.getElementById('game-content-url');
+        const gameExternalUrl = document.getElementById('game-external-url');
+
+        const updateGameTypeFields = () => {
+            const val = gameType.value;
+            if (val === 'download') {
+                contentDownload.classList.remove('hidden');
+                contentUrl.classList.add('hidden');
+            } else if (val === 'online' || val === 'browser') {
+                contentDownload.classList.add('hidden');
+                contentUrl.classList.remove('hidden');
+            } else if (val === 'both') {
+                contentDownload.classList.remove('hidden');
+                contentUrl.classList.remove('hidden');
+            }
+        };
+        gameType.onchange = updateGameTypeFields;
+
+        gameZip.onchange = (e) => {
+            if (e.target.files[0]) {
+                zipName.innerText = `File selezionato: ${e.target.files[0].name}`;
+            }
+        };
+
+        const renderGallery = () => {
+            galleryPreviews.innerHTML = '';
+            galleryData.forEach((item, index) => {
+                const preview = document.createElement('div');
+                preview.className = 'preview-item';
+                const imgSrc = item.type === 'youtube' ? item.thumb : item.src;
+                const ytIcon = item.type === 'youtube' ? `<i class="fab fa-youtube" style="position: absolute; top: 10px; right: 10px; color: red; font-size: 1.2rem;"></i>` : '';
+                
+                preview.innerHTML = `
+                    <img src="${imgSrc}">
+                    ${ytIcon}
+                    <div class="preview-controls">
+                        <button class="control-btn" onclick="moveGallery(${index}, -1)"><i class="fas fa-arrow-left"></i></button>
+                        <button class="control-btn" onclick="moveGallery(${index}, 1)"><i class="fas fa-arrow-right"></i></button>
+                        <button class="control-btn remove" onclick="removeGallery(${index})"><i class="fas fa-trash"></i></button>
+                    </div>
+                `;
+                galleryPreviews.appendChild(preview);
+            });
+        };
+
+        window.removeGallery = (index) => {
+            galleryData.splice(index, 1);
+            renderGallery();
+        };
+
+        window.moveGallery = (index, direction) => {
+            const newIndex = index + direction;
+            if (newIndex >= 0 && newIndex < galleryData.length) {
+                const temp = galleryData[index];
+                galleryData[index] = galleryData[newIndex];
+                galleryData[newIndex] = temp;
+                renderGallery();
+            }
+        };
+
+        publishGameBtn.onclick = async () => {
+            const title = document.getElementById('game-title').value;
+            const priceVal = document.getElementById('game-price').value;
+            const isFree = document.getElementById('is-free').checked;
+            const desc = document.getElementById('game-desc').value;
+            const category = document.getElementById('game-category').value;
+            const type = document.getElementById('game-type').value;
+
+            const finalPrice = isFree ? 'FREE' : priceVal;
+
+            if (!title || (!isFree && !priceVal)) {
+                showToast('Inserisci almeno titolo e prezzo!', 'error');
+                return;
+            }
+
+            publishGameBtn.disabled = true;
+            publishGameBtn.innerText = 'Salvataggio in corso...';
+
+            try {
+                let existingContent = '';
+                let existingDownloadUrl = '';
+                let existingOnlineUrl = '';
+                let existingCreatedAt = new Date();
+
+                if (editingGameId) {
+                    try {
+                        const existingDoc = await getDoc(doc(db, "games", editingGameId));
+                        if (existingDoc.exists()) {
+                            const ed = existingDoc.data();
+                            existingContent = ed.content || '';
+                            existingDownloadUrl = ed.downloadUrl || (ed.content && !ed.content.startsWith('http') ? ed.content : '');
+                            existingOnlineUrl = ed.onlineUrl || (ed.content && ed.content.startsWith('http') ? ed.content : '');
+                            existingCreatedAt = ed.createdAt || new Date();
+                        }
+                    } catch (e) {
+                        console.error("Error loading existing game content:", e);
+                    }
+                }
+
+                // 1. Compress Header if image
+                let finalHeader = headerData;
+                if (headerData && headerData.type === 'image') {
+                    if (headerData.src.startsWith('data:image')) {
+                        const optimized = await compressAndScaleImage(headerData.src, 1200, 700, 0.75);
+                        finalHeader = { type: 'image', src: optimized };
+                    }
+                }
+
+                // 2. Compress Gallery images
+                const finalGallery = [];
+                for (let i = 0; i < galleryData.length; i++) {
+                    const item = galleryData[i];
+                    if (item.type === 'image' && item.src.startsWith('data:image')) {
+                        const optimized = await compressAndScaleImage(item.src, 1000, 600, 0.75);
+                        finalGallery.push({ type: 'image', src: optimized });
+                    } else {
+                        finalGallery.push(item);
+                    }
+                }
+
+                let targetDocRef = editingGameId ? doc(db, "games", editingGameId) : doc(collection(db, "games"));
+                let downloadFilePath = existingDownloadUrl;
+                let onlineLink = gameExternalUrl.value.trim() || existingOnlineUrl;
+
+                // Handle file upload if present
+                if ((type === 'download' || type === 'both') && gameZip.files[0]) {
+                    const file = gameZip.files[0];
+                    const storageRef = ref(storage, `games/${targetDocRef.id}/game.zip`);
+                    showToast('Caricamento archivio ZIP del gioco in corso...', 'info');
+                    await uploadBytes(storageRef, file);
+                    downloadFilePath = `games/${targetDocRef.id}/game.zip`;
+                }
+
+                let gameContentUrl = '';
+                if (type === 'download') {
+                    gameContentUrl = downloadFilePath;
+                } else if (type === 'online' || type === 'browser') {
+                    gameContentUrl = onlineLink;
+                } else if (type === 'both') {
+                    gameContentUrl = downloadFilePath || onlineLink;
+                }
+
+                const gameData = {
+                    title, 
+                    price: finalPrice, 
+                    desc, 
+                    category, 
+                    type,
+                    header: finalHeader,
+                    gallery: finalGallery,
+                    sellerId: currentUser.uid,
+                    createdAt: existingCreatedAt,
+                    content: gameContentUrl,
+                    downloadUrl: downloadFilePath || '',
+                    onlineUrl: onlineLink || '',
+                    merch: document.getElementById('game-merch').value || ''
+                };
+
+                // 3. Save to Firestore
+                if (editingGameId) {
+                    await updateDoc(targetDocRef, gameData);
+                    showToast('Gioco aggiornato con successo!', 'success');
+                } else {
+                    await setDoc(targetDocRef, gameData);
+                    showToast('Complimenti! Il tuo gioco "' + title + '" è stato pubblicato.', 'success');
+                }
+                
+                // Clear state
+                resetPublishForm();
+
+                // Refresh the list of seller games
+                loadSellerGames(currentUser.uid);
+                
+                // Switch to "My Games" to show the result
+                showMyGamesBtn.click();
+            } catch (err) {
+                showToast('Errore: ' + err.message, 'fa-exclamation-triangle');
+            } finally {
+                publishGameBtn.disabled = false;
+                publishGameBtn.innerText = editingGameId ? 'Salva Modifiche Gioco' : 'Invia per la Pubblicazione';
+            }
+        };
+
+        // Profile avatar upload with automatic scaling & compression
+        upload.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                try {
+                    showToast('Ottimizzazione foto profilo...', 'info');
+                    const optimized = await compressAndScaleImage(file, 400, 400, 0.75);
+                    display.src = optimized;
+                    profileImageBase64 = optimized;
+                    showToast('Foto profilo pronta!', 'success');
+                } catch (err) {
+                    showToast('Errore nel processare la foto profilo: ' + err.message, 'error');
+                }
+            }
+        };
+
+        // Privacy & Cookie Modals Handlers
+        const privacyModal = document.getElementById('privacy-modal');
+        const closePrivacy = document.getElementById('close-privacy');
+        const confirmPrivacyBtn = document.getElementById('confirm-privacy-btn');
+
+        const cookieModal = document.getElementById('cookie-modal');
+        const closeCookie = document.getElementById('close-cookie');
+        const confirmCookieBtn = document.getElementById('confirm-cookie-btn');
+
+        document.querySelectorAll('.open-privacy-link').forEach(btn => {
+            btn.onclick = (e) => {
+                e.preventDefault();
+                privacyModal.style.display = 'flex';
+            };
+        });
+
+        if (closePrivacy) closePrivacy.onclick = () => privacyModal.style.display = 'none';
+        if (confirmPrivacyBtn) confirmPrivacyBtn.onclick = () => privacyModal.style.display = 'none';
+
+        document.querySelectorAll('.open-cookie-link').forEach(btn => {
+            btn.onclick = (e) => {
+                e.preventDefault();
+                cookieModal.style.display = 'flex';
+            };
+        });
+
+        if (closeCookie) closeCookie.onclick = () => cookieModal.style.display = 'none';
+        if (confirmCookieBtn) confirmCookieBtn.onclick = () => cookieModal.style.display = 'none';
+
+        window.addEventListener('click', (e) => {
+            if (e.target === privacyModal) privacyModal.style.display = 'none';
+            if (e.target === cookieModal) cookieModal.style.display = 'none';
+        });
+    </script>
+</body>
+</html>

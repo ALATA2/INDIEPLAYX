@@ -1,0 +1,1505 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Samurai - IndiePlay</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="./style.css">
+    <script>
+        window.showToast = function(message, typeOrIcon = 'success', icon = null) {
+            let type = 'success';
+            if (typeOrIcon.startsWith('fa-')) {
+                icon = typeOrIcon;
+                // Infer type from icon
+                if (icon === 'fa-check-circle' || icon === 'fa-check') {
+                    type = 'success';
+                } else if (icon === 'fa-exclamation-triangle' || icon === 'fa-exclamation-circle' || icon === 'fa-lock') {
+                    type = 'error';
+                } else {
+                    type = 'info';
+                }
+            } else {
+                type = typeOrIcon;
+            }
+
+            const toast = document.createElement('div');
+            if (!icon) {
+                if (type === 'success') icon = 'fa-check-circle';
+                else if (type === 'error') icon = 'fa-exclamation-triangle';
+                else icon = 'fa-info-circle';
+            }
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<i class="fas ${icon}"></i> <span>${message}</span>`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 500);
+            }, 4000);
+        };
+    </script>
+    <style>
+        .detail-hero {
+            position: relative;
+            width: 100vw;
+            height: 90vh;
+            background: url('/images/neon_samurai_screenshot_1_1777200476248.png') no-repeat center center;
+            background-size: cover;
+            display: flex;
+            align-items: center;
+        }
+
+        .detail-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to right, #00050d 15%, transparent 60%),
+                        linear-gradient(to top, #00050d 5%, transparent 30%);
+        }
+
+        .detail-content {
+            position: relative;
+            z-index: 2;
+            padding: 0 5%;
+            max-width: 600px;
+        }
+
+        .detail-logo {
+            font-size: 4rem;
+            font-weight: 900;
+            color: white;
+            margin-bottom: 1rem;
+            letter-spacing: -2px;
+            text-shadow: 0 0 20px rgba(0, 168, 225, 0.5);
+        }
+
+        .detail-meta {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            color: var(--text-gray);
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .prime-badge-large {
+            background: #00a8e1;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .detail-description {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 2.5rem;
+            color: var(--text-light);
+        }
+
+        .action-bar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .secondary-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn-play {
+            background: white;
+            color: black;
+            padding: 1.2rem 3rem;
+            font-weight: 800;
+            font-size: 1.1rem;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: 0.3s;
+            width: fit-content;
+            min-width: 300px;
+        }
+
+        .btn-play:hover {
+            background: #e1e1e1;
+            transform: scale(1.05);
+        }
+
+        .action-btn {
+            height: 48px;
+            padding: 0 20px;
+            border-radius: 24px;
+            border: 2px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.1);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .action-btn:hover {
+            background: rgba(255,255,255,0.2);
+            border-color: white;
+        }
+
+        .gallery-section {
+            padding: 4rem 5%;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+        }
+
+        .gallery-item {
+            border-radius: 8px;
+            overflow: hidden;
+            aspect-ratio: 16/9;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .gallery-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
+
+        .detail-bottom-grid {
+            padding: 2rem 5% 5rem;
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 3rem;
+        }
+
+        .merch-sidebar {
+            background: rgba(255,255,255,0.02);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.05);
+            height: fit-content;
+        }
+
+        .merch-item-card {
+            display: flex;
+            gap: 1rem;
+            background: rgba(255,255,255,0.05);
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            transition: 0.3s;
+        }
+
+        .merch-item-card:hover {
+            background: rgba(255,255,255,0.08);
+            transform: translateX(5px);
+        }
+
+        .merch-item-card img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        .merch-item-info h3 {
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+            color: white;
+        }
+
+        .merch-item-info .price {
+            color: var(--prime-blue);
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+
+        .comment-card {
+            background: rgba(255,255,255,0.05);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border-left: 3px solid var(--prime-blue);
+        }
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.8rem;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background: var(--prime-blue);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+        }
+
+        .rating-stars {
+            color: #ff9900;
+        }
+
+        .comment-body {
+            color: var(--text-gray);
+            line-height: 1.5;
+        }
+
+        @media (max-width: 900px) {
+            .detail-bottom-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .lightbox {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            backdrop-filter: blur(10px);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .lightbox-content {
+            max-width: 90%;
+            max-height: 85%;
+            position: relative;
+        }
+
+        .lightbox-content img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 0 50px rgba(0,0,0,1);
+        }
+
+        .close-lightbox {
+            position: absolute;
+            top: 2rem;
+            right: 3rem;
+            color: white;
+            font-size: 3rem;
+            font-weight: 300;
+            cursor: pointer;
+            z-index: 10001;
+        }
+
+        .close-lightbox:hover {
+            color: var(--prime-blue);
+        }
+
+        .lightbox-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s;
+            z-index: 10002;
+        }
+
+        .lightbox-nav:hover {
+            background: rgba(255,255,255,0.2);
+            border-color: white;
+            scale: 1.1;
+        }
+
+        .prev-btn { left: 2rem; }
+        .next-btn { right: 2rem; }
+
+        @media (max-width: 900px) {
+            #reviews-list-container {
+                display: flex !important;
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                scroll-snap-type: x mandatory;
+                gap: 1.5rem;
+                padding-bottom: 1.5rem;
+                -webkit-overflow-scrolling: touch;
+            }
+            #reviews-list-container .comment-card {
+                flex: 0 0 85%;
+                scroll-snap-align: center;
+            }
+        }
+
+    </style>
+</head>
+<body class="detail-page">
+    <header class="prime-header">
+        <nav>
+            <div class="nav-left">
+                <div class="hamburger-menu" id="hamburger-btn" style="margin-right: 15px;">
+                    <i class="fas fa-bars"></i>
+                </div>
+                <a href="/" class="prime-logo" style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
+                    <img src="/images/logo_litte.png" alt="Logo" style="height: 32px; width: auto; object-fit: contain;">
+                    <span style="color: white; font-weight: 900; font-size: 1.5rem; letter-spacing: -1px;">INDIE<span style="color: var(--prime-blue);">PLAY</span></span>
+                    <span style="font-size: 0.75rem; background: rgba(0, 168, 225, 0.15); color: var(--prime-blue); padding: 2px 8px; border-radius: 20px; font-weight: 700; border: 1px solid rgba(0, 168, 225, 0.3); text-transform: uppercase; letter-spacing: 0;">v.2.0</span>
+                </a>
+                <ul class="nav-links">
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/" class="active">Giochi</a></li>
+                    <li><a href="account.html?tab=my-games" id="sell-link" class="hidden">Vendi</a></li>
+                </ul>
+            </div>
+            <div class="nav-right" style="display: flex; align-items: center; gap: 1rem;">
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Cerca">
+                </div>
+                <div class="auth-buttons" style="display: flex; align-items: center;">
+                    <a href="account.html" id="user-display" class="hidden" style="text-decoration: none; color: white; font-weight: 700; margin-right: 1rem;"></a>
+                    <a href="account.html" id="login-btn" class="btn btn-prime-outline" style="text-decoration: none;">Accedi</a>
+                    <a href="account.html" id="register-btn" class="btn btn-prime" style="text-decoration: none; margin-left: 10px;">Registrati</a>
+                    <button id="logout-btn" class="btn btn-outline hidden" style="margin-left: 10px;">Esci</button>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div id="verification-banner" class="hidden" style="background: #ff4444; color: white; text-align: center; padding: 10px 5%; font-weight: 700; position: sticky; top: 60px; z-index: 999; font-size: 0.9rem; box-shadow: 0 4px 10px rgba(255,68,68,0.3); display: flex; align-items: center; justify-content: center; gap: 15px;">
+        <span><i class="fas fa-exclamation-triangle"></i> Verifica la tua email per sbloccare acquisti e recensioni su IndiePlay.</span>
+        <button id="resend-verification-btn" class="btn btn-prime-outline" style="padding: 4px 12px; font-size: 0.75rem; color: white; border-color: white;">Invia di nuovo</button>
+    </div>
+
+    <div class="detail-hero">
+        <div class="detail-content">
+            <h1 class="detail-logo">NEON SAMURAI</h1>
+            
+            <div class="detail-meta">
+                <span class="prime-badge-large">✓ Incluso con IndiePlay</span>
+                <span>Azione • Cyberpunk</span>
+                <span>2026</span>
+                <span style="border: 1px solid var(--text-gray); padding: 2px 6px; border-radius: 2px;">16+</span>
+            </div>
+
+            <p class="detail-description">
+                Immergiti in una Neo-Tokyo dominata dalle corporazioni. Segui la via del Bushido digitale nei panni di Kaito, un samurai rinnegato in cerca di redenzione. Combattimenti viscerali, una colonna sonora synthwave mozzafiato e una narrazione profonda ti aspettano nel gioco d'azione più acclamato dell'anno.
+            </p>
+
+            <div class="action-bar">
+                <div class="secondary-actions">
+                    <div class="action-btn" title="Aggiungi alla lista"><i class="fas fa-plus"></i></div>
+                    <div class="action-btn" title="Mi piace"><i class="fas fa-thumbs-up"></i></div>
+                    <div class="action-btn" title="Non fa per me"><i class="fas fa-thumbs-down"></i></div>
+                    <div class="action-btn" title="Condividi"><i class="fas fa-share-alt"></i></div>
+                </div>
+                
+                <button class="btn-play">
+                    <i class="fas fa-play"></i> Gioca ora
+                </button>
+            </div>
+
+            <div id="game-status-bar" style="display: flex; gap: 2rem; margin-top: 2.5rem; padding: 1.2rem; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); backdrop-filter: blur(5px); width: fit-content;">
+                <!-- Dynamically populated -->
+            </div>
+        </div>
+    </div>
+
+    <section class="gallery-section">
+        <div class="section-header">
+            <h2>Galleria Immagini</h2>
+        </div>
+        <div class="gallery-grid">
+            <div class="gallery-item">
+                <img src="/images/neon_samurai_screenshot_1_1777200476248.png" alt="Screenshot 1">
+            </div>
+            <div class="gallery-item">
+                <img src="/images/neon_samurai_screenshot_2_1777200491479.png" alt="Screenshot 2">
+            </div>
+            <div class="gallery-item">
+                <img src="/images/neon_samurai_screenshot_3_1777200504709.png" alt="Screenshot 3">
+            </div>
+            <div class="gallery-item">
+                <img src="/images/merch_hoodie_samurai_1777198641485.png" alt="Screenshot 4">
+            </div>
+        </div>
+    </section>
+
+    <section class="comments-section" style="padding: 2rem 5%;">
+        <div class="section-header">
+            <h2>Recensioni Utenti</h2>
+        </div>
+        <div id="reviews-list-container" class="comments-container" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem;">
+            <!-- Caricate dinamicamente -->
+        </div>
+        <div id="write-review-container" style="margin-top: 3rem; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 2rem;">
+            <!-- Form recensione dinamico -->
+        </div>
+    </section>
+
+    <section class="merch-horizontal-section" style="padding: 2rem 5%;">
+        <div class="section-header">
+            <h2>Merchandising Ufficiale</h2>
+        </div>
+        <div class="merch-row" style="display: flex; gap: 2rem;">
+            <div class="merch-item-card-horizontal" style="flex: 1; display: flex; align-items: center; background: rgba(255,255,255,0.05); padding: 1.5rem; border-radius: 12px; gap: 2rem;">
+                <img src="/images/merch_hoodie_samurai_1777198641485.png" alt="Felpa Samurai" style="width: 150px; height: 150px; object-fit: cover; border-radius: 8px;">
+                <div class="merch-item-info">
+                    <h3 style="font-size: 1.2rem; margin-bottom: 8px;">Felpa Neon Samurai</h3>
+                    <p class="price" style="color: var(--prime-blue); font-weight: 700; font-size: 1.1rem; margin-bottom: 1.5rem;">€55.00</p>
+                    <button class="btn btn-prime-outline">Vedi Prodotto</button>
+                </div>
+            </div>
+            <div class="merch-item-card-horizontal" style="flex: 1; display: flex; align-items: center; background: rgba(255,255,255,0.05); padding: 1.5rem; border-radius: 12px; gap: 2rem;">
+                <img src="/images/merch_tshirt_samurai_1777201074364.png" alt="T-shirt Samurai" style="width: 150px; height: 150px; object-fit: cover; border-radius: 8px;">
+                <div class="merch-item-info">
+                    <h3 style="font-size: 1.2rem; margin-bottom: 8px;">T-shirt Samurai Art</h3>
+                    <p class="price" style="color: var(--prime-blue); font-weight: 700; font-size: 1.1rem; margin-bottom: 1.5rem;">€29.90</p>
+                    <button class="btn btn-prime-outline">Vedi Prodotto</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- Checkout Modal -->
+    <div id="checkout-modal" class="lightbox" style="display: none; justify-content: center; align-items: center;">
+        <div class="modal-content glass" style="background: rgba(26, 36, 47, 0.9); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 2.5rem; max-width: 500px; width: 90%; color: white; position: relative; backdrop-filter: blur(20px); box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
+            <span class="close-lightbox" id="close-checkout" style="position: absolute; top: 1rem; right: 1.5rem; font-size: 2.5rem; cursor: pointer; color: var(--text-gray);">&times;</span>
+            <h2 style="font-size: 1.8rem; font-weight: 800; margin-bottom: 0.5rem; text-align: left;">Completa l'acquisto</h2>
+            <p style="color: var(--text-gray); font-size: 0.9rem; margin-bottom: 1.5rem; text-align: left;">Acquista in sicurezza con la nostra transazione simulata.</p>
+            
+            <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 15px; text-align: left;">
+                <img id="checkout-game-img" src="" style="width: 80px; height: 50px; object-fit: cover; border-radius: 4px;">
+                <div>
+                    <h3 id="checkout-game-title" style="font-size: 1.1rem; font-weight: 700; margin: 0;">Gioco</h3>
+                    <span id="checkout-game-price" style="color: var(--prime-blue); font-weight: 800;">€0.00</span>
+                </div>
+            </div>
+
+            <form id="checkout-form" style="text-align: left;">
+                <div class="form-group" style="margin-bottom: 1rem; display: flex; flex-direction: column; gap: 5px;">
+                    <label style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-gray); font-weight: 700;">Nome sulla carta</label>
+                    <input type="text" id="card-name" required placeholder="Mario Rossi" style="width: 100%; padding: 12px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: white; font-size: 1rem;">
+                </div>
+                <div class="form-group" style="margin-bottom: 1rem; display: flex; flex-direction: column; gap: 5px;">
+                    <label style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-gray); font-weight: 700;">Numero di carta</label>
+                    <div style="position: relative;">
+                        <input type="text" id="card-number" required placeholder="4000 1234 5678 9010" maxlength="19" style="width: 100%; padding: 12px 12px 12px 40px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: white; font-size: 1rem;">
+                        <i class="far fa-credit-card" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-gray);"></i>
+                    </div>
+                </div>
+                <div class="form-row" style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+                    <div class="form-group" style="flex: 1; display: flex; flex-direction: column; gap: 5px;">
+                        <label style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-gray); font-weight: 700;">Scadenza</label>
+                        <input type="text" id="card-expiry" required placeholder="MM/AA" maxlength="5" style="width: 100%; padding: 12px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: white; font-size: 1rem; text-align: center;">
+                    </div>
+                    <div class="form-group" style="flex: 1; display: flex; flex-direction: column; gap: 5px;">
+                        <label style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-gray); font-weight: 700;">CVV</label>
+                        <input type="text" id="card-cvv" required placeholder="123" maxlength="3" style="width: 100%; padding: 12px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: white; font-size: 1rem; text-align: center;">
+                    </div>
+                </div>
+
+                <button type="submit" id="confirm-purchase-btn" class="btn btn-prime" style="width: 100%; padding: 1.2rem; justify-content: center; font-size: 1.1rem; font-weight: 800; border-radius: 8px;">
+                    Paga e Riscatta
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lightbox Modal -->
+    <div id="lightbox" class="lightbox">
+        <span class="close-lightbox">&times;</span>
+        <button class="lightbox-nav prev-btn" id="prev-btn"><i class="fas fa-chevron-left"></i></button>
+        <div class="lightbox-content">
+            <img id="lightbox-img" src="" alt="Gallery Preview">
+        </div>
+        <button class="lightbox-nav next-btn" id="next-btn"><i class="fas fa-chevron-right"></i></button>
+    </div>
+
+    <!-- Disclaimer / Scarico di Responsabilità Modal -->
+    <div id="disclaimer-modal" class="lightbox" style="display: none; justify-content: center; align-items: center; z-index: 2100;">
+        <div class="modal-content glass" style="background: rgba(26, 36, 47, 0.96); border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; padding: 2.5rem; max-width: 550px; width: 90%; color: white; position: relative; backdrop-filter: blur(20px); box-shadow: 0 20px 50px rgba(0,0,0,0.6);">
+            <span class="close-lightbox" id="close-disclaimer" style="position: absolute; top: 1rem; right: 1.5rem; font-size: 2.5rem; cursor: pointer; color: var(--text-gray);">&times;</span>
+            <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 1.2rem;">
+                <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(255, 170, 0, 0.15); border: 1px solid rgba(255, 170, 0, 0.4); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i class="fas fa-shield-alt" style="color: #ffaa00; font-size: 1.5rem;"></i>
+                </div>
+                <div>
+                    <h2 style="font-size: 1.5rem; font-weight: 800; margin: 0; color: white;">Scarico di Responsabilità</h2>
+                    <span style="font-size: 0.82rem; color: var(--text-gray);">Avviso di sicurezza per il download del software</span>
+                </div>
+            </div>
+
+            <div style="background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 1.2rem; margin-bottom: 1.5rem; font-size: 0.9rem; line-height: 1.6; color: #d0dbe5; max-height: 220px; overflow-y: auto;">
+                <p style="margin-bottom: 0.8rem;">Stai per scaricare ed eseguire un videogioco/software creato e distribuito da uno <strong>sviluppatore indipendente di terze parti</strong> sulla piattaforma IndiePlay.</p>
+                <ul style="margin-left: 1.2rem; margin-bottom: 0.5rem; list-style-type: disc;">
+                    <li><strong>Esecuzione a proprio rischio:</strong> Il download e l'esecuzione dell'eseguibile avvengono sotto la tua esclusiva responsabilità.</li>
+                    <li><strong>Esonero da responsabilità:</strong> IndiePlay declina ogni responsabilità per eventuali bug, incompatibilità con il tuo sistema operativo, perdite di dati o malfunzionamenti hardware/software.</li>
+                    <li><strong>Consiglio di sicurezza:</strong> Assicurati di disporre di un software antivirus aggiornato prima di estrarre l'archivio ZIP.</li>
+                </ul>
+            </div>
+
+            <div style="margin-bottom: 1.5rem; background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06);">
+                <label class="checkbox-container" style="display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none;">
+                    <input type="checkbox" id="disclaimer-accept-checkbox" style="width: 20px; height: 20px; cursor: pointer; accent-color: var(--prime-blue);">
+                    <span style="font-size: 0.9rem; font-weight: 600; color: white;">Ho letto e compreso i rischi e accetto lo scarico di responsabilità.</span>
+                </label>
+            </div>
+
+            <div style="display: flex; gap: 1rem;">
+                <button type="button" id="cancel-disclaimer-btn" class="btn btn-prime-outline" style="flex: 1; padding: 0.9rem;">Annulla</button>
+                <button type="button" id="confirm-download-btn" class="btn btn-prime" style="flex: 1; padding: 0.9rem; font-weight: 800;" disabled>
+                    <i class="fas fa-download"></i> Accetta e Scarica
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Privacy Policy Modal -->
+    <div id="privacy-modal" class="lightbox" style="display: none; justify-content: center; align-items: center; z-index: 2200;">
+        <div class="modal-content glass" style="background: rgba(26, 36, 47, 0.98); border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; padding: 2.5rem; max-width: 680px; width: 90%; color: white; position: relative; backdrop-filter: blur(25px); box-shadow: 0 20px 50px rgba(0,0,0,0.7); max-height: 85vh; display: flex; flex-direction: column;">
+            <span class="close-lightbox" id="close-privacy" style="position: absolute; top: 1rem; right: 1.5rem; font-size: 2.5rem; cursor: pointer; color: var(--text-gray);">&times;</span>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 1.2rem;">
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(0, 168, 225, 0.15); border: 1px solid rgba(0, 168, 225, 0.4); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i class="fas fa-user-shield" style="color: var(--prime-blue); font-size: 1.4rem;"></i>
+                </div>
+                <div>
+                    <h2 style="font-size: 1.5rem; font-weight: 800; margin: 0; color: white;">Informativa sulla Privacy (GDPR)</h2>
+                    <span style="font-size: 0.8rem; color: var(--text-gray);">Ai sensi del Regolamento UE 2016/679 (GDPR)</span>
+                </div>
+            </div>
+
+            <div style="overflow-y: auto; padding-right: 10px; font-size: 0.9rem; line-height: 1.6; color: #d0dbe5; flex: 1;">
+                <h4 style="color: white; margin: 1rem 0 0.4rem;">1. Titolare del Trattamento</h4>
+                <p>Il Titolare del trattamento dei dati è <strong>IndiePlay</strong>. Per qualsiasi richiesta relativa alla protezione dei dati puoi contattarci all'indirizzo email: <a href="mailto:privacy@indieplay.it" style="color: var(--prime-blue);">privacy@indieplay.it</a>.</p>
+
+                <h4 style="color: white; margin: 1rem 0 0.4rem;">2. Dati Raccolti</h4>
+                <p>Raccogliamo i seguenti dati personali al fine di erogare i nostri servizi:</p>
+                <ul style="margin-left: 1.2rem; margin-bottom: 0.5rem; list-style-type: disc;">
+                    <li><strong>Dati di Registrazione:</strong> Indirizzo email, nome, cognome ed eventuale foto del profilo.</li>
+                    <li><strong>Dati di Fatturazione Venditori:</strong> Codice Fiscale / Partita IVA e coordinate bancarie (IBAN) necessarie per l'accredito dei ricavi dalle vendite dei giochi.</li>
+                    <li><strong>Dati di Utilizzo & Libreria:</strong> Cronologia degli acquisti, giochi aggiunti alla libreria, download effettuati e recensioni pubblicate.</li>
+                </ul>
+
+                <h4 style="color: white; margin: 1rem 0 0.4rem;">3. Finalità del Trattamento</h4>
+                <p>I dati vengono trattati esclusivamente per consentire l'accesso alla piattaforma, la gestione degli acquisti, il download sicuro dei giochi indie, la pubblicazione di contenuti e l'adempimento degli obblighi legali e fiscali.</p>
+
+                <h4 style="color: white; margin: 1rem 0 0.4rem;">4. Conservazione e Sicurezza</h4>
+                <p>I dati sono archiviati su infrastrutture cloud conformi agli standard internazionali di sicurezza con crittografia e protocolli TLS/HTTPS. I dati non vengono ceduti a terze parti per finalità di marketing.</p>
+
+                <h4 style="color: white; margin: 1rem 0 0.4rem;">5. Diritti dell'Utente (Artt. 15-22 GDPR)</h4>
+                <p>Hai il diritto di richiedere in qualsiasi momento l'accesso, la rettifica, la cancellazione (diritto all'oblio), la limitazione del trattamento o la portabilità dei tuoi dati personali scrivendo a <a href="mailto:privacy@indieplay.it" style="color: var(--prime-blue);">privacy@indieplay.it</a>.</p>
+            </div>
+
+            <div style="margin-top: 1.5rem; text-align: right;">
+                <button type="button" id="confirm-privacy-btn" class="btn btn-prime" style="padding: 0.7rem 2rem;">Chiudi</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cookie Policy Modal -->
+    <div id="cookie-modal" class="lightbox" style="display: none; justify-content: center; align-items: center; z-index: 2200;">
+        <div class="modal-content glass" style="background: rgba(26, 36, 47, 0.98); border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; padding: 2.5rem; max-width: 680px; width: 90%; color: white; position: relative; backdrop-filter: blur(25px); box-shadow: 0 20px 50px rgba(0,0,0,0.7); max-height: 85vh; display: flex; flex-direction: column;">
+            <span class="close-lightbox" id="close-cookie" style="position: absolute; top: 1rem; right: 1.5rem; font-size: 2.5rem; cursor: pointer; color: var(--text-gray);">&times;</span>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 1.2rem;">
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(0, 255, 128, 0.15); border: 1px solid rgba(0, 255, 128, 0.4); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i class="fas fa-cookie-bite" style="color: #00ff80; font-size: 1.4rem;"></i>
+                </div>
+                <div>
+                    <h2 style="font-size: 1.5rem; font-weight: 800; margin: 0; color: white;">Informativa sui Cookie</h2>
+                    <span style="font-size: 0.8rem; color: var(--text-gray);">Uso dei cookie e tecnologie di tracciamento</span>
+                </div>
+            </div>
+
+            <div style="overflow-y: auto; padding-right: 10px; font-size: 0.9rem; line-height: 1.6; color: #d0dbe5; flex: 1;">
+                <h4 style="color: white; margin: 1rem 0 0.4rem;">1. Cosa sono i Cookie?</h4>
+                <p>I cookie sono piccoli file di testo che i siti salvano sul tuo dispositivo durante la navigazione. Sono utilizzati per garantire il corretto funzionamento delle sessioni e migliorare l'esperienza utente.</p>
+
+                <h4 style="color: white; margin: 1rem 0 0.4rem;">2. Cookie Utilizzati da IndiePlay</h4>
+                <ul style="margin-left: 1.2rem; margin-bottom: 0.5rem; list-style-type: disc;">
+                    <li><strong>Cookie Tecnici e di Sessione (Strettamente Necessari):</strong> Gestiti tramite Firebase Auth e LocalStorage per mantenere sicuro il login, identificare l'utente verificato e consentire il download dei giochi acquistati.</li>
+                    <li><strong>Cookie di Funzionalità e Preferenze:</strong> Utilizzati per ricordare le scelte di navigazione, filtri di ricerca e la lingua dell'interfaccia.</li>
+                    <li><strong>Cookie di Terze Parti (YouTube & Media):</strong> Utilizzati nei video trailer dei giochi incorporati via YouTube / Google per consentire lo streaming multimediale.</li>
+                </ul>
+
+                <h4 style="color: white; margin: 1rem 0 0.4rem;">3. Come Gestire o Disabilitare i Cookie</h4>
+                <p>Puoi gestire le preferenze sui cookie o bloccarli direttamente dalle impostazioni del tuo browser web (Chrome, Firefox, Safari, Edge). La disattivazione dei cookie tecnici potrebbe compromettere il corretto funzionamento del login e del download dei giochi.</p>
+            </div>
+
+            <div style="margin-top: 1.5rem; text-align: right;">
+                <button type="button" id="confirm-cookie-btn" class="btn btn-prime" style="padding: 0.7rem 2rem;">Chiudi</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="prime-footer">
+        <div class="footer-logo">
+            <span style="color: white; font-weight: 900; font-size: 1.5rem; letter-spacing: -1px;">INDIE<span style="color: var(--prime-blue);">PLAY</span></span>
+        </div>
+        <div class="footer-links">
+            <a href="javascript:void(0)" class="open-privacy-link">Termini e informativa sulla privacy</a>
+            <a href="javascript:void(0)" class="open-cookie-link">Informativa sui cookie</a>
+            <a href="mailto:support@indieplay.it">Inviaci un feedback</a>
+            <a href="mailto:support@indieplay.it">Aiuto</a>
+        </div>
+        <div class="footer-legal">
+            © 2026 IndiePlay v2.4. Tutti i diritti riservati.
+        </div>
+    </footer>
+
+    <script type="module">
+        import { db, auth, storage } from './src/firebase';
+        import { sendEmailVerification } from "firebase/auth";
+        import { doc, getDoc, updateDoc, arrayUnion, collection, addDoc, query, where, getDocs } from "firebase/firestore";
+        import { subscribeToAuthChanges, logoutUser } from './src/auth';
+        import { ref, getDownloadURL } from "firebase/storage";
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const gameId = urlParams.get('id');
+
+        const hero = document.querySelector('.detail-hero');
+        const titleEl = document.querySelector('.detail-logo');
+        const descEl = document.querySelector('.detail-description');
+        const galleryGrid = document.querySelector('.gallery-grid');
+        const developerEl = document.querySelector('.detail-bottom-grid p strong');
+
+        // Auth & Checkout Elements
+        const loginBtn = document.getElementById('login-btn');
+        const registerBtn = document.getElementById('register-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const userDisplay = document.getElementById('user-display');
+
+        const checkoutModal = document.getElementById('checkout-modal');
+        const closeCheckout = document.getElementById('close-checkout');
+        const checkoutForm = document.getElementById('checkout-form');
+        const checkoutGameImg = document.getElementById('checkout-game-img');
+        const checkoutGameTitle = document.getElementById('checkout-game-title');
+        const checkoutGamePrice = document.getElementById('checkout-game-price');
+        const confirmPurchaseBtn = document.getElementById('confirm-purchase-btn');
+
+        let currentUser = null;
+
+
+        async function loadGameDetails() {
+            if (!gameId) {
+                document.body.innerHTML = '<div style="color: white; padding: 5rem; text-align: center;"><h1>Gioco non trovato</h1><a href="/" style="color: var(--prime-blue);">Torna alla Home</a></div>';
+                return;
+            }
+
+            try {
+                const docRef = doc(db, "games", gameId);
+                const gameDoc = await getDoc(docRef);
+
+                if (gameDoc.exists()) {
+                    const game = gameDoc.data();
+                    console.log("Game data loaded:", game);
+                    
+                    // Update Title and Meta
+                    document.title = `${game.title || 'Gioco'} - IndiePlay`;
+                    titleEl.innerText = (game.title || 'Senza Titolo').toUpperCase();
+                    descEl.innerText = game.desc || 'Nessuna descrizione disponibile per questo titolo.';
+
+                    // Update Header Image with Fallback
+                    const headerImgSrc = game.header?.src || (game.gallery && game.gallery[0]?.src) || '/images/placeholder.png';
+                    hero.style.background = `url('${headerImgSrc}') no-repeat center center`;
+                    hero.style.backgroundSize = 'cover';
+
+                    let isOwned = false;
+                    const user = auth.currentUser;
+                    if (user) {
+                        const libRef = collection(db, 'users', user.uid, 'library');
+                        const q = query(libRef, where('gameId', '==', gameId));
+                        const snap = await getDocs(q);
+                        isOwned = !snap.empty;
+                    }
+                    const isSellerOfGame = user && game.sellerId && (game.sellerId === user.uid);
+                    const secondaryActions = document.querySelector('.secondary-actions');
+                    const existingEditBtn = document.getElementById('edit-own-game-btn');
+                    if (isSellerOfGame) {
+                        if (!existingEditBtn) {
+                            const editBtn = document.createElement('a');
+                            editBtn.id = 'edit-own-game-btn';
+                            editBtn.href = `account.html?edit=${gameId}`;
+                            editBtn.className = 'action-btn';
+                            editBtn.title = 'Modifica i parametri di questo gioco';
+                            editBtn.style.background = 'rgba(0, 168, 225, 0.25)';
+                            editBtn.style.borderColor = 'var(--prime-blue)';
+                            editBtn.style.color = 'var(--prime-blue)';
+                            editBtn.style.textDecoration = 'none';
+                            editBtn.style.width = 'auto';
+                            editBtn.style.padding = '0 16px';
+                            editBtn.innerHTML = '<i class="fas fa-edit"></i> <span style="font-size: 0.85rem; font-weight: 700; margin-left: 6px;">Modifica Gioco</span>';
+                            secondaryActions.appendChild(editBtn);
+                        }
+                    } else if (existingEditBtn) {
+                        existingEditBtn.remove();
+                    }
+
+                    const isFree = game.price === 'FREE' || game.price === '0' || !game.price;
+                    const priceLabel = isFree ? 'GRATIS' : `€${game.price}`;
+
+                    const hasDownload = game.type === 'download' || game.type === 'both' || (game.content && !game.content.startsWith('http')) || game.downloadUrl;
+                    const hasOnline = game.type === 'online' || game.type === 'browser' || game.type === 'both' || game.onlineUrl || (game.content && game.content.startsWith('http'));
+                    const onlineUrl = game.onlineUrl || (game.content && game.content.startsWith('http') ? game.content : 'https://miogioco.com/play-demo-simulated');
+                    const downloadPath = (game.content && !game.content.startsWith('http')) ? game.content : (game.downloadUrl || `games/${gameId}/game.zip`);
+
+                    let modalityLabel = 'Download';
+                    if (hasOnline && hasDownload) modalityLabel = 'Online + Download';
+                    else if (hasOnline) modalityLabel = 'Online Cloud';
+
+                    // Update Meta info
+                    const metaSection = document.querySelector('.detail-meta');
+                    metaSection.innerHTML = `
+                        <span class="prime-badge-large">✓ Incluso con IndiePlay</span>
+                        <span>${game.category || 'Azione'} • ${modalityLabel}</span>
+                        <span style="font-weight: bold; color: var(--prime-blue);">${priceLabel}</span>
+                    `;
+
+                    // Update Button Logic
+                    const playBtn = document.querySelector('.btn-play');
+                    const addBtn = document.querySelector('.action-btn[title="Aggiungi alla lista"]');
+                    const actionBar = document.querySelector('.action-bar');
+                    let extraDownloadBtn = document.getElementById('extra-download-btn');
+
+                    // Reset styling for addBtn
+                    if (isOwned) {
+                        addBtn.style.color = 'var(--prime-blue)';
+                        addBtn.innerHTML = '<i class="fas fa-check"></i>';
+                    } else {
+                        addBtn.style.color = 'white';
+                        addBtn.innerHTML = '<i class="fas fa-plus"></i>';
+                    }
+
+                    if (!user) {
+                        if (extraDownloadBtn) extraDownloadBtn.remove();
+                        playBtn.innerHTML = isFree ? '<i class="fas fa-sign-in-alt"></i> Accedi per Giocare' : `<i class="fas fa-shopping-cart"></i> Accedi per acquistare`;
+                        playBtn.onclick = () => {
+                            showToast('Devi accedere per continuare.', 'fa-info-circle');
+                            setTimeout(() => window.location.href = 'account.html', 1200);
+                        };
+                    } else if (isOwned) {
+                        if (hasOnline && hasDownload) {
+                            playBtn.innerHTML = '<i class="fas fa-play"></i> Gioca Online';
+                            playBtn.onclick = () => {
+                                window.open(onlineUrl, '_blank');
+                            };
+
+                            if (!extraDownloadBtn) {
+                                extraDownloadBtn = document.createElement('button');
+                                extraDownloadBtn.id = 'extra-download-btn';
+                                extraDownloadBtn.className = 'btn btn-prime-outline';
+                                extraDownloadBtn.style.padding = '0.9rem 1.8rem';
+                                extraDownloadBtn.style.borderRadius = '6px';
+                                extraDownloadBtn.style.fontWeight = '700';
+                                extraDownloadBtn.style.display = 'inline-flex';
+                                extraDownloadBtn.style.alignItems = 'center';
+                                extraDownloadBtn.style.gap = '8px';
+                                extraDownloadBtn.style.marginLeft = '10px';
+                                actionBar.appendChild(extraDownloadBtn);
+                            }
+                            extraDownloadBtn.innerHTML = '<i class="fas fa-download"></i> Scarica Gioco (.ZIP)';
+                            extraDownloadBtn.onclick = () => {
+                                openDisclaimerModal(downloadPath, game.title);
+                            };
+                        } else if (hasOnline) {
+                            if (extraDownloadBtn) extraDownloadBtn.remove();
+                            playBtn.innerHTML = '<i class="fas fa-play"></i> Gioca ora';
+                            playBtn.onclick = () => {
+                                window.open(onlineUrl, '_blank');
+                            };
+                        } else {
+                            if (extraDownloadBtn) extraDownloadBtn.remove();
+                            playBtn.innerHTML = '<i class="fas fa-download"></i> Scarica Gioco';
+                            playBtn.onclick = () => {
+                                openDisclaimerModal(downloadPath, game.title);
+                            };
+                        }
+                    } else {
+                        // Logged in but not owned
+                        if (extraDownloadBtn) extraDownloadBtn.remove();
+                        if (isFree) {
+                            playBtn.innerHTML = '<i class="fas fa-plus"></i> Aggiungi alla Libreria (Gratis)';
+                            playBtn.onclick = async () => {
+                                if (!user.emailVerified) {
+                                    showToast('Devi verificare la tua email per aggiungere giochi alla tua libreria!', 'error');
+                                    return;
+                                }
+                                playBtn.disabled = true;
+                                try {
+                                    const libRef = collection(db, 'users', user.uid, 'library');
+                                    await addDoc(libRef, {
+                                        gameId: gameId,
+                                        title: game.title,
+                                        imageUrl: headerImgSrc,
+                                        addedAt: new Date()
+                                    });
+                                    showToast(`${game.title} aggiunto alla tua libreria!`, 'success');
+                                    loadGameDetails();
+                                } catch (e) {
+                                    showToast('Errore durante l\'aggiunta alla libreria.', 'fa-exclamation-triangle');
+                                } finally {
+                                    playBtn.disabled = false;
+                                }
+                            };
+                        } else {
+                            playBtn.innerHTML = `<i class="fas fa-shopping-cart"></i> Acquista ora - ${priceLabel}`;
+                            playBtn.onclick = () => {
+                                if (!user.emailVerified) {
+                                    showToast('Devi verificare la tua email per poter acquistare giochi!', 'error');
+                                    return;
+                                }
+                                // Open Checkout Modal
+                                checkoutGameImg.src = headerImgSrc;
+                                checkoutGameTitle.innerText = game.title;
+                                checkoutGamePrice.innerText = priceLabel;
+                                checkoutModal.style.display = 'flex';
+                            };
+                        }
+                    }
+
+                    // Add to list button click
+                    addBtn.onclick = async () => {
+                        if (!user) {
+                            showToast('Accedi per aggiungere il gioco', 'fa-exclamation-triangle');
+                            setTimeout(() => window.location.href = 'account.html', 1200);
+                            return;
+                        }
+
+                        if (!user.emailVerified) {
+                            showToast('Devi verificare la tua email per aggiungere giochi alla tua libreria!', 'error');
+                            return;
+                        }
+
+                        if (isOwned) {
+                            showToast('Hai già questo gioco nella tua libreria!', 'fa-info-circle');
+                            return;
+                        }
+
+                        try {
+                            const libRef = collection(db, 'users', user.uid, 'library');
+                            await addDoc(libRef, {
+                                gameId: gameId,
+                                title: game.title,
+                                imageUrl: headerImgSrc,
+                                addedAt: new Date()
+                            });
+                            showToast(`${game.title} aggiunto a I miei Acquisti!`);
+                            loadGameDetails();
+                        } catch (err) {
+                            showToast('Errore permessi database', 'fa-lock');
+                        }
+                    };
+
+                    // Update Gallery
+                    if (game.gallery && game.gallery.length > 0) {
+                        galleryGrid.innerHTML = '';
+                        game.gallery.forEach(item => {
+                            if (item.type === 'image') {
+                                const gItem = document.createElement('div');
+                                gItem.className = 'gallery-item';
+                                gItem.innerHTML = `<img src="${item.src}" alt="Screenshot">`;
+                                galleryGrid.appendChild(gItem);
+                            }
+                        });
+                        initLightbox();
+                    }
+
+                    // Update Status Bar
+                    const statusBar = document.getElementById('game-status-bar');
+                    const isUrl = game.content && game.content.startsWith('http');
+                    const typeLabel = isUrl ? 'Browser Game' : (game.type === 'online' ? 'Cloud Game' : 'PC Download');
+                    const typeIcon = isUrl ? 'fa-globe' : (game.type === 'online' ? 'fa-cloud' : 'fa-desktop');
+                    
+                    statusBar.innerHTML = `
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <i class="fas ${typeIcon}" style="color: var(--prime-blue); font-size: 1.2rem;"></i>
+                            <div>
+                                <div style="font-size: 0.7rem; color: var(--text-gray); text-transform: uppercase; font-weight: 800;">Tipo</div>
+                                <div style="font-weight: 700; font-size: 0.9rem;">${typeLabel}</div>
+                            </div>
+                        </div>
+                        <div style="width: 1px; background: rgba(255,255,255,0.1);"></div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <i class="fas ${isUrl ? 'fa-link' : 'fa-file-code'}" style="color: var(--prime-blue); font-size: 1.2rem;"></i>
+                            <div>
+                                <div style="font-size: 0.7rem; color: var(--text-gray); text-transform: uppercase; font-weight: 800;">${isUrl ? 'Sorgente' : 'File'}</div>
+                                <div style="font-weight: 700; font-size: 0.9rem;">
+                                    ${isUrl ? `<a href="${game.content}" target="_blank" style="color: white; text-decoration: none;">Link Esterno <i class="fas fa-external-link-alt" style="font-size: 0.7rem; margin-left: 5px;"></i></a>` : (game.content || 'N/A')}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    await loadReviews(isOwned, game.reviews || []);
+                } else {
+                    document.body.innerHTML = '<div style="color: white; padding: 5rem; text-align: center;"><h1>Gioco non trovato nel database</h1><a href="/" style="color: var(--prime-blue);">Torna alla Home</a></div>';
+                }
+            } catch (error) {
+                console.error("Error fetching game:", error);
+                document.body.innerHTML = `<div style="color: white; padding: 5rem; text-align: center;"><h1>Errore durante il caricamento</h1><p style="color: var(--text-gray);">${error.message}</p><a href="/" style="color: var(--prime-blue);">Torna alla Home</a></div>`;
+            }
+        }
+
+        async function loadReviews(isOwned, reviews = []) {
+            const container = document.getElementById('reviews-list-container');
+            const writeContainer = document.getElementById('write-review-container');
+            if (!container || !writeContainer) return;
+
+            if (reviews.length === 0) {
+                container.innerHTML = `
+                    <div class="comment-card">
+                        <div class="comment-header">
+                            <div class="user-info">
+                                <div class="user-avatar">MR</div>
+                                <span>Marco Rossi</span>
+                            </div>
+                            <div class="rating-stars">
+                                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                        <div class="comment-body">
+                            Capolavoro assoluto! Il sistema di combattimento è fluido e gratificante. La grafica neon è pazzesca su PC. Consigliatissimo!
+                        </div>
+                    </div>
+                    <div class="comment-card">
+                        <div class="comment-header">
+                            <div class="user-info">
+                                <div class="user-avatar">GV</div>
+                                <span>Giulia Verdi</span>
+                            </div>
+                            <div class="rating-stars">
+                                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i>
+                            </div>
+                        </div>
+                        <div class="comment-body">
+                            Storia molto bella e personaggi ben caratterizzati. Unica pecca: alcune missioni secondarie sono un po' ripetitive, ma il gameplay principale compensa tutto.
+                        </div>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = '';
+                reviews.forEach(rev => {
+                    const starsHtml = Array.from({length: 5}, (_, i) => 
+                        i < rev.rating ? '<i class="fas fa-star"></i>' : '<i class="far fa-star"></i>'
+                    ).join('');
+                    const initials = (rev.userName || 'U').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+
+                    const card = document.createElement('div');
+                    card.className = 'comment-card';
+                    card.innerHTML = `
+                        <div class="comment-header">
+                            <div class="user-info">
+                                <div class="user-avatar">${initials}</div>
+                                <span>${rev.userName || 'Utente'}</span>
+                            </div>
+                            <div class="rating-stars">${starsHtml}</div>
+                        </div>
+                        <div class="comment-body">${rev.comment || ''}</div>
+                    `;
+                    container.appendChild(card);
+                });
+            }
+
+            if (!currentUser) {
+                writeContainer.innerHTML = `
+                    <div style="text-align: center; padding: 1.5rem; background: rgba(255,255,255,0.02); border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); color: var(--text-gray);">
+                        <i class="fas fa-lock" style="font-size: 2rem; color: rgba(255,255,255,0.2); margin-bottom: 0.8rem; display: block;"></i>
+                        Devi <a href="account.html" style="color: var(--prime-blue); font-weight: 700; text-decoration: none;">accedere</a> ed essere in possesso di questo gioco per lasciare una recensione.
+                    </div>
+                `;
+            } else if (!currentUser.emailVerified) {
+                writeContainer.innerHTML = `
+                    <div style="text-align: center; padding: 1.5rem; background: rgba(255, 170, 0, 0.05); border-radius: 8px; border: 1px solid rgba(255, 170, 0, 0.2); color: #e0d0b0;">
+                        <i class="fas fa-envelope" style="font-size: 2rem; color: #ffaa00; margin-bottom: 0.8rem; display: block;"></i>
+                        Devi <strong>verificare la tua email</strong> per poter lasciare una recensione. Controlla la tua casella di posta o reinvia la verifica in cima alla pagina.
+                    </div>
+                `;
+            } else if (!isOwned) {
+                writeContainer.innerHTML = `
+                    <div style="text-align: center; padding: 1.5rem; background: rgba(255,255,255,0.02); border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); color: var(--text-gray);">
+                        <i class="fas fa-gamepad" style="font-size: 2rem; color: rgba(255,255,255,0.2); margin-bottom: 0.8rem; display: block;"></i>
+                        Devi aver aggiunto o scaricato questo gioco nella tua libreria per poter lasciare una recensione.
+                    </div>
+                `;
+            } else {
+                writeContainer.innerHTML = `
+                    <h3 style="font-size: 1.3rem; margin-bottom: 1.5rem; color: white;">Lascia una recensione</h3>
+                    <form id="review-form">
+                        <div style="margin-bottom: 1.5rem;">
+                            <label style="font-size: 0.9rem; font-weight: 700; color: var(--text-gray); margin-bottom: 0.5rem; display: block;">Valutazione (Stelle)</label>
+                            <div class="rating-input" style="display: flex; gap: 10px; font-size: 1.5rem; color: var(--text-gray); cursor: pointer;">
+                                <i class="far fa-star star-btn" data-value="1"></i>
+                                <i class="far fa-star star-btn" data-value="2"></i>
+                                <i class="far fa-star star-btn" data-value="3"></i>
+                                <i class="far fa-star star-btn" data-value="4"></i>
+                                <i class="far fa-star star-btn" data-value="5"></i>
+                            </div>
+                            <input type="hidden" id="review-rating" value="0" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 1.5rem;">
+                            <label style="font-size: 0.9rem; font-weight: 700; color: var(--text-gray); margin-bottom: 0.5rem; display: block;">Il tuo commento</label>
+                            <textarea id="review-text" rows="4" placeholder="Cosa ne pensi di questo gioco?" required style="width: 100%; padding: 12px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: white; font-size: 1rem; font-family: inherit; resize: none;"></textarea>
+                        </div>
+                        <button type="submit" id="submit-review-btn" class="btn btn-prime" style="padding: 0.8rem 2rem;">Invia Recensione</button>
+                    </form>
+                `;
+
+                let selectedRating = 0;
+                const stars = writeContainer.querySelectorAll('.star-btn');
+                
+                stars.forEach(star => {
+                    star.addEventListener('mouseover', () => {
+                        const val = parseInt(star.getAttribute('data-value'));
+                        highlightStars(val);
+                    });
+                    star.addEventListener('mouseout', () => {
+                        highlightStars(selectedRating);
+                    });
+                    star.addEventListener('click', () => {
+                        selectedRating = parseInt(star.getAttribute('data-value'));
+                        document.getElementById('review-rating').value = selectedRating;
+                        highlightStars(selectedRating);
+                    });
+                });
+
+                function highlightStars(val) {
+                    stars.forEach(s => {
+                        const sVal = parseInt(s.getAttribute('data-value'));
+                        if (sVal <= val) {
+                            s.className = 'fas fa-star star-btn';
+                            s.style.color = '#ff9900';
+                        } else {
+                            s.className = 'far fa-star star-btn';
+                            s.style.color = 'var(--text-gray)';
+                        }
+                    });
+                }
+
+                const form = document.getElementById('review-form');
+                form.onsubmit = async (e) => {
+                    e.preventDefault();
+                    if (!currentUser || !isOwned) {
+                        showToast('Devi essere iscritto e possedere il gioco per lasciare una recensione!', 'error');
+                        return;
+                    }
+                    if (!currentUser.emailVerified) {
+                        showToast('Devi prima verificare il tuo indirizzo email!', 'error');
+                        return;
+                    }
+
+                    const rating = parseInt(document.getElementById('review-rating').value);
+                    const comment = document.getElementById('review-text').value;
+
+                    if (rating === 0) {
+                        showToast('Per favore, seleziona una valutazione in stelle!', 'fa-exclamation-triangle');
+                        return;
+                    }
+
+                    const submitBtn = document.getElementById('submit-review-btn');
+                    submitBtn.disabled = true;
+                    submitBtn.innerText = 'Invio...';
+
+                    try {
+                        let userName = currentUser.email;
+                        const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+                        if (userDoc.exists()) {
+                            const ud = userDoc.data();
+                            userName = `${ud.firstName} ${ud.lastName}`;
+                        }
+
+                        const newReview = {
+                            userId: currentUser.uid,
+                            userName: userName,
+                            rating: rating,
+                            comment: comment,
+                            createdAt: new Date().toISOString()
+                        };
+
+                        await updateDoc(doc(db, "games", gameId), {
+                            reviews: arrayUnion(newReview)
+                        });
+
+                        showToast('Recensione pubblicata con successo!', 'fa-check-circle');
+                        
+                        // Re-fetch updated reviews list from database
+                        const updatedDoc = await getDoc(doc(db, "games", gameId));
+                        const updatedReviews = updatedDoc.data()?.reviews || [];
+                        loadReviews(isOwned, updatedReviews);
+                    } catch (err) {
+                        showToast('Errore durante la pubblicazione della recensione.', 'fa-exclamation-triangle');
+                        submitBtn.disabled = false;
+                        submitBtn.innerText = 'Invia Recensione';
+                    }
+                };
+            }
+        }
+
+        function initLightbox() {
+            const lightbox = document.getElementById('lightbox');
+            const lightboxImg = document.getElementById('lightbox-img');
+            const closeLightbox = document.querySelector('.close-lightbox');
+            const galleryItems = document.querySelectorAll('.gallery-item img');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+
+            let currentIndex = 0;
+            const images = Array.from(galleryItems).map(img => img.src);
+
+            if (images.length === 0) return;
+
+            function updateLightbox(index) {
+                currentIndex = index;
+                lightboxImg.src = images[currentIndex];
+            }
+
+            galleryItems.forEach((item, index) => {
+                item.onclick = () => {
+                    lightbox.style.display = 'flex';
+                    updateLightbox(index);
+                };
+            });
+
+            nextBtn.onclick = (e) => {
+                e.stopPropagation();
+                let next = (currentIndex + 1) % images.length;
+                updateLightbox(next);
+            };
+
+            prevBtn.onclick = (e) => {
+                e.stopPropagation();
+                let prev = (currentIndex - 1 + images.length) % images.length;
+                updateLightbox(prev);
+            };
+
+            closeLightbox.onclick = () => {
+                lightbox.style.display = 'none';
+            };
+
+            window.onclick = (e) => {
+                if (e.target === lightbox) {
+                    lightbox.style.display = 'none';
+                }
+            };
+        }
+
+        // State Subscription
+        subscribeToAuthChanges(async (user) => {
+            currentUser = user;
+            const banner = document.getElementById('verification-banner');
+            const resendBtn = document.getElementById('resend-verification-btn');
+
+            if (user) {
+                loginBtn.classList.add('hidden');
+                registerBtn.classList.add('hidden');
+                logoutBtn.classList.remove('hidden');
+                userDisplay.classList.remove('hidden');
+                
+                if (!user.emailVerified) {
+                    banner.classList.remove('hidden');
+                    resendBtn.onclick = async () => {
+                        resendBtn.disabled = true;
+                        try {
+                            await sendEmailVerification(user);
+                            showToast('Email di verifica inviata di nuovo!', 'fa-envelope');
+                        } catch (err) {
+                            showToast('Errore nell\'invio: ' + err.message, 'error');
+                        } finally {
+                            resendBtn.disabled = false;
+                        }
+                    };
+                } else {
+                    banner.classList.add('hidden');
+                }
+                
+                try {
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    const sellLink = document.getElementById('sell-link');
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data();
+                        userDisplay.innerText = `${userData.firstName} ${userData.lastName}`;
+                        if (userData.isSeller) {
+                            sellLink?.classList.remove('hidden');
+                        } else {
+                            sellLink?.classList.add('hidden');
+                        }
+                    } else {
+                        userDisplay.innerText = user.email;
+                        sellLink?.classList.add('hidden');
+                    }
+                } catch (e) {
+                    console.error("Error fetching user profile:", e);
+                    userDisplay.innerText = user.email;
+                    const sellLink = document.getElementById('sell-link');
+                    sellLink?.classList.add('hidden');
+                }
+            } else {
+                loginBtn.classList.remove('hidden');
+                registerBtn.classList.remove('hidden');
+                logoutBtn.classList.add('hidden');
+                userDisplay.classList.add('hidden');
+                userDisplay.innerText = '';
+                banner.classList.add('hidden');
+                const sellLink = document.getElementById('sell-link');
+                sellLink?.classList.add('hidden');
+            }
+            loadGameDetails();
+        });
+
+        logoutBtn.onclick = async () => {
+            await logoutUser();
+            showToast('Disconnesso.', 'fa-info-circle');
+            setTimeout(() => window.location.reload(), 1000);
+        };
+
+        // Checkout Modal Events
+        closeCheckout.onclick = () => {
+            checkoutModal.style.display = 'none';
+        };
+
+        // Disclaimer Modal Elements & Handlers
+        const disclaimerModal = document.getElementById('disclaimer-modal');
+        const closeDisclaimer = document.getElementById('close-disclaimer');
+        const cancelDisclaimerBtn = document.getElementById('cancel-disclaimer-btn');
+        const disclaimerCheckbox = document.getElementById('disclaimer-accept-checkbox');
+        const confirmDownloadBtn = document.getElementById('confirm-download-btn');
+
+        let pendingDownload = null;
+        window.openDisclaimerModal = (filePath, title) => {
+            pendingDownload = { filePath, title };
+            disclaimerCheckbox.checked = false;
+            confirmDownloadBtn.disabled = true;
+            disclaimerModal.style.display = 'flex';
+        };
+
+        const closeDisclaimerModal = () => {
+            disclaimerModal.style.display = 'none';
+            pendingDownload = null;
+        };
+
+        if (closeDisclaimer) closeDisclaimer.onclick = closeDisclaimerModal;
+        if (cancelDisclaimerBtn) cancelDisclaimerBtn.onclick = closeDisclaimerModal;
+
+        if (disclaimerCheckbox) {
+            disclaimerCheckbox.onchange = () => {
+                confirmDownloadBtn.disabled = !disclaimerCheckbox.checked;
+            };
+        }
+
+        if (confirmDownloadBtn) {
+            confirmDownloadBtn.onclick = async () => {
+                if (!pendingDownload) return;
+                confirmDownloadBtn.disabled = true;
+                confirmDownloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Avvio download...';
+
+                try {
+                    showToast('Recupero file di gioco in corso...', 'info');
+                    const fileRef = ref(storage, pendingDownload.filePath);
+                    const downloadUrl = await getDownloadURL(fileRef);
+
+                    const link = document.createElement('a');
+                    link.href = downloadUrl;
+                    link.setAttribute('target', '_blank');
+                    link.setAttribute('download', `${pendingDownload.title.replace(/\s+/g, '_')}.zip`);
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+
+                    showToast('Download avviato con successo!', 'success');
+                    closeDisclaimerModal();
+
+                    // Track downloaded state in user's library
+                    const user = auth.currentUser;
+                    if (user) {
+                        try {
+                            const libRef = collection(db, 'users', user.uid, 'library');
+                            const q = query(libRef, where('gameId', '==', gameId));
+                            const snap = await getDocs(q);
+                            if (!snap.empty) {
+                                await updateDoc(doc(db, 'users', user.uid, 'library', snap.docs[0].id), {
+                                    downloaded: true,
+                                    downloadedAt: new Date()
+                                });
+                            }
+                        } catch (err) {
+                            console.error("Download tracking error:", err);
+                        }
+                    }
+                } catch (err) {
+                    console.error("Storage download error:", err);
+                    showToast('Errore durante il download del file di gioco.', 'error');
+                } finally {
+                    confirmDownloadBtn.disabled = false;
+                    confirmDownloadBtn.innerHTML = '<i class="fas fa-download"></i> Accetta e Scarica';
+                }
+            };
+        }
+
+        // Privacy & Cookie Modals Handlers
+        const privacyModal = document.getElementById('privacy-modal');
+        const closePrivacy = document.getElementById('close-privacy');
+        const confirmPrivacyBtn = document.getElementById('confirm-privacy-btn');
+
+        const cookieModal = document.getElementById('cookie-modal');
+        const closeCookie = document.getElementById('close-cookie');
+        const confirmCookieBtn = document.getElementById('confirm-cookie-btn');
+
+        document.querySelectorAll('.open-privacy-link').forEach(btn => {
+            btn.onclick = (e) => {
+                e.preventDefault();
+                privacyModal.style.display = 'flex';
+            };
+        });
+
+        if (closePrivacy) closePrivacy.onclick = () => privacyModal.style.display = 'none';
+        if (confirmPrivacyBtn) confirmPrivacyBtn.onclick = () => privacyModal.style.display = 'none';
+
+        document.querySelectorAll('.open-cookie-link').forEach(btn => {
+            btn.onclick = (e) => {
+                e.preventDefault();
+                cookieModal.style.display = 'flex';
+            };
+        });
+
+        if (closeCookie) closeCookie.onclick = () => cookieModal.style.display = 'none';
+        if (confirmCookieBtn) confirmCookieBtn.onclick = () => cookieModal.style.display = 'none';
+
+        window.addEventListener('click', (e) => {
+            if (e.target === checkoutModal) checkoutModal.style.display = 'none';
+            if (e.target === disclaimerModal) closeDisclaimerModal();
+            if (e.target === privacyModal) privacyModal.style.display = 'none';
+            if (e.target === cookieModal) cookieModal.style.display = 'none';
+        });
+
+        checkoutForm.onsubmit = async (e) => {
+            e.preventDefault();
+            
+            const user = auth.currentUser;
+            if (!user) return;
+
+            confirmPurchaseBtn.disabled = true;
+            confirmPurchaseBtn.innerText = 'Elaborazione pagamento...';
+
+            // Simulate network request
+            setTimeout(async () => {
+                try {
+                    const gameRef = doc(db, "games", gameId);
+                    const gameDoc = await getDoc(gameRef);
+                    if (gameDoc.exists()) {
+                        const game = gameDoc.data();
+                        const headerImgSrc = game.header?.src || (game.gallery && game.gallery[0]?.src) || '';
+                        
+                        const libRef = collection(db, 'users', user.uid, 'library');
+                        await addDoc(libRef, {
+                            gameId: gameId,
+                            title: game.title,
+                            imageUrl: headerImgSrc,
+                            addedAt: new Date()
+                        });
+
+                        checkoutModal.style.display = 'none';
+                        showToast('Pagamento riuscito! Gioco sbloccato.', 'fa-check-circle');
+                        
+                        // Reset form
+                        checkoutForm.reset();
+                        
+                        // Reload UI
+                        loadGameDetails();
+                    }
+                } catch (err) {
+                    showToast('Errore durante l\'acquisto.', 'fa-exclamation-triangle');
+                } finally {
+                    confirmPurchaseBtn.disabled = false;
+                    confirmPurchaseBtn.innerText = 'Paga e Riscatta';
+                }
+            }, 1500);
+        };
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const hamburgerBtn = document.getElementById('hamburger-btn');
+            const navLinks = document.querySelector('.nav-links');
+            if (hamburgerBtn && navLinks) {
+                const icon = hamburgerBtn.querySelector('i');
+                hamburgerBtn.addEventListener('click', () => {
+                    navLinks.classList.toggle('active');
+                    if (navLinks.classList.contains('active')) {
+                        icon.className = 'fas fa-times';
+                    } else {
+                        icon.className = 'fas fa-bars';
+                    }
+                });
+                
+                // Close menu when clicking a link or button
+                navLinks.addEventListener('click', (e) => {
+                    if (e.target.closest('a') || e.target.closest('button')) {
+                        navLinks.classList.remove('active');
+                        icon.className = 'fas fa-bars';
+                    }
+                });
+
+                // Relocate search bar and auth buttons dynamically
+                const navRight = document.querySelector('.nav-right');
+                const searchBar = document.querySelector('.search-bar');
+                const authButtons = document.querySelector('.auth-buttons');
+
+                function handleResponsiveMenu() {
+                    if (window.innerWidth <= 900) {
+                        if (searchBar && searchBar.parentElement !== navLinks) {
+                            navLinks.insertBefore(searchBar, navLinks.firstElementChild);
+                        }
+                        if (authButtons && authButtons.parentElement !== navLinks) {
+                            navLinks.appendChild(authButtons);
+                        }
+                    } else {
+                        if (searchBar && searchBar.parentElement !== navRight) {
+                            navRight.appendChild(searchBar);
+                        }
+                        if (authButtons && authButtons.parentElement !== navRight) {
+                            navRight.appendChild(authButtons);
+                        }
+                    }
+                }
+                window.addEventListener('resize', handleResponsiveMenu);
+                handleResponsiveMenu();
+            }
+        });
+    </script>
+</body>
+</html>

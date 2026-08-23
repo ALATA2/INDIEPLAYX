@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IndiePlay: scopri i migliori giochi indipendenti</title>
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="./style.css">
+    <script>
+        window.showToast = function(message, typeOrIcon = 'success', icon = null) {
+            let type = 'success';
+            if (typeOrIcon.startsWith('fa-')) {
+                icon = typeOrIcon;
+                // Infer type from icon
+                if (icon === 'fa-check-circle' || icon === 'fa-check') {
+                    type = 'success';
+                } else if (icon === 'fa-exclamation-triangle' || icon === 'fa-exclamation-circle' || icon === 'fa-lock') {
+                    type = 'error';
+                } else {
+                    type = 'info';
+                }
+            } else {
+                type = typeOrIcon;
+            }
+
+            const toast = document.createElement('div');
+            if (!icon) {
+                if (type === 'success') icon = 'fa-check-circle';
+                else if (type === 'error') icon = 'fa-exclamation-triangle';
+                else icon = 'fa-info-circle';
+            }
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<i class="fas ${icon}"></i> <span>${message}</span>`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 500);
+            }, 4000);
+        };
+    </script>
+</head>
+<body>
+    <header class="prime-header">
+        <nav>
+            <div class="nav-left">
+                <div class="hamburger-menu" id="hamburger-btn" style="margin-right: 15px;">
+                    <i class="fas fa-bars"></i>
+                </div>
+                <a href="/" class="prime-logo" style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
+                    <img src="/images/logo_litte.png" alt="Logo" style="height: 32px; width: auto; object-fit: contain;">
+                    <span style="color: white; font-weight: 900; font-size: 1.5rem; letter-spacing: -1px;">INDIE<span style="color: var(--prime-blue);">PLAY</span></span>
+                    <span style="font-size: 0.75rem; background: rgba(0, 168, 225, 0.15); color: var(--prime-blue); padding: 2px 8px; border-radius: 20px; font-weight: 700; border: 1px solid rgba(0, 168, 225, 0.3); text-transform: uppercase; letter-spacing: 0;">v.2.0</span>
+                </a>
+                <ul class="nav-links">
+                    <li><a href="#store" class="active">Home</a></li>
+                    <li><a href="account.html?tab=my-games" id="sell-link" class="hidden">Vendi</a></li>
+                </ul>
+            </div>
+            <div class="nav-right">
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Cerca">
+                </div>
+                <div class="auth-buttons">
+                    <a href="account.html" id="user-display" class="hidden" style="text-decoration: none; color: white; font-weight: 700; margin-right: 1rem;"></a>
+                    <button id="login-btn" class="btn btn-prime-outline">Accedi</button>
+                    <button id="register-btn" class="btn btn-prime">Registrati</button>
+                    <button id="logout-btn" class="btn btn-outline hidden">Esci</button>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <header class="hero-split">
+        <div class="hero-main">
+            <img src="/images/placeholder.png" id="hero-main-img" alt="Alchemist" style="width: 100%; height: 100%; object-fit: cover;">
+            <div class="hero-overlay">
+                <div class="hero-content">
+                    <span class="prime-badge">✓ Incluso con IndiePlay</span>
+                    <h1 id="hero-main-title">ALCHEMIST</h1>
+                    <p id="hero-main-desc">Unisci elementi, scopri segreti e crea potenti pozioni nel gioco di simulazione e magia dell'anno.</p>
+                    <div class="hero-actions">
+                        <div class="secondary-actions" style="margin-bottom: 1.5rem;">
+                            <div class="action-btn" title="Aggiungi alla lista"><i class="fas fa-plus"></i></div>
+                            <div class="action-btn" title="Mi piace"><i class="fas fa-thumbs-up"></i></div>
+                            <div class="action-btn" title="Non fa per me"><i class="fas fa-thumbs-down"></i></div>
+                            <div class="action-btn" title="Condividi"><i class="fas fa-share-alt"></i></div>
+                        </div>
+                        <a href="#" id="hero-btn" class="btn btn-prime" style="text-decoration: none; min-width: 250px; justify-content: center;"><i class="fas fa-info-circle"></i> Scopri di più</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="hero-side">
+            <div class="hero-sub" id="hero-side-1">
+                <img src="/images/placeholder.png" alt="Rogue Like">
+                <div class="hero-overlay-sub">
+                    <h3 id="hero-side-title-1">Rogue Like</h3>
+                    <span class="prime-tag">Incluso con IndiePlay</span>
+                </div>
+            </div>
+            <div class="hero-sub" id="hero-side-2">
+                <img src="/images/placeholder.png" alt="Serpe">
+                <div class="hero-overlay-sub">
+                    <h3 id="hero-side-title-2">Serpe</h3>
+                    <span class="prime-tag">Incluso con IndiePlay</span>
+                </div>
+            </div>
+        </div>
+        <div class="hero-dots">
+            <span class="dot active" data-index="0"></span>
+            <span class="dot" data-index="1"></span>
+            <span class="dot" data-index="2"></span>
+        </div>
+    </header>
+
+    <main id="store">
+        <section class="genre-section">
+            <div class="section-header">
+                <h2>Categorie</h2>
+            </div>
+            <div class="genre-row">
+                <div class="genre-card">
+                    <i class="fas fa-hand-fist"></i>
+                    <span>Picchiaduro ></span>
+                </div>
+                <div class="genre-card">
+                    <i class="fas fa-floppy-disk"></i>
+                    <span>Amiga & Retro ></span>
+                </div>
+                <div class="genre-card">
+                    <i class="fas fa-sword"></i>
+                    <span>Azione e avventura ></span>
+                </div>
+                <div class="genre-card">
+                    <i class="fas fa-person-running"></i>
+                    <span>Giochi a piattaforme ></span>
+                </div>
+                <div class="genre-card">
+                    <i class="fas fa-ghost"></i>
+                    <span>Horror e Survival ></span>
+                </div>
+                <div class="genre-card">
+                    <i class="fas fa-puzzle-piece"></i>
+                    <span>Puzzle e Rompicapo ></span>
+                </div>
+                <div class="genre-card">
+                    <i class="fas fa-magic"></i>
+                    <span>Giochi di ruolo (GDR) ></span>
+                </div>
+                <div class="genre-card">
+                    <i class="fas fa-crosshairs"></i>
+                    <span>Sparatutto / FPS ></span>
+                </div>
+                <div class="genre-card">
+                    <i class="fas fa-car"></i>
+                    <span>Corse e volo ></span>
+                </div>
+                <div class="genre-card">
+                    <i class="fas fa-chess"></i>
+                    <span>Strategia e Simulazione ></span>
+                </div>
+                <div class="genre-card">
+                    <i class="fas fa-basketball"></i>
+                    <span>Sport ></span>
+                </div>
+                <div class="genre-card">
+                    <i class="fas fa-face-smile"></i>
+                    <span>Bambini e famiglia ></span>
+                </div>
+            </div>
+        </section>
+
+        <section class="game-section">
+            <div class="section-header">
+                <h2>Aggiunti di recente su IndiePlay</h2>
+            </div>
+            <div id="game-grid" class="game-row">
+                <div class="loading">Caricamento...</div>
+            </div>
+            <div style="text-align: center; margin-top: 1.5rem;">
+                <button id="load-more-btn" class="btn btn-prime-outline hidden" style="padding: 0.8rem 2.5rem;">Carica Altri</button>
+            </div>
+        </section>
+
+        <!-- YouTube Channel Embed Section -->
+        <section class="youtube-section">
+            <div class="section-header">
+                <h2>Indieplay TV</h2>
+                <a href="https://www.youtube.com/@INDIE-PLAY" target="_blank" class="yt-channel-btn">
+                    <i class="fab fa-youtube"></i> Visita il Canale
+                </a>
+            </div>
+            <div class="youtube-carousel-container">
+                <div class="youtube-carousel" id="yt-carousel">
+                    <div class="youtube-card">
+                        <div class="youtube-video-wrapper">
+                            <iframe src="https://www.youtube.com/embed/dgITt4-wF6Y" title="Indieplay TV Video 1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                        </div>
+                        <div class="youtube-card-info">
+                            <h3>Vlog Sviluppo Videogiochi</h3>
+                            <p>Dietro le quinte dello sviluppo e della produzione del panorama indipendente italiano.</p>
+                        </div>
+                    </div>
+                    <div class="youtube-card">
+                        <div class="youtube-video-wrapper">
+                            <iframe src="https://www.youtube.com/embed/gbRqg1oY8hs" title="Indieplay TV Video 2" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                        </div>
+                        <div class="youtube-card-info">
+                            <h3>Consigli di Sviluppo Indie</h3>
+                            <p>Tecniche utili e suggerimenti per chi vuole creare il proprio videogioco da zero.</p>
+                        </div>
+                    </div>
+                    <div class="youtube-card">
+                        <div class="youtube-video-wrapper">
+                            <iframe src="https://www.youtube.com/embed/In_ejfVIE2U" title="Indieplay TV Video 3" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                        </div>
+                        <div class="youtube-card-info">
+                            <h3>Novità e Progetti in Corso</h3>
+                            <p>Anteprime dei progetti futuri in lavorazione e interviste con creatori di talento.</p>
+                        </div>
+                    </div>
+                    <div class="youtube-card">
+                        <div class="youtube-video-wrapper">
+                            <iframe src="https://www.youtube.com/embed/in0NLJbOBr4" title="Indieplay TV Video 4" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                        </div>
+                        <div class="youtube-card-info">
+                            <h3>Dietro Le Quinte - Sviluppo</h3>
+                            <p>Dettagli approfonditi sulla programmazione, sul level design e sul game-feel.</p>
+                        </div>
+                    </div>
+                    <div class="youtube-card">
+                        <div class="youtube-video-wrapper">
+                            <iframe src="https://www.youtube.com/embed/naXMsiQenXQ" title="Indieplay TV Video 5" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                        </div>
+                        <div class="youtube-card-info">
+                            <h3>Sfide e Motivazione</h3>
+                            <p>Come affrontare le complessità dello sviluppo indipendente e rimanere focalizzati sugli obiettivi.</p>
+                        </div>
+                    </div>
+                    <div class="youtube-card">
+                        <div class="youtube-video-wrapper">
+                            <iframe src="https://www.youtube.com/embed/evZLMzkUlaU" title="Indieplay TV Video 6" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                        </div>
+                        <div class="youtube-card-info">
+                            <h3>Il Futuro dell'Indie Gaming</h3>
+                            <p>Riflessioni sui trend emergenti, sul cloud gaming e sulle nuove opportunità di mercato.</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Carousel Dots for Mobile navigation -->
+                <div class="youtube-carousel-dots">
+                    <span class="yt-dot active" data-index="0"></span>
+                    <span class="yt-dot" data-index="1"></span>
+                    <span class="yt-dot" data-index="2"></span>
+                    <span class="yt-dot" data-index="3"></span>
+                    <span class="yt-dot" data-index="4"></span>
+                    <span class="yt-dot" data-index="5"></span>
+                </div>
+            </div>
+        </section>
+
+        <section class="game-section">
+            <div class="section-header">
+                <h2>Ultime novità</h2>
+            </div>
+            <div id="news-grid" class="game-row">
+                <div class="loading">Caricamento...</div>
+            </div>
+        </section>
+
+        <!-- New Merchandising Section -->
+        <section class="merch-section">
+            <div class="section-header">
+                <h2>Merchandising Ufficiale IndiePlay</h2>
+            </div>
+            <div class="merch-grid-equal">
+                <div class="merch-card">
+                    <img src="/images/merch_action_figure_starbound_1777198611710.png" alt="Action Figure Starbound">
+                    <div class="merch-card-overlay">
+                        <h3>Action Figure Starbound</h3>
+                        <p class="price">€39.99</p>
+                    </div>
+                </div>
+                <div class="merch-card">
+                    <img src="/images/merch_tshirt_samurai_1777201074364.png" alt="T-shirt Samurai">
+                    <div class="merch-card-overlay">
+                        <h3>T-shirt Neon Samurai</h3>
+                        <p class="price">€29.90</p>
+                    </div>
+                </div>
+                <div class="merch-card">
+                    <img src="/images/merch_hoodie_samurai_1777198641485.png" alt="Felpa Samurai">
+                    <div class="merch-card-overlay">
+                        <h3>Felpa Neon Samurai</h3>
+                        <p class="price">€55.00</p>
+                    </div>
+                </div>
+                <div class="merch-card">
+                    <img src="/images/merch_tshirt_cyberneon_1777198594736.png" alt="T-shirt Cyberneon">
+                    <div class="merch-card-overlay">
+                        <h3>T-shirt Cyberneon</h3>
+                        <p class="price">€24.90</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="game-section">
+            <div class="section-header">
+                <h2>Aggiunti di Recente</h2>
+            </div>
+            <div id="recent-games-grid" class="game-row">
+                <div class="loading">Caricamento nuovi titoli...</div>
+            </div>
+        </section>
+
+        <section class="game-section">
+            <div class="section-header">
+                <h2>I più venduti</h2>
+            </div>
+            <div id="bestsellers-grid" class="game-row">
+                <div class="loading">Caricamento...</div>
+            </div>
+        </section>
+
+        <section class="game-section">
+            <div class="section-header">
+                <h2>Offerte</h2>
+            </div>
+            <div id="deals-grid" class="game-row">
+                <div class="loading">Caricamento...</div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Privacy Policy Modal -->
+    <div id="privacy-modal" class="lightbox" style="display: none; justify-content: center; align-items: center; z-index: 2200;">
+        <div class="modal-content glass" style="background: rgba(26, 36, 47, 0.98); border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; padding: 2.5rem; max-width: 680px; width: 90%; color: white; position: relative; backdrop-filter: blur(25px); box-shadow: 0 20px 50px rgba(0,0,0,0.7); max-height: 85vh; display: flex; flex-direction: column;">
+            <span class="close-lightbox" id="close-privacy" style="position: absolute; top: 1rem; right: 1.5rem; font-size: 2.5rem; cursor: pointer; color: var(--text-gray);">&times;</span>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 1.2rem;">
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(0, 168, 225, 0.15); border: 1px solid rgba(0, 168, 225, 0.4); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i class="fas fa-user-shield" style="color: var(--prime-blue); font-size: 1.4rem;"></i>
+                </div>
+                <div>
+                    <h2 style="font-size: 1.5rem; font-weight: 800; margin: 0; color: white;">Informativa sulla Privacy (GDPR)</h2>
+                    <span style="font-size: 0.8rem; color: var(--text-gray);">Ai sensi del Regolamento UE 2016/679 (GDPR)</span>
+                </div>
+            </div>
+
+            <div style="overflow-y: auto; padding-right: 10px; font-size: 0.9rem; line-height: 1.6; color: #d0dbe5; flex: 1;">
+                <h4 style="color: white; margin: 1rem 0 0.4rem;">1. Titolare del Trattamento</h4>
+                <p>Il Titolare del trattamento dei dati è <strong>IndiePlay</strong>. Per qualsiasi richiesta relativa alla protezione dei dati puoi contattarci all'indirizzo email: <a href="mailto:privacy@indieplay.it" style="color: var(--prime-blue);">privacy@indieplay.it</a>.</p>
+
+                <h4 style="color: white; margin: 1rem 0 0.4rem;">2. Dati Raccolti</h4>
+                <p>Raccogliamo i seguenti dati personali al fine di erogare i nostri servizi:</p>
+                <ul style="margin-left: 1.2rem; margin-bottom: 0.5rem; list-style-type: disc;">
+                    <li><strong>Dati di Registrazione:</strong> Indirizzo email, nome, cognome ed eventuale foto del profilo.</li>
+                    <li><strong>Dati di Fatturazione Venditori:</strong> Codice Fiscale / Partita IVA e coordinate bancarie (IBAN) necessarie per l'accredito dei ricavi dalle vendite dei giochi.</li>
+                    <li><strong>Dati di Utilizzo & Libreria:</strong> Cronologia degli acquisti, giochi aggiunti alla libreria, download effettuati e recensioni pubblicate.</li>
+                </ul>
+
+                <h4 style="color: white; margin: 1rem 0 0.4rem;">3. Finalità del Trattamento</h4>
+                <p>I dati vengono trattati esclusivamente per consentire l'accesso alla piattaforma, la gestione degli acquisti, il download sicuro dei giochi indie, la pubblicazione di contenuti e l'adempimento degli obblighi legali e fiscali.</p>
+
+                <h4 style="color: white; margin: 1rem 0 0.4rem;">4. Conservazione e Sicurezza</h4>
+                <p>I dati sono archiviati su infrastrutture cloud conformi agli standard internazionali di sicurezza con crittografia e protocolli TLS/HTTPS. I dati non vengono ceduti a terze parti per finalità di marketing.</p>
+
+                <h4 style="color: white; margin: 1rem 0 0.4rem;">5. Diritti dell'Utente (Artt. 15-22 GDPR)</h4>
+                <p>Hai il diritto di richiedere in qualsiasi momento l'accesso, la rettifica, la cancellazione (diritto all'oblio), la limitazione del trattamento o la portabilità dei tuoi dati personali scrivendo a <a href="mailto:privacy@indieplay.it" style="color: var(--prime-blue);">privacy@indieplay.it</a>.</p>
+            </div>
+
+            <div style="margin-top: 1.5rem; text-align: right;">
+                <button type="button" id="confirm-privacy-btn" class="btn btn-prime" style="padding: 0.7rem 2rem;">Chiudi</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cookie Policy Modal -->
+    <div id="cookie-modal" class="lightbox" style="display: none; justify-content: center; align-items: center; z-index: 2200;">
+        <div class="modal-content glass" style="background: rgba(26, 36, 47, 0.98); border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; padding: 2.5rem; max-width: 680px; width: 90%; color: white; position: relative; backdrop-filter: blur(25px); box-shadow: 0 20px 50px rgba(0,0,0,0.7); max-height: 85vh; display: flex; flex-direction: column;">
+            <span class="close-lightbox" id="close-cookie" style="position: absolute; top: 1rem; right: 1.5rem; font-size: 2.5rem; cursor: pointer; color: var(--text-gray);">&times;</span>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 1.2rem;">
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(0, 255, 128, 0.15); border: 1px solid rgba(0, 255, 128, 0.4); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i class="fas fa-cookie-bite" style="color: #00ff80; font-size: 1.4rem;"></i>
+                </div>
+                <div>
+                    <h2 style="font-size: 1.5rem; font-weight: 800; margin: 0; color: white;">Informativa sui Cookie</h2>
+                    <span style="font-size: 0.8rem; color: var(--text-gray);">Uso dei cookie e tecnologie di tracciamento</span>
+                </div>
+            </div>
+
+            <div style="overflow-y: auto; padding-right: 10px; font-size: 0.9rem; line-height: 1.6; color: #d0dbe5; flex: 1;">
+                <h4 style="color: white; margin: 1rem 0 0.4rem;">1. Cosa sono i Cookie?</h4>
+                <p>I cookie sono piccoli file di testo che i siti salvano sul tuo dispositivo durante la navigazione. Sono utilizzati per garantire il corretto funzionamento delle sessioni e migliorare l'esperienza utente.</p>
+
+                <h4 style="color: white; margin: 1rem 0 0.4rem;">2. Cookie Utilizzati da IndiePlay</h4>
+                <ul style="margin-left: 1.2rem; margin-bottom: 0.5rem; list-style-type: disc;">
+                    <li><strong>Cookie Tecnici e di Sessione (Strettamente Necessari):</strong> Gestiti tramite Firebase Auth e LocalStorage per mantenere sicuro il login, identificare l'utente verificato e consentire il download dei giochi acquistati.</li>
+                    <li><strong>Cookie di Funzionalità e Preferenze:</strong> Utilizzati per ricordare le scelte di navigazione, filtri di ricerca e la lingua dell'interfaccia.</li>
+                    <li><strong>Cookie di Terze Parti (YouTube & Media):</strong> Utilizzati nei video trailer dei giochi incorporati via YouTube / Google per consentire lo streaming multimediale.</li>
+                </ul>
+
+                <h4 style="color: white; margin: 1rem 0 0.4rem;">3. Come Gestire o Disabilitare i Cookie</h4>
+                <p>Puoi gestire le preferenze sui cookie o bloccarli direttamente dalle impostazioni del tuo browser web (Chrome, Firefox, Safari, Edge). La disattivazione dei cookie tecnici potrebbe compromettere il corretto funzionamento del login e del download dei giochi.</p>
+            </div>
+
+            <div style="margin-top: 1.5rem; text-align: right;">
+                <button type="button" id="confirm-cookie-btn" class="btn btn-prime" style="padding: 0.7rem 2rem;">Chiudi</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="prime-footer">
+        <div class="footer-logo">
+            <span style="color: white; font-weight: 900; font-size: 1.5rem; letter-spacing: -1px;">INDIE<span style="color: var(--prime-blue);">PLAY</span></span>
+        </div>
+        <div class="footer-links">
+            <a href="javascript:void(0)" class="open-privacy-link">Termini e informativa sulla privacy</a>
+            <a href="javascript:void(0)" class="open-cookie-link">Informativa sui cookie</a>
+            <a href="mailto:support@indieplay.it">Inviaci un feedback</a>
+            <a href="mailto:support@indieplay.it">Aiuto</a>
+        </div>
+        <div class="footer-legal">
+            © 2026 IndiePlay v2.4. Tutti i diritti riservati.
+        </div>
+    </footer>
+
+    <!-- Login Modal -->
+    <div id="login-modal" class="modal">
+        <div class="modal-content glass">
+            <span class="close-modal">&times;</span>
+            <h2>Bentornato</h2>
+            <form id="login-form">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="login-email" required placeholder="tu@email.com">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="login-password" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn btn-prime w-100" style="margin-top: 1rem;">Accedi</button>
+                <div style="display: flex; align-items: center; justify-content: center; margin: 1.5rem 0 1rem; color: var(--text-gray); gap: 10px;">
+                    <hr style="flex-grow: 1; border: 0; border-top: 1px solid rgba(255,255,255,0.1);">
+                    <span style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase;">Oppure</span>
+                    <hr style="flex-grow: 1; border: 0; border-top: 1px solid rgba(255,255,255,0.1);">
+                </div>
+                <button type="button" id="google-login-btn" class="btn btn-prime-outline w-100" style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    <i class="fab fa-google" style="color: #4285F4;"></i> Accedi con Google
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div id="register-modal" class="modal">
+        <div class="modal-content glass">
+            <span class="close-modal">&times;</span>
+            <div class="modal-header">
+                <h2>Crea Account IndiePlay</h2>
+                <p>Inserisci i dati obbligatori per iniziare subito.</p>
+            </div>
+            <form id="register-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Nome</label>
+                        <input type="text" id="register-name" required placeholder="Nome">
+                    </div>
+                    <div class="form-group">
+                        <label>Cognome</label>
+                        <input type="text" id="register-surname" required placeholder="Cognome">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="register-email" required placeholder="tu@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Età</label>
+                        <input type="number" id="register-age" required min="13" placeholder="Età">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="register-password" required minlength="6" placeholder="Min. 6 caratteri">
+                    </div>
+                    <div class="form-group">
+                        <label>Conferma Password</label>
+                        <input type="password" id="register-password-confirm" required minlength="6" placeholder="Ripeti password">
+                    </div>
+                </div>
+
+                <div class="seller-toggle-box">
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="is-seller">
+                        <span class="checkmark"></span>
+                        Voglio vendere i miei giochi (Profilo Venditore)
+                    </label>
+                </div>
+
+                <div id="seller-fields" class="hidden">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Codice Fiscale o Partita IVA</label>
+                            <input type="text" id="register-piva" placeholder="Codice Fiscale o P.IVA">
+                        </div>
+                        <div class="form-group">
+                            <label>IBAN</label>
+                            <input type="text" id="register-iban" placeholder="IT00X00000...">
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-prime w-100" style="margin-top: 1rem;">Registrati Ora</button>
+                <div style="display: flex; align-items: center; justify-content: center; margin: 1.5rem 0 1rem; color: var(--text-gray); gap: 10px;">
+                    <hr style="flex-grow: 1; border: 0; border-top: 1px solid rgba(255,255,255,0.1);">
+                    <span style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase;">Oppure</span>
+                    <hr style="flex-grow: 1; border: 0; border-top: 1px solid rgba(255,255,255,0.1);">
+                </div>
+                <button type="button" id="google-register-btn" class="btn btn-prime-outline w-100" style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    <i class="fab fa-google" style="color: #4285F4;"></i> Registrati con Google
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module" src="./main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const hamburgerBtn = document.getElementById('hamburger-btn');
+            const navLinks = document.querySelector('.nav-links');
+            if (hamburgerBtn && navLinks) {
+                const icon = hamburgerBtn.querySelector('i');
+                hamburgerBtn.addEventListener('click', () => {
+                    navLinks.classList.toggle('active');
+                    if (navLinks.classList.contains('active')) {
+                        icon.className = 'fas fa-times';
+                    } else {
+                        icon.className = 'fas fa-bars';
+                    }
+                });
+                
+                // Close menu when clicking a link or button
+                navLinks.addEventListener('click', (e) => {
+                    if (e.target.closest('a') || e.target.closest('button')) {
+                        navLinks.classList.remove('active');
+                        icon.className = 'fas fa-bars';
+                    }
+                });
+
+                // Relocate search bar and auth buttons dynamically
+                const navRight = document.querySelector('.nav-right');
+                const searchBar = document.querySelector('.search-bar');
+                const authButtons = document.querySelector('.auth-buttons');
+
+                function handleResponsiveMenu() {
+                    if (window.innerWidth <= 900) {
+                        if (searchBar && searchBar.parentElement !== navLinks) {
+                            navLinks.insertBefore(searchBar, navLinks.firstElementChild);
+                        }
+                        if (authButtons && authButtons.parentElement !== navLinks) {
+                            navLinks.appendChild(authButtons);
+                        }
+                    } else {
+                        if (searchBar && searchBar.parentElement !== navRight) {
+                            navRight.appendChild(searchBar);
+                        }
+                        if (authButtons && authButtons.parentElement !== navRight) {
+                            navRight.appendChild(authButtons);
+                        }
+                    }
+                }
+                window.addEventListener('resize', handleResponsiveMenu);
+                handleResponsiveMenu();
+            }
+
+            // YouTube Carousel dots scroll logic
+            const ytCarousel = document.getElementById('yt-carousel');
+            const ytDots = document.querySelectorAll('.youtube-carousel-dots .yt-dot');
+            if (ytCarousel && ytDots.length > 0) {
+                ytCarousel.addEventListener('scroll', () => {
+                    const card = ytCarousel.querySelector('.youtube-card');
+                    if (!card) return;
+                    const cardWidth = card.offsetWidth + 20;
+                    const index = Math.round(ytCarousel.scrollLeft / cardWidth);
+                    ytDots.forEach((dot, i) => {
+                        if (i === index) dot.classList.add('active');
+                        else dot.classList.remove('active');
+                    });
+                });
+                ytDots.forEach(dot => {
+                    dot.addEventListener('click', () => {
+                        const index = parseInt(dot.getAttribute('data-index'));
+                        const card = ytCarousel.querySelector('.youtube-card');
+                        if (!card) return;
+                        const cardWidth = card.offsetWidth + 20;
+                        ytCarousel.scrollTo({
+                            left: index * cardWidth,
+                            behavior: 'smooth'
+                        });
+                    });
+                });
+            }
+        });
+    </script>
+</body>
+</html>
