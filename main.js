@@ -3,6 +3,16 @@ import { getGames, getGamesPaged } from './src/store';
 import { db, auth } from './src/firebase';
 import { doc, getDoc, collection, getDocs, query, orderBy, limit } from "firebase/firestore";
 
+const getAssetUrl = (path) => {
+  if (!path) return `${import.meta.env.BASE_URL}images/placeholder.png`;
+  if (path.startsWith('data:') || path.startsWith('http://') || path.startsWith('https://')) {
+    return path;
+  }
+  const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+  return `${import.meta.env.BASE_URL}${cleanPath}`;
+};
+window.getAssetUrl = getAssetUrl;
+
 // DOM Elements
 const loginBtn = document.getElementById('login-btn');
 const registerBtn = document.getElementById('register-btn');
@@ -210,10 +220,12 @@ function createGameCard(game) {
     card.className = 'game-card';
     card.style.cursor = 'pointer';
     card.onclick = () => {
-        window.location.href = window.location.origin + '/game.html?id=' + game.id;
+        window.location.href = `${import.meta.env.BASE_URL}game.html?id=${game.id}`;
     };
+    const imgUrl = getAssetUrl(game.imageUrl);
+    const placeholderUrl = getAssetUrl('/images/placeholder.png');
     card.innerHTML = `
-        <img src="${game.imageUrl}" alt="${game.title}" onerror="this.src='/images/placeholder.png'">
+        <img src="${imgUrl}" alt="${game.title}" onerror="this.onerror=null; this.src='${placeholderUrl}'">
         <div class="card-info">
             <span class="prime-tag" style="color: #00a8e1; font-weight: bold; font-size: 0.8rem;">✓ Incluso con IndiePlay</span>
             <h3>${game.title}</h3>
@@ -346,14 +358,15 @@ const loadGames = async () => {
   if (alchemist) {
       const heroBtn = document.getElementById('hero-btn');
       if (heroBtn) {
-          heroBtn.href = `/game.html?id=${alchemist.id}`;
+          heroBtn.href = `${import.meta.env.BASE_URL}game.html?id=${alchemist.id}`;
       }
       const heroImg = document.getElementById('hero-main-img');
       if (heroImg) {
-          heroImg.src = alchemist.imageUrl || '/images/placeholder.png';
+          const alchemistHeroImg = alchemist.header?.src || alchemist.imageUrl;
+          heroImg.src = getAssetUrl(alchemistHeroImg);
           heroImg.style.cursor = 'pointer';
           heroImg.onclick = () => {
-              window.location.href = `/game.html?id=${alchemist.id}`;
+              window.location.href = `${import.meta.env.BASE_URL}game.html?id=${alchemist.id}`;
           };
       }
       const heroTitle = document.getElementById('hero-main-title');
@@ -372,11 +385,12 @@ const loadGames = async () => {
       if (rogueEl) {
           rogueEl.style.cursor = 'pointer';
           rogueEl.onclick = () => {
-              window.location.href = `/game.html?id=${rogueLike.id}`;
+              window.location.href = `${import.meta.env.BASE_URL}game.html?id=${rogueLike.id}`;
           };
           const img = rogueEl.querySelector('img');
           if (img) {
-              img.src = rogueLike.imageUrl || '/images/placeholder.png';
+              const rogueLikeHeroImg = (rogueLike.gallery && rogueLike.gallery[0]?.src) || rogueLike.header?.src || rogueLike.imageUrl;
+              img.src = getAssetUrl(rogueLikeHeroImg);
           }
           const title = document.getElementById('hero-side-title-1');
           if (title) {
@@ -391,11 +405,12 @@ const loadGames = async () => {
       if (serpeEl) {
           serpeEl.style.cursor = 'pointer';
           serpeEl.onclick = () => {
-              window.location.href = `/game.html?id=${serpe.id}`;
+              window.location.href = `${import.meta.env.BASE_URL}game.html?id=${serpe.id}`;
           };
           const img = serpeEl.querySelector('img');
           if (img) {
-              img.src = serpe.imageUrl || '/images/placeholder.png';
+              const serpeHeroImg = (serpe.gallery && serpe.gallery[0]?.src) || serpe.header?.src || serpe.imageUrl;
+              img.src = getAssetUrl(serpeHeroImg);
           }
           const title = document.getElementById('hero-side-title-2');
           if (title) {

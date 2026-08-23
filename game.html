@@ -378,8 +378,7 @@
                 </div>
                 <a href="/" class="prime-logo" style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
                     <img src="/images/logo_litte.png" alt="Logo" style="height: 32px; width: auto; object-fit: contain;">
-                    <span style="color: white; font-weight: 900; font-size: 1.5rem; letter-spacing: -1px;">INDIE<span style="color: var(--prime-blue);">PLAY</span></span>
-                    <span style="font-size: 0.75rem; background: rgba(0, 168, 225, 0.15); color: var(--prime-blue); padding: 2px 8px; border-radius: 20px; font-weight: 700; border: 1px solid rgba(0, 168, 225, 0.3); text-transform: uppercase; letter-spacing: 0;">-X</span>
+                    <span style="color: white; font-weight: 900; font-size: 1.5rem; letter-spacing: -1px;">INDIE<span style="color: var(--prime-blue);">PLAY-X</span></span>
                 </a>
                 <ul class="nav-links">
                     <li><a href="/">Home</a></li>
@@ -689,7 +688,14 @@
         import { sendEmailVerification } from "firebase/auth";
         import { doc, getDoc, updateDoc, arrayUnion, collection, addDoc, query, where, getDocs } from "firebase/firestore";
         import { subscribeToAuthChanges, logoutUser } from './src/auth';
-        import { ref, getDownloadURL } from "firebase/storage";
+        const getAssetUrl = (path) => {
+          if (!path) return `${import.meta.env.BASE_URL}images/placeholder.png`;
+          if (path.startsWith('data:') || path.startsWith('http://') || path.startsWith('https://')) {
+            return path;
+          }
+          const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+          return `${import.meta.env.BASE_URL}${cleanPath}`;
+        };
 
         const urlParams = new URLSearchParams(window.location.search);
         const gameId = urlParams.get('id');
@@ -737,7 +743,8 @@
                     descEl.innerText = game.desc || 'Nessuna descrizione disponibile per questo titolo.';
 
                     // Update Header Image with Fallback
-                    const headerImgSrc = game.header?.src || (game.gallery && game.gallery[0]?.src) || '/images/placeholder.png';
+                    const rawHeaderImgSrc = game.header?.src || (game.gallery && game.gallery[0]?.src) || '/images/placeholder.png';
+                    const headerImgSrc = getAssetUrl(rawHeaderImgSrc);
                     hero.style.background = `url('${headerImgSrc}') no-repeat center center`;
                     hero.style.backgroundSize = 'cover';
 
@@ -934,7 +941,7 @@
                             if (item.type === 'image') {
                                 const gItem = document.createElement('div');
                                 gItem.className = 'gallery-item';
-                                gItem.innerHTML = `<img src="${item.src}" alt="Screenshot">`;
+                                gItem.innerHTML = `<img src="${getAssetUrl(item.src)}" alt="Screenshot">`;
                                 galleryGrid.appendChild(gItem);
                             }
                         });
