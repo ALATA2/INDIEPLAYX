@@ -389,7 +389,7 @@ const loadGames = async () => {
           };
           const img = rogueEl.querySelector('img');
           if (img) {
-              const rogueLikeHeroImg = (rogueLike.gallery && rogueLike.gallery[0]?.src) || rogueLike.header?.src || rogueLike.imageUrl;
+              const rogueLikeHeroImg = rogueLike.header?.src || rogueLike.imageUrl || (rogueLike.gallery && rogueLike.gallery[0]?.src);
               img.src = getAssetUrl(rogueLikeHeroImg);
           }
           const title = document.getElementById('hero-side-title-1');
@@ -409,7 +409,7 @@ const loadGames = async () => {
           };
           const img = serpeEl.querySelector('img');
           if (img) {
-              const serpeHeroImg = (serpe.gallery && serpe.gallery[0]?.src) || serpe.header?.src || serpe.imageUrl;
+              const serpeHeroImg = serpe.header?.src || serpe.imageUrl || (serpe.gallery && serpe.gallery[0]?.src);
               img.src = getAssetUrl(serpeHeroImg);
           }
           const title = document.getElementById('hero-side-title-2');
