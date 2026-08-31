@@ -1,8 +1,10 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
 
+const isVercel = process.env.VERCEL === '1';
+
 export default defineConfig({
-  base: '/INDIEPLAYX/',
+  base: isVercel ? '/' : '/INDIEPLAYX/',
   build: {
     rollupOptions: {
       input: {
