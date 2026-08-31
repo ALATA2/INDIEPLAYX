@@ -1606,7 +1606,11 @@
             const file = e.target.files[0];
             if (file) {
                 try {
-                    showToast('Ottimizzazione immagine in corso...', 'info');
+                    if (file.size > 300 * 1024) {
+                        showToast("Immagine superiore a 300KB rilevata. Eseguo il ridimensionamento automatico. Si consiglia di prepararla già perfettamente ottimizzata per evitare rallentamenti.", "info");
+                    } else {
+                        showToast('Ottimizzazione immagine in corso...', 'info');
+                    }
                     const optimized = await compressAndScaleImage(file, 1200, 700, 0.75);
                     headerData = { type: 'image', src: optimized };
                     headerPreview.innerHTML = `<img src="${optimized}">`;
@@ -1647,7 +1651,12 @@
         galleryFiles.onchange = async (e) => {
             const files = Array.from(e.target.files);
             if (files.length > 0) {
-                showToast(`Ottimizzazione di ${files.length} immagini...`, 'info');
+                const hasLargeFile = files.some(f => f.size > 300 * 1024);
+                if (hasLargeFile) {
+                    showToast("Rilevate immagini superiori a 300KB. Eseguo il ridimensionamento automatico. Si consiglia di prepararle già perfettamente ottimizzate.", "info");
+                } else {
+                    showToast(`Ottimizzazione di ${files.length} immagini...`, 'info');
+                }
                 for (const file of files) {
                     try {
                         const optimized = await compressAndScaleImage(file, 1000, 600, 0.75);
@@ -1858,7 +1867,11 @@
             const file = e.target.files[0];
             if (file) {
                 try {
-                    showToast('Ottimizzazione foto profilo...', 'info');
+                    if (file.size > 300 * 1024) {
+                        showToast("Immagine superiore a 300KB rilevata. Eseguo il ridimensionamento automatico. Si consiglia di prepararla già perfettamente ottimizzata.", "info");
+                    } else {
+                        showToast('Ottimizzazione foto profilo...', 'info');
+                    }
                     const optimized = await compressAndScaleImage(file, 400, 400, 0.75);
                     display.src = optimized;
                     profileImageBase64 = optimized;

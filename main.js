@@ -340,10 +340,11 @@ const loadGames = async () => {
       });
   }
 
+  // Load official news cards instead of games
+  loadNewsFeed();
+
   // Distribute all games across other sections
   allGames.forEach((game, index) => {
-    // 2. Ultime Novità (First 4)
-    if (newsGrid && index < 4) newsGrid.appendChild(createGameCard(game));
 
     // 3. I più venduti (Simulated)
     if (bestsellersGrid && index % 2 === 0) bestsellersGrid.appendChild(createGameCard(game));
@@ -707,6 +708,58 @@ function initModals() {
   window.addEventListener('click', (e) => {
     if (e.target === aboutModal) aboutModal.style.display = 'none';
     if (e.target === helpModal) helpModal.style.display = 'none';
+  });
+}
+
+function loadNewsFeed() {
+  if (!newsGrid) return;
+  newsGrid.innerHTML = '';
+  
+  const news = [
+    {
+      title: "Rilascio Feature: Le Vetrine Sviluppatore!",
+      desc: "Ora i venditori possono personalizzare la propria pagina social con descrizione, prodotti e accessori di merchandising ufficiale.",
+      date: "31 Agosto 2026",
+      badge: "NUOVA FEATURE",
+      img: "/images/merch_neon_samurai_poster.png"
+    },
+    {
+      title: "Accordo Strategico con NeonLabs",
+      desc: "NeonLabs pubblicherà in esclusiva temporale i suoi prossimi titoli arcade e picchiaduro retrò su IndiePlay-X.",
+      date: "28 Agosto 2026",
+      badge: "PARTNERSHIP",
+      img: "/images/neon_samurai_screenshot_1_1777200476248.png"
+    },
+    {
+      title: "Sicurezza dei Pagamenti e Transazioni",
+      desc: "Abbiamo integrato nuovi sistemi di cifratura end-to-end per proteggere gli acquisti e l'inserimento dei metodi di pagamento.",
+      date: "25 Agosto 2026",
+      badge: "SICUREZZA",
+      img: "/images/merch_tshirt_mockup_1787498735596.png"
+    }
+  ];
+
+  news.forEach(item => {
+    const card = document.createElement('div');
+    card.className = 'game-card';
+    card.style.background = 'rgba(255,255,255,0.03)';
+    card.style.border = '1px solid rgba(255,255,255,0.05)';
+    card.style.padding = '0';
+    card.style.borderRadius = '8px';
+    card.style.overflow = 'hidden';
+    card.style.cursor = 'default';
+    
+    card.innerHTML = `
+      <div style="height: 150px; background: url('${item.img}') no-repeat center center; background-size: cover; position: relative;">
+        <span style="position: absolute; top: 10px; left: 10px; background: var(--prime-blue); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700;">${item.badge}</span>
+      </div>
+      <div style="padding: 1.2rem;">
+        <span style="font-size: 0.8rem; color: var(--text-gray); font-weight: 600;">${item.date}</span>
+        <h3 style="color: white; font-size: 1.1rem; margin: 5px 0 10px; font-weight: 800; line-height: 1.4;">${item.title}</h3>
+        <p style="color: var(--text-gray); font-size: 0.85rem; line-height: 1.5; margin: 0; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">${item.desc}</p>
+      </div>
+    `;
+    newsGrid.appendChild(card);
   });
 }
 

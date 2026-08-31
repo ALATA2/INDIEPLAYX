@@ -553,6 +553,32 @@
         };
         loadDeveloperProfile();
 
+        // Listen to Auth Changes to show customization link for owner
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                try {
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data();
+                        if (userData.isSeller && userData.sellerBrand === devName) {
+                            const actionsContainer = document.querySelector('.dev-actions');
+                            if (actionsContainer && !document.getElementById('edit-showcase-btn')) {
+                                const editBtn = document.createElement('a');
+                                editBtn.id = 'edit-showcase-btn';
+                                editBtn.href = 'account.html?tab=profile';
+                                editBtn.className = 'btn btn-prime-outline';
+                                editBtn.style.textDecoration = 'none';
+                                editBtn.innerHTML = '<i class="fas fa-cog"></i> Personalizza Profilo';
+                                actionsContainer.appendChild(editBtn);
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.error("Auth state customization error:", e);
+                }
+            }
+        });
+
         const bannerData = {
             'NeonLabs': 'url(\'/images/neon_samurai_screenshot_1_1777200476248.png\')',
             'Astro Games': 'url(\'/images/void_star_screenshot_1_1777200476311.png\')'
