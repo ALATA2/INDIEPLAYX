@@ -331,6 +331,7 @@
                 </a>
             </div>
             <div class="nav-right" style="display: flex; align-items: center; gap: 0.5rem;">
+                <a href="index.html#merch-section" class="btn btn-prime-outline" data-i18n="nav_merch" style="text-decoration: none; color: white;">Merchandising</a>
                 <a href="/" class="btn btn-prime-outline" data-i18n="nav_back">Torna allo Store</a>
                 
                 <!-- Language Selector -->
@@ -403,6 +404,14 @@
                     </div>
 
                     <div id="seller-info-fields" class="hidden">
+                        <div class="form-group" style="margin-top: 1rem;">
+                            <label>Nome Brand / Studio Sviluppatore</label>
+                            <input type="text" id="edit-seller-brand" placeholder="Es. NeonLabs, Astro Games">
+                        </div>
+                        <div class="form-group" style="margin-top: 1rem;">
+                            <label>Descrizione Vetrina / Studio (Social Bio)</label>
+                            <textarea id="edit-seller-bio" rows="4" style="width: 100%; padding: 12px; background: #2a343f; border: 1px solid #3a444f; color: white; border-radius: 4px; resize: none;" placeholder="Inserisci una descrizione che promuova i tuoi prodotti di merchandising e i tuoi videogiochi..."></textarea>
+                        </div>
                         <div class="form-row" style="display: flex; gap: 1rem; margin-top: 1rem;">
                             <div class="form-group" style="flex: 1;">
                                 <label>Codice Fiscale o Partita IVA</label>
@@ -549,6 +558,14 @@
                 <button class="btn btn-prime-outline mobile-back-btn"><i class="fas fa-arrow-left"></i> Torna al Menu</button>
                 <h1 style="margin-bottom: 2rem;">Dashboard Vendite</h1>
                 
+                <div id="seller-showcase-link-container" class="hidden" style="background: rgba(0, 168, 225, 0.1); border: 1px solid var(--prime-blue); padding: 1.2rem; border-radius: 12px; margin-bottom: 2rem; display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; flex-wrap: wrap;">
+                    <div>
+                        <h4 style="color: white; margin-bottom: 5px; font-weight: 800; font-size: 1.1rem;"><i class="fas fa-eye" style="color: var(--prime-blue); margin-right: 8px;"></i> Vetrina Sviluppatore Attiva</h4>
+                        <p style="color: var(--text-gray); font-size: 0.9rem; margin: 0;">Gli altri utenti possono vedere il tuo profilo, i tuoi giochi e il tuo merchandising su una pagina dedicata.</p>
+                    </div>
+                    <a id="view-my-showcase-btn" href="#" target="_blank" class="btn btn-prime" style="padding: 0.7rem 1.5rem; text-decoration: none; font-weight: 700;"><i class="fas fa-external-link-alt"></i> Visualizza Vetrina</a>
+                </div>
+                
                 <!-- Stat Cards Grid -->
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 3rem;">
                     <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 1.5rem; border-radius: 12px;">
@@ -671,7 +688,7 @@
                             <span style="font-size: 0.75rem; background: rgba(0,168,225,0.15); color: var(--prime-blue); padding: 2px 8px; border-radius: 20px; font-weight: 700;">Predefinito</span>
                         </div>
                     </div>
-                    <button class="btn btn-prime-outline" style="width: 100%;"><i class="fas fa-plus"></i> Aggiungi un nuovo metodo di pagamento</button>
+                    <button id="add-payment-btn" class="btn btn-prime-outline" style="width: 100%;"><i class="fas fa-plus"></i> Aggiungi un nuovo metodo di pagamento</button>
                 </div>
             </div>
         </main>
@@ -759,15 +776,104 @@
             <span style="color: white; font-weight: 900; font-size: 1.5rem; letter-spacing: -1px;">INDIE<span style="color: var(--prime-blue);">PLAY-X</span></span>
         </div>
         <div class="footer-links">
-            <a href="javascript:void(0)" class="open-privacy-link">Termini e informativa sulla privacy</a>
-            <a href="javascript:void(0)" class="open-cookie-link">Informativa sui cookie</a>
-            <a href="mailto:support@indieplay.it">Inviaci un feedback</a>
-            <a href="mailto:support@indieplay.it">Aiuto</a>
+            <a href="javascript:void(0)" class="open-about-link" data-i18n="footer_about">Chi Siamo</a>
+            <a href="javascript:void(0)" class="open-privacy-link" data-i18n="footer_terms">Termini e informativa sulla privacy</a>
+            <a href="javascript:void(0)" class="open-cookie-link" data-i18n="footer_cookie">Informativa sui cookie</a>
+            <a href="javascript:void(0)" class="open-help-link" data-i18n="footer_help">Aiuto</a>
         </div>
-        <div class="footer-legal">
-            © 2026 IndiePlay v2.4. Tutti i diritti riservati.
+        <div class="footer-legal" data-i18n="footer_rights">
+            © 2026 IndiePlay-X. Tutti i diritti riservati.
         </div>
     </footer>
+
+    <!-- About Us Modal -->
+    <div id="about-modal" class="lightbox" style="display: none; justify-content: center; align-items: center; z-index: 2200;">
+        <div class="modal-content glass" style="background: rgba(26, 36, 47, 0.98); border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; padding: 2.5rem; max-width: 600px; width: 90%; color: white; position: relative; backdrop-filter: blur(25px); box-shadow: 0 20px 50px rgba(0,0,0,0.7); max-height: 80vh; display: flex; flex-direction: column;">
+            <span class="close-lightbox" id="close-about" style="position: absolute; top: 1rem; right: 1.5rem; font-size: 2.5rem; cursor: pointer; color: var(--text-gray);">&times;</span>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem;">
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(0, 168, 225, 0.15); border: 1px solid rgba(0, 168, 225, 0.4); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i class="fas fa-info-circle" style="color: var(--prime-blue); font-size: 1.4rem;"></i>
+                </div>
+                <div>
+                    <h2 style="font-size: 1.5rem; font-weight: 800; margin: 0; color: white;" data-i18n="footer_about">Chi Siamo</h2>
+                    <span style="font-size: 0.8rem; color: var(--text-gray);">IndiePlay-X Platform</span>
+                </div>
+            </div>
+            <div style="overflow-y: auto; padding-right: 10px; font-size: 0.95rem; line-height: 1.6; color: #d0dbe5;">
+                <p><strong>IndiePlay-X</strong> è il portale di riferimento per gli amanti dei videogiochi indipendenti italiani ed internazionali.</p>
+                <p>La nostra missione è connettere direttamente gli sviluppatori indipendenti con i videogiocatori, rimuovendo le barriere tradizionali della distribuzione. Crediamo nella creatività, nell'innovazione e nella libertà artistica.</p>
+                <p>Sviluppato con passione per supportare lo sviluppo e la crescita dell'ecosistema dei videogiochi indie.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help / Contact Modal -->
+    <div id="help-modal" class="lightbox" style="display: none; justify-content: center; align-items: center; z-index: 2200;">
+        <div class="modal-content glass" style="background: rgba(26, 36, 47, 0.98); border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; padding: 2.5rem; max-width: 500px; width: 90%; color: white; position: relative; backdrop-filter: blur(25px); box-shadow: 0 20px 50px rgba(0,0,0,0.7);">
+            <span class="close-lightbox" id="close-help" style="position: absolute; top: 1rem; right: 1.5rem; font-size: 2.5rem; cursor: pointer; color: var(--text-gray);">&times;</span>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem;">
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(0, 168, 225, 0.15); border: 1px solid rgba(0, 168, 225, 0.4); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i class="fas fa-question-circle" style="color: var(--prime-blue); font-size: 1.4rem;"></i>
+                </div>
+                <div>
+                    <h2 style="font-size: 1.5rem; font-weight: 800; margin: 0; color: white;" data-i18n="footer_help">Aiuto</h2>
+                    <span style="font-size: 0.8rem; color: var(--text-gray);">Invia una richiesta di supporto</span>
+                </div>
+            </div>
+            <form id="help-contact-form" style="display: flex; flex-direction: column; gap: 1rem; text-align: left;">
+                <div class="form-group">
+                    <label style="color: white; font-weight: 700; margin-bottom: 5px; display: block;">Nome</label>
+                    <input type="text" id="help-name" required style="width: 100%; padding: 12px; background: #2a343f; border: 1px solid #3a444f; color: white; border-radius: 4px;" placeholder="Il tuo nome">
+                </div>
+                <div class="form-group">
+                    <label style="color: white; font-weight: 700; margin-bottom: 5px; display: block;">Email</label>
+                    <input type="email" id="help-email" required style="width: 100%; padding: 12px; background: #2a343f; border: 1px solid #3a444f; color: white; border-radius: 4px;" placeholder="La tua email">
+                </div>
+                <div class="form-group">
+                    <label style="color: white; font-weight: 700; margin-bottom: 5px; display: block;">Messaggio</label>
+                    <textarea id="help-message" required rows="4" style="width: 100%; padding: 12px; background: #2a343f; border: 1px solid #3a444f; color: white; border-radius: 4px; resize: none;" placeholder="Come possiamo aiutarti?"></textarea>
+                </div>
+                <button type="submit" class="btn btn-prime" style="width: 100%; padding: 12px; font-weight: 700; margin-top: 1rem;">Invia Messaggio</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Payment Method Modal -->
+    <div id="payment-modal" class="lightbox" style="display: none; justify-content: center; align-items: center; z-index: 2200;">
+        <div class="modal-content glass" style="background: rgba(26, 36, 47, 0.98); border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; padding: 2.5rem; max-width: 500px; width: 90%; color: white; position: relative; backdrop-filter: blur(25px); box-shadow: 0 20px 50px rgba(0,0,0,0.7);">
+            <span class="close-lightbox" id="close-payment-modal" style="position: absolute; top: 1rem; right: 1.5rem; font-size: 2.5rem; cursor: pointer; color: var(--text-gray);">&times;</span>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem;">
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(0, 168, 225, 0.15); border: 1px solid rgba(0, 168, 225, 0.4); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i class="fas fa-credit-card" style="color: var(--prime-blue); font-size: 1.4rem;"></i>
+                </div>
+                <div>
+                    <h2 style="font-size: 1.5rem; font-weight: 800; margin: 0; color: white;">Aggiungi Carta</h2>
+                    <span style="font-size: 0.8rem; color: var(--text-gray);">Salva un metodo di pagamento sicuro</span>
+                </div>
+            </div>
+            <form id="payment-method-form" style="display: flex; flex-direction: column; gap: 1rem; text-align: left;">
+                <div class="form-group">
+                    <label style="color: white; font-weight: 700; margin-bottom: 5px; display: block;">Titolare Carta</label>
+                    <input type="text" id="card-holder" required style="width: 100%; padding: 12px; background: #2a343f; border: 1px solid #3a444f; color: white; border-radius: 4px;" placeholder="Nome e Cognome">
+                </div>
+                <div class="form-group">
+                    <label style="color: white; font-weight: 700; margin-bottom: 5px; display: block;">Numero Carta</label>
+                    <input type="text" id="card-number" required maxlength="19" style="width: 100%; padding: 12px; background: #2a343f; border: 1px solid #3a444f; color: white; border-radius: 4px;" placeholder="0000 0000 0000 0000">
+                </div>
+                <div class="form-row" style="display: flex; gap: 1rem;">
+                    <div class="form-group" style="flex: 1;">
+                        <label style="color: white; font-weight: 700; margin-bottom: 5px; display: block;">Scadenza</label>
+                        <input type="text" id="card-expiry" required maxlength="5" style="width: 100%; padding: 12px; background: #2a343f; border: 1px solid #3a444f; color: white; border-radius: 4px;" placeholder="MM/AA">
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label style="color: white; font-weight: 700; margin-bottom: 5px; display: block;">CVV</label>
+                        <input type="password" id="card-cvv" required maxlength="3" style="width: 100%; padding: 12px; background: #2a343f; border: 1px solid #3a444f; color: white; border-radius: 4px;" placeholder="123">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-prime" style="width: 100%; padding: 12px; font-weight: 700; margin-top: 1rem;">Salva Carta</button>
+            </form>
+        </div>
+    </div>
 
     <script type="module">
         import { subscribeToAuthChanges } from './src/auth';
@@ -1329,6 +1435,8 @@
                     editName.value = `${data.firstName} ${data.lastName}`;
                     editAge.value = data.age || '';
                     editIsSeller.checked = data.isSeller || false;
+                    document.getElementById('edit-seller-brand').value = data.sellerBrand || '';
+                    document.getElementById('edit-seller-bio').value = data.sellerBio || '';
                     editPiva.value = data.piva || '';
                     editIban.value = data.iban || '';
 
@@ -1337,6 +1445,15 @@
                         sellerNavItem.classList.remove('hidden');
                         publishNavItem.classList.remove('hidden');
                         dashboardNavItem.classList.remove('hidden');
+
+                        const showcaseName = data.sellerBrand || `${data.firstName} ${data.lastName}`;
+                        const showcaseLink = `showcase.html?dev=${encodeURIComponent(showcaseName)}`;
+                        const linkContainer = document.getElementById('seller-showcase-link-container');
+                        const viewBtn = document.getElementById('view-my-showcase-btn');
+                        if (linkContainer && viewBtn) {
+                            viewBtn.href = showcaseLink;
+                            linkContainer.classList.remove('hidden');
+                        }
                     }
 
                     if (data.photoURL) {
@@ -1387,30 +1504,9 @@
         function validateIBAN(value) {
             const iban = value.replace(/\s+/g, '').toUpperCase();
             if (iban.startsWith('IT')) {
-                if (iban.length !== 27) return false;
-                const itRegex = /^IT\d{2}[A-Z]\d{10}[A-Z0-9]{12}$/;
-                if (!itRegex.test(iban)) return false;
-            } else {
-                if (iban.length < 15 || iban.length > 34) return false;
-                const genericRegex = /^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/;
-                if (!genericRegex.test(iban)) return false;
+                return iban.length === 27;
             }
-            const rearranged = iban.slice(4) + iban.slice(0, 4);
-            let numericString = '';
-            for (let i = 0; i < rearranged.length; i++) {
-                const code = rearranged.charCodeAt(i);
-                if (code >= 65 && code <= 90) {
-                    numericString += (code - 55).toString();
-                } else {
-                    numericString += rearranged[i];
-                }
-            }
-            let remainder = 0;
-            for (let i = 0; i < numericString.length; i += 7) {
-                const chunk = remainder.toString() + numericString.slice(i, i + 7);
-                remainder = parseInt(chunk, 10) % 97;
-            }
-            return remainder === 1;
+            return iban.length >= 15 && iban.length <= 34;
         }
 
         // Save Profile
@@ -1443,6 +1539,8 @@
                     lastName: lastName,
                     age: parseInt(editAge.value),
                     isSeller: editIsSeller.checked,
+                    sellerBrand: editIsSeller.checked ? document.getElementById('edit-seller-brand').value.trim() : '',
+                    sellerBio: editIsSeller.checked ? document.getElementById('edit-seller-bio').value.trim() : '',
                     piva: editIsSeller.checked ? editPiva.value.trim().toUpperCase() : '',
                     iban: editIsSeller.checked ? editIban.value.replace(/\s+/g, '').toUpperCase() : '',
                     role: editIsSeller.checked ? 'seller' : 'user'
@@ -1710,6 +1808,9 @@
                     gameContentUrl = downloadFilePath || onlineLink;
                 }
 
+                const devBrand = (currentUserData && currentUserData.sellerBrand) || 
+                                 ((currentUserData && currentUserData.firstName) ? (currentUserData.firstName + ' ' + (currentUserData.lastName || '')) : 'IndiePlay');
+
                 const gameData = {
                     title, 
                     price: finalPrice, 
@@ -1719,6 +1820,7 @@
                     header: finalHeader,
                     gallery: finalGallery,
                     sellerId: currentUser.uid,
+                    developer: devBrand.trim(),
                     createdAt: existingCreatedAt,
                     content: gameContentUrl,
                     downloadUrl: downloadFilePath || '',
@@ -1796,9 +1898,112 @@
         if (closeCookie) closeCookie.onclick = () => cookieModal.style.display = 'none';
         if (confirmCookieBtn) confirmCookieBtn.onclick = () => cookieModal.style.display = 'none';
 
+        // Payment Modal & Form logic
+        const paymentModal = document.getElementById('payment-modal');
+        const closePaymentModal = document.getElementById('close-payment-modal');
+        const addPaymentBtn = document.getElementById('add-payment-btn');
+        const paymentForm = document.getElementById('payment-method-form');
+
+        if (addPaymentBtn && paymentModal) {
+            addPaymentBtn.onclick = (e) => {
+                e.preventDefault();
+                paymentModal.style.display = 'flex';
+            };
+        }
+        if (closePaymentModal && paymentModal) {
+            closePaymentModal.onclick = () => {
+                paymentModal.style.display = 'none';
+            };
+        }
+        if (paymentForm) {
+            paymentForm.onsubmit = (e) => {
+                e.preventDefault();
+                const holder = document.getElementById('card-holder').value.trim();
+                const number = document.getElementById('card-number').value.trim();
+                const expiry = document.getElementById('card-expiry').value.trim();
+
+                const last4 = number.replace(/\s+/g, '').slice(-4) || '9999';
+                const cardBrand = number.startsWith('4') ? 'Visa' : (number.startsWith('5') ? 'Mastercard' : 'Carta');
+                const cardIcon = cardBrand === 'Visa' ? 'fab fa-cc-visa' : (cardBrand === 'Mastercard' ? 'fab fa-cc-mastercard' : 'fas fa-credit-card');
+                const cardColor = cardBrand === 'Visa' ? '#1a73e8' : (cardBrand === 'Mastercard' ? '#eb001b' : 'var(--prime-blue)');
+
+                // Create new card element
+                const newCard = document.createElement('div');
+                newCard.className = 'payment-card';
+                newCard.style.display = 'flex';
+                newCard.style.justifyContent = 'space-between';
+                newCard.style.alignItems = 'center';
+                newCard.style.background = 'rgba(255, 255, 255, 0.05)';
+                newCard.style.border = '1px solid rgba(255, 255, 255, 0.1)';
+                newCard.style.borderRadius = '8px';
+                newCard.style.padding = '1.2rem';
+                newCard.style.marginBottom = '1rem';
+                newCard.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 1.5rem;">
+                        <i class="${cardIcon}" style="font-size: 2rem; color: ${cardColor};"></i>
+                        <div>
+                            <div style="font-weight: 700; color: white;">${cardBrand} terminante in ${last4}</div>
+                            <div style="font-size: 0.85rem; color: var(--text-gray);">Scadenza ${expiry} | ${holder}</div>
+                        </div>
+                    </div>
+                `;
+
+                // Insert before the Add button
+                const container = addPaymentBtn.parentElement;
+                container.insertBefore(newCard, addPaymentBtn);
+
+                showToast('Metodo di pagamento aggiunto con successo!', 'success');
+                paymentForm.reset();
+                paymentModal.style.display = 'none';
+            };
+        }
+
+        // About & Help Modals triggers
+        const aboutModal = document.getElementById('about-modal');
+        const closeAbout = document.getElementById('close-about');
+        const openAboutLinks = document.querySelectorAll('.open-about-link');
+
+        openAboutLinks.forEach(link => {
+            link.onclick = (e) => {
+                e.preventDefault();
+                if (aboutModal) aboutModal.style.display = 'flex';
+            };
+        });
+        if (closeAbout && aboutModal) {
+            closeAbout.onclick = () => aboutModal.style.display = 'none';
+        }
+
+        const helpModal = document.getElementById('help-modal');
+        const closeHelp = document.getElementById('close-help');
+        const openHelpLinks = document.querySelectorAll('.open-help-link');
+        const helpForm = document.getElementById('help-contact-form');
+
+        openHelpLinks.forEach(link => {
+            link.onclick = (e) => {
+                e.preventDefault();
+                if (helpModal) helpModal.style.display = 'flex';
+            };
+        });
+        if (closeHelp && helpModal) {
+            closeHelp.onclick = () => helpModal.style.display = 'none';
+        }
+
+        if (helpForm) {
+            helpForm.onsubmit = (e) => {
+                e.preventDefault();
+                showToast('Messaggio inviato con successo! Ti risponderemo presto.', 'success');
+                helpForm.reset();
+                if (helpModal) helpModal.style.display = 'none';
+            };
+        }
+
+        // Window click handler for all modals
         window.addEventListener('click', (e) => {
             if (e.target === privacyModal) privacyModal.style.display = 'none';
             if (e.target === cookieModal) cookieModal.style.display = 'none';
+            if (e.target === paymentModal) paymentModal.style.display = 'none';
+            if (e.target === aboutModal) aboutModal.style.display = 'none';
+            if (e.target === helpModal) helpModal.style.display = 'none';
         });
     </script>
 </body>

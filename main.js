@@ -249,6 +249,7 @@ const bestsellersGrid = document.getElementById('bestsellers-grid');
 const dealsGrid = document.getElementById('deals-grid');
 const recentGamesGrid = document.getElementById('recent-games-grid');
 
+let globalAllGames = [];
 let lastVisibleGameDoc = null;
 const PAGE_SIZE = 12;
 const loadMoreBtn = document.getElementById('load-more-btn');
@@ -316,7 +317,8 @@ const loadGames = async () => {
             const headerSrc = (game.header && game.header.type === 'image') ? game.header.src : (game.gallery && game.gallery[0] ? game.gallery[0].src : '');
             game.imageUrl = headerSrc || '/images/placeholder.png';
         }
-    });
+        });
+        globalAllGames = allGames;
   } catch (e) {
     console.error("DB load error", e);
   }
@@ -530,3 +532,185 @@ if (heroSlider && dots.length > 0) {
     });
   });
 }
+
+// Category filtering
+function initCategoryFilters() {
+  const cards = document.querySelectorAll('.genre-card');
+  const gameGridHeader = document.querySelector('.game-section .section-header h2');
+  
+  cards.forEach(card => {
+    card.addEventListener('click', () => {
+      const span = card.querySelector('span span');
+      if (!span) return;
+      const i18nKey = span.getAttribute('data-i18n');
+      
+      const wasActive = card.classList.contains('active');
+      cards.forEach(c => c.classList.remove('active'));
+      
+      if (wasActive) {
+        // Deselect category, show all games
+        if (gameGridHeader) {
+            const lang = getLanguage();
+            const dict = translations[lang] || translations['en'];
+            gameGridHeader.textContent = dict.title_added || "Aggiunti di recente su IndiePlay";
+        }
+        resetStoreGrid();
+      } else {
+        card.classList.add('active');
+        const categoryName = span.textContent.trim();
+        if (gameGridHeader) {
+            gameGridHeader.textContent = categoryName;
+        }
+        filterGamesByCategory(i18nKey);
+      }
+    });
+  });
+}
+
+function filterGamesByCategory(i18nKey) {
+  if (!gameList) return;
+  gameList.innerHTML = '';
+  loadMoreBtn?.classList.add('hidden');
+
+  const map = {
+    'genre_fight': ['Picchiaduro'],
+    'genre_amiga': ['Amiga'],
+    'genre_action': ['Azione', 'Avventura'],
+    'genre_platform': ['Platform'],
+    'genre_horror': ['Horror'],
+    'genre_puzzle': ['Puzzle'],
+    'genre_rpg': ['GDR'],
+    'genre_fps': ['Sparatutto'],
+    'genre_race': ['Corse'],
+    'genre_strategy': ['Strategia', 'Simulazione'],
+    'genre_sport': ['Sport'],
+    'genre_family': ['Bambini e Famiglia', 'Indie', 'Carte']
+  };
+
+  const targetCategories = map[i18nKey] || [];
+  const filtered = globalAllGames.filter(g => targetCategories.includes(g.category));
+
+  if (filtered.length === 0) {
+    gameList.innerHTML = '<div class="loading">Nessun gioco trovato in questa categoria.</div>';
+    return;
+  }
+
+  filtered.forEach(game => {
+    gameList.appendChild(createGameCard(game));
+  });
+}
+
+async function resetStoreGrid() {
+  if (!gameList) return;
+  gameList.innerHTML = '';
+  lastVisibleGameDoc = null;
+  await fetchNextGamesPage();
+}
+
+// Global Search functionality
+function initSearchFilter() {
+  const searchInput = document.querySelector('.search-bar input');
+  if (!searchInput) return;
+
+  let debounceTimeout;
+  searchInput.addEventListener('input', (e) => {
+    clearTimeout(debounceTimeout);
+    const query = e.target.value.trim().toLowerCase();
+
+    debounceTimeout = setTimeout(() => {
+      executeSearch(query);
+    }, 300);
+  });
+
+  // Check for search parameter in URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const searchQuery = urlParams.get('search');
+  if (searchQuery) {
+    searchInput.value = searchQuery;
+    const checkInterval = setInterval(() => {
+      if (globalAllGames && globalAllGames.length > 0) {
+        clearInterval(checkInterval);
+        executeSearch(searchQuery.trim().toLowerCase());
+      }
+    }, 100);
+  }
+}
+
+function executeSearch(query) {
+  if (!gameList) return;
+  
+  if (!query) {
+    resetStoreGrid();
+    return;
+  }
+
+  gameList.innerHTML = '';
+  loadMoreBtn?.classList.add('hidden');
+
+  const filtered = globalAllGames.filter(g => {
+    const title = (g.title || '').toLowerCase();
+    const dev = (g.developer || '').toLowerCase();
+    const cat = (g.category || '').toLowerCase();
+    return title.includes(query) || dev.includes(query) || cat.includes(query);
+  });
+
+  if (filtered.length === 0) {
+    gameList.innerHTML = '<div class="loading">Nessun risultato trovato per la tua ricerca.</div>';
+    return;
+  }
+
+  filtered.forEach(game => {
+    gameList.appendChild(createGameCard(game));
+  });
+}
+
+// Help and About Modals
+function initModals() {
+  const aboutModal = document.getElementById('about-modal');
+  const closeAbout = document.getElementById('close-about');
+  const openAboutLinks = document.querySelectorAll('.open-about-link');
+
+  openAboutLinks.forEach(link => {
+    link.onclick = (e) => {
+      e.preventDefault();
+      if (aboutModal) aboutModal.style.display = 'flex';
+    };
+  });
+  if (closeAbout && aboutModal) {
+    closeAbout.onclick = () => aboutModal.style.display = 'none';
+  }
+
+  const helpModal = document.getElementById('help-modal');
+  const closeHelp = document.getElementById('close-help');
+  const openHelpLinks = document.querySelectorAll('.open-help-link');
+  const helpForm = document.getElementById('help-contact-form');
+
+  openHelpLinks.forEach(link => {
+    link.onclick = (e) => {
+      e.preventDefault();
+      if (helpModal) helpModal.style.display = 'flex';
+    };
+  });
+  if (closeHelp && helpModal) {
+    closeHelp.onclick = () => helpModal.style.display = 'none';
+  }
+
+  if (helpForm) {
+    helpForm.onsubmit = (e) => {
+      e.preventDefault();
+      showToast('Messaggio inviato con successo! Ti risponderemo presto.', 'success');
+      helpForm.reset();
+      if (helpModal) helpModal.style.display = 'none';
+    };
+  }
+  
+  window.addEventListener('click', (e) => {
+    if (e.target === aboutModal) aboutModal.style.display = 'none';
+    if (e.target === helpModal) helpModal.style.display = 'none';
+  });
+}
+
+// Initialize all features
+initCategoryFilters();
+initSearchFilter();
+initModals();

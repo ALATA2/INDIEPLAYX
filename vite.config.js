@@ -9,6 +9,7 @@ export default defineConfig({
         main: resolve(__dirname, 'index.html'),
         game: resolve(__dirname, 'game.html'),
         account: resolve(__dirname, 'account.html'),
+        showcase: resolve(__dirname, 'showcase.html'),
       },
     },
   },

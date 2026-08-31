@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vetrina Sviluppatore - IndiePlay</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="./style.css">
+    <script>
+        window.showToast = function(message, typeOrIcon = 'success', icon = null) {
+            let type = 'success';
+            if (typeOrIcon.startsWith('fa-')) {
+                icon = typeOrIcon;
+                if (icon === 'fa-check-circle' || icon === 'fa-check') {
+                    type = 'success';
+                } else if (icon === 'fa-exclamation-triangle' || icon === 'fa-exclamation-circle' || icon === 'fa-lock') {
+                    type = 'error';
+                } else {
+                    type = 'info';
+                }
+            } else {
+                type = typeOrIcon;
+            }
+
+            const toast = document.createElement('div');
+            if (!icon) {
+                if (type === 'success') icon = 'fa-check-circle';
+                else if (type === 'error') icon = 'fa-exclamation-triangle';
+                else icon = 'fa-info-circle';
+            }
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<i class="fas ${icon}"></i> <span>${message}</span>`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 500);
+            }, 4000);
+        };
+    </script>
+    <style>
+        .showcase-header {
+            position: relative;
+            background: linear-gradient(135deg, #0f1c2a 0%, #050c14 100%);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            padding: 5rem 5% 3rem;
+            display: flex;
+            align-items: center;
+            gap: 2.5rem;
+            flex-wrap: wrap;
+        }
+
+        .showcase-banner {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.15;
+            background: url('/images/neon_samurai_screenshot_1_1777200476248.png') no-repeat center center;
+            background-size: cover;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .showcase-header-content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+            width: 100%;
+            flex-wrap: wrap;
+        }
+
+        .dev-avatar {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            border: 4px solid var(--prime-blue);
+            background: rgba(255,255,255,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: var(--prime-blue);
+            box-shadow: 0 0 25px rgba(0, 168, 225, 0.4);
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .dev-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .dev-meta {
+            flex-grow: 1;
+        }
+
+        .dev-name {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: white;
+            margin-bottom: 0.5rem;
+            letter-spacing: -1px;
+            text-shadow: 0 0 10px rgba(255,255,255,0.1);
+        }
+
+        .dev-subtitle {
+            color: var(--text-gray);
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .dev-bio {
+            color: var(--text-light);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            max-width: 700px;
+        }
+
+        .dev-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .showcase-tabs {
+            display: flex;
+            gap: 2rem;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            padding: 0 5%;
+            background: rgba(0,0,0,0.2);
+        }
+
+        .showcase-tab {
+            padding: 1.2rem 0;
+            font-weight: 700;
+            color: var(--text-gray);
+            cursor: pointer;
+            position: relative;
+            font-size: 1rem;
+            transition: 0.3s;
+        }
+
+        .showcase-tab.active, .showcase-tab:hover {
+            color: white;
+        }
+
+        .showcase-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--prime-blue);
+            box-shadow: 0 0 10px var(--prime-blue);
+        }
+
+        .showcase-body {
+            padding: 3rem 5%;
+        }
+
+        .showcase-section {
+            display: none;
+        }
+
+        .showcase-section.active {
+            display: block;
+        }
+
+        .game-grid-equal {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .merch-grid-equal {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 2rem;
+        }
+
+        .social-feed {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .feed-post {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px;
+            padding: 1.5rem;
+            color: white;
+        }
+
+        .post-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .post-header img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .post-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .post-author {
+            font-weight: 700;
+        }
+
+        .post-time {
+            font-size: 0.8rem;
+            color: var(--text-gray);
+        }
+
+        .post-content {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: var(--text-light);
+            margin-bottom: 1rem;
+        }
+
+        .post-actions {
+            display: flex;
+            gap: 1.5rem;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            padding-top: 0.8rem;
+            font-size: 0.9rem;
+            color: var(--text-gray);
+        }
+
+        .post-action-btn {
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .post-action-btn:hover {
+            color: white;
+        }
+
+        .post-action-btn.active {
+            color: var(--prime-blue);
+        }
+    </style>
+</head>
+<body>
+    <header class="prime-header">
+        <nav>
+            <div class="nav-left">
+                <a href="/" class="prime-logo" style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
+                    <img src="/images/logo_litte.png" alt="Logo" style="height: 32px; width: auto; object-fit: contain;">
+                    <span style="color: white; font-weight: 900; font-size: 1.5rem; letter-spacing: -1px;">INDIE<span style="color: var(--prime-blue);">PLAY-X</span></span>
+                </a>
+                <ul class="nav-links">
+                    <li><a href="/" data-i18n="nav_home">Home</a></li>
+                    <li><a href="index.html#merch-section" data-i18n="nav_merch">Merchandising</a></li>
+                </ul>
+            </div>
+            <div class="nav-right" style="display: flex; align-items: center; gap: 0.5rem;">
+                <a href="/" class="btn btn-prime-outline" data-i18n="nav_back">Torna allo Store</a>
+                
+                <!-- Language Selector -->
+                <div class="lang-selector" style="display: inline-flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 6px 10px; margin-left: 0.5rem;">
+                    <i class="fas fa-globe" style="color: var(--text-gray); font-size: 0.9rem;"></i>
+                    <select class="lang-select-dropdown" style="background: transparent; border: none; color: white; font-size: 0.85rem; font-weight: 700; cursor: pointer; outline: none;">
+                        <option value="it" style="background: #1a242f; color: white;">IT</option>
+                        <option value="en" style="background: #1a242f; color: white;">EN</option>
+                        <option value="fr" style="background: #1a242f; color: white;">FR</option>
+                        <option value="es" style="background: #1a242f; color: white;">ES</option>
+                        <option value="ja" style="background: #1a242f; color: white;">JA</option>
+                        <option value="zh" style="background: #1a242f; color: white;">ZH</option>
+                        <option value="pt" style="background: #1a242f; color: white;">PT</option>
+                    </select>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section class="showcase-header">
+            <div class="showcase-banner" id="showcase-bg-banner"></div>
+            <div class="showcase-header-content">
+                <div class="dev-avatar" id="dev-avatar-container">
+                    <i class="fas fa-gamepad"></i>
+                </div>
+                <div class="dev-meta">
+                    <h1 class="dev-name" id="dev-title-name">Caricamento...</h1>
+                    <div class="dev-subtitle">
+                        <span id="dev-followers-count"><i class="fas fa-users"></i> 1,240 Followers</span>
+                        <span><i class="fas fa-gamepad"></i> Studio Certificato</span>
+                    </div>
+                    <p class="dev-bio" id="dev-description-bio">Caricamento dei dettagli dello sviluppatore indipendente...</p>
+                    <div class="dev-actions">
+                        <button id="follow-btn" class="btn btn-prime" style="min-width: 150px;"><i class="fas fa-plus"></i> Segui</button>
+                        <button id="message-btn" class="btn btn-prime-outline"><i class="far fa-envelope"></i> Invia Messaggio</button>
+                        <button id="share-showcase-btn" class="btn btn-prime-outline"><i class="fas fa-share-alt"></i> Condividi</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="showcase-tabs">
+            <div class="showcase-tab active" data-target="games-tab"><i class="fas fa-gamepad"></i> GIOCHI</div>
+            <div class="showcase-tab" data-target="merch-tab"><i class="fas fa-shopping-bag"></i> MERCHANDISING</div>
+            <div class="showcase-tab" data-target="social-tab"><i class="far fa-newspaper"></i> SOCIAL / BACHECA</div>
+        </section>
+
+        <section class="showcase-body">
+            <!-- Games Grid -->
+            <div id="games-tab" class="showcase-section active">
+                <div class="game-grid-equal" id="showcase-game-grid">
+                    <div class="loading">Caricamento giochi dello sviluppatore...</div>
+                </div>
+            </div>
+
+            <!-- Merch Grid -->
+            <div id="merch-tab" class="showcase-section">
+                <div class="merch-grid-equal" id="showcase-merch-grid">
+                    <!-- Dynamic Merch Content -->
+                </div>
+            </div>
+
+            <!-- Social Feed -->
+            <div id="social-tab" class="showcase-section">
+                <div class="social-feed">
+                    <div class="feed-post">
+                        <div class="post-header">
+                            <div class="dev-avatar" style="width: 40px; height: 40px; border-width: 1px; font-size: 1rem; border-color: rgba(255,255,255,0.2);">
+                                <i class="fas fa-gamepad"></i>
+                            </div>
+                            <div class="post-info">
+                                <span class="post-author" id="post-author-name">Sviluppatore</span>
+                                <span class="post-time">2 giorni fa</span>
+                            </div>
+                        </div>
+                        <div class="post-content">
+                            Siamo entusiasti di annunciare che stiamo lavorando su una nuova roadmap di aggiornamenti! 🚀 <br>
+                            Nuovi livelli, correzione di bug e supporto migliorato per il controller in arrivo questo mese. Fateci sapere cosa ne pensate nei commenti!
+                        </div>
+                        <div class="post-actions">
+                            <span class="post-action-btn" onclick="togglePostLike(this)"><i class="far fa-thumbs-up"></i> 142 Mi piace</span>
+                            <span class="post-action-btn"><i class="far fa-comment"></i> 24 Commenti</span>
+                        </div>
+                    </div>
+                    <div class="feed-post">
+                        <div class="post-header">
+                            <div class="dev-avatar" style="width: 40px; height: 40px; border-width: 1px; font-size: 1rem; border-color: rgba(255,255,255,0.2);">
+                                <i class="fas fa-gamepad"></i>
+                            </div>
+                            <div class="post-info">
+                                <span class="post-author" id="post-author-name-2">Sviluppatore</span>
+                                <span class="post-time">1 settimana fa</span>
+                            </div>
+                        </div>
+                        <div class="post-content">
+                            Il nostro merchandising ufficiale è ora disponibile! Date un'occhiata alla scheda Merchandising qui sopra per ordinare felpe e t-shirt personalizzate a tema con i nostri giochi. Supportate i giochi indipendenti italiani! 💖
+                        </div>
+                        <div class="post-actions">
+                            <span class="post-action-btn" onclick="togglePostLike(this)"><i class="far fa-thumbs-up"></i> 98 Mi piace</span>
+                            <span class="post-action-btn"><i class="far fa-comment"></i> 11 Commenti</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Send Message Modal -->
+    <div id="message-modal" class="lightbox" style="display: none; justify-content: center; align-items: center; z-index: 2200;">
+        <div class="modal-content glass" style="background: rgba(26, 36, 47, 0.98); border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; padding: 2.5rem; max-width: 500px; width: 90%; color: white; position: relative; backdrop-filter: blur(25px); box-shadow: 0 20px 50px rgba(0,0,0,0.7);">
+            <span class="close-lightbox" id="close-message-modal" style="position: absolute; top: 1rem; right: 1.5rem; font-size: 2.5rem; cursor: pointer; color: var(--text-gray);">&times;</span>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem;">
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(0, 168, 225, 0.15); border: 1px solid rgba(0, 168, 225, 0.4); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i class="far fa-envelope" style="color: var(--prime-blue); font-size: 1.4rem;"></i>
+                </div>
+                <div>
+                    <h2 style="font-size: 1.5rem; font-weight: 800; margin: 0; color: white;">Invia Messaggio</h2>
+                    <span style="font-size: 0.8rem; color: var(--text-gray);" id="message-modal-subtitle">Contatta lo sviluppatore</span>
+                </div>
+            </div>
+            <form id="developer-message-form" style="display: flex; flex-direction: column; gap: 1rem; text-align: left;">
+                <div class="form-group">
+                    <label style="color: white; font-weight: 700; margin-bottom: 5px; display: block;">Oggetto</label>
+                    <input type="text" id="msg-subject" required style="width: 100%; padding: 12px; background: #2a343f; border: 1px solid #3a444f; color: white; border-radius: 4px;" placeholder="Oggetto del messaggio">
+                </div>
+                <div class="form-group">
+                    <label style="color: white; font-weight: 700; margin-bottom: 5px; display: block;">Messaggio</label>
+                    <textarea id="msg-body" required rows="5" style="width: 100%; padding: 12px; background: #2a343f; border: 1px solid #3a444f; color: white; border-radius: 4px; resize: none;" placeholder="Scrivi qui il tuo messaggio per lo sviluppatore..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-prime" style="width: 100%; padding: 12px; font-weight: 700; margin-top: 1rem;">Invia Messaggio</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- About Us Modal -->
+    <div id="about-modal" class="lightbox" style="display: none; justify-content: center; align-items: center; z-index: 2200;">
+        <div class="modal-content glass" style="background: rgba(26, 36, 47, 0.98); border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; padding: 2.5rem; max-width: 600px; width: 90%; color: white; position: relative; backdrop-filter: blur(25px); box-shadow: 0 20px 50px rgba(0,0,0,0.7); max-height: 80vh; display: flex; flex-direction: column;">
+            <span class="close-lightbox" id="close-about" style="position: absolute; top: 1rem; right: 1.5rem; font-size: 2.5rem; cursor: pointer; color: var(--text-gray);">&times;</span>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem;">
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(0, 168, 225, 0.15); border: 1px solid rgba(0, 168, 225, 0.4); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i class="fas fa-info-circle" style="color: var(--prime-blue); font-size: 1.4rem;"></i>
+                </div>
+                <div>
+                    <h2 style="font-size: 1.5rem; font-weight: 800; margin: 0; color: white;" data-i18n="footer_about">Chi Siamo</h2>
+                    <span style="font-size: 0.8rem; color: var(--text-gray);">IndiePlay-X Platform</span>
+                </div>
+            </div>
+            <div style="overflow-y: auto; padding-right: 10px; font-size: 0.95rem; line-height: 1.6; color: #d0dbe5;">
+                <p><strong>IndiePlay-X</strong> è il portale di riferimento per gli amanti dei videogiochi indipendenti italiani ed internazionali.</p>
+                <p>La nostra missione è connettere direttamente gli sviluppatori indipendenti con i videogiocatori, rimuovendo le barriere tradizionali della distribuzione. Crediamo nella creatività, nell'innovazione e nella libertà artistica.</p>
+                <p>Sviluppato con passione per supportare lo sviluppo e la crescita dell'ecosistema dei videogiochi indie.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help / Contact Modal -->
+    <div id="help-modal" class="lightbox" style="display: none; justify-content: center; align-items: center; z-index: 2200;">
+        <div class="modal-content glass" style="background: rgba(26, 36, 47, 0.98); border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; padding: 2.5rem; max-width: 500px; width: 90%; color: white; position: relative; backdrop-filter: blur(25px); box-shadow: 0 20px 50px rgba(0,0,0,0.7);">
+            <span class="close-lightbox" id="close-help" style="position: absolute; top: 1rem; right: 1.5rem; font-size: 2.5rem; cursor: pointer; color: var(--text-gray);">&times;</span>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem;">
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(0, 168, 225, 0.15); border: 1px solid rgba(0, 168, 225, 0.4); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i class="fas fa-question-circle" style="color: var(--prime-blue); font-size: 1.4rem;"></i>
+                </div>
+                <div>
+                    <h2 style="font-size: 1.5rem; font-weight: 800; margin: 0; color: white;" data-i18n="footer_help">Aiuto</h2>
+                    <span style="font-size: 0.8rem; color: var(--text-gray);">Invia una richiesta di supporto</span>
+                </div>
+            </div>
+            <form id="help-contact-form" style="display: flex; flex-direction: column; gap: 1rem; text-align: left;">
+                <div class="form-group">
+                    <label style="color: white; font-weight: 700; margin-bottom: 5px; display: block;">Nome</label>
+                    <input type="text" id="help-name" required style="width: 100%; padding: 12px; background: #2a343f; border: 1px solid #3a444f; color: white; border-radius: 4px;" placeholder="Il tuo nome">
+                </div>
+                <div class="form-group">
+                    <label style="color: white; font-weight: 700; margin-bottom: 5px; display: block;">Email</label>
+                    <input type="email" id="help-email" required style="width: 100%; padding: 12px; background: #2a343f; border: 1px solid #3a444f; color: white; border-radius: 4px;" placeholder="La tua email">
+                </div>
+                <div class="form-group">
+                    <label style="color: white; font-weight: 700; margin-bottom: 5px; display: block;">Messaggio</label>
+                    <textarea id="help-message" required rows="4" style="width: 100%; padding: 12px; background: #2a343f; border: 1px solid #3a444f; color: white; border-radius: 4px; resize: none;" placeholder="Come possiamo aiutarti?"></textarea>
+                </div>
+                <button type="submit" class="btn btn-prime" style="width: 100%; padding: 12px; font-weight: 700; margin-top: 1rem;">Invia Messaggio</button>
+            </form>
+        </div>
+    </div>
+
+    <footer class="prime-footer">
+        <div class="footer-logo">
+            <span style="color: white; font-weight: 900; font-size: 1.5rem; letter-spacing: -1px;">INDIE<span style="color: var(--prime-blue);">PLAY-X</span></span>
+        </div>
+        <div class="footer-links">
+            <a href="javascript:void(0)" class="open-about-link" data-i18n="footer_about">Chi Siamo</a>
+            <a href="javascript:void(0)" class="open-privacy-link" data-i18n="footer_terms">Termini e informativa sulla privacy</a>
+            <a href="javascript:void(0)" class="open-cookie-link" data-i18n="footer_cookie">Informativa sui cookie</a>
+            <a href="javascript:void(0)" class="open-help-link" data-i18n="footer_help">Aiuto</a>
+        </div>
+        <div class="footer-legal" data-i18n="footer_rights">
+            © 2026 IndiePlay-X. Tutti i diritti riservati.
+        </div>
+    </footer>
+
+    <script type="module">
+        import { db, auth } from './src/firebase';
+        import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
+        import { initLanguageSelectors, translations, getLanguage } from './src/i18n';
+
+        const getAssetUrl = (path) => {
+            if (!path) return '';
+            if (path.startsWith('data:') || path.startsWith('http') || path.startsWith('blob:')) {
+                return path;
+            }
+            const cleanPath = path.startsWith('/') ? path.substring(1) : path;
+            return `${import.meta.env.BASE_URL}${cleanPath}`;
+        };
+
+        // Initialize i18n
+        initLanguageSelectors();
+
+        // Get Developer Name from query parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const devName = urlParams.get('dev') || 'NeonLabs';
+
+        // Tabs Toggle Logic
+        const tabs = document.querySelectorAll('.showcase-tab');
+        const sections = document.querySelectorAll('.showcase-section');
+
+        tabs.forEach(tab => {
+            tab.onclick = () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                sections.forEach(s => s.classList.remove('active'));
+
+                tab.classList.add('active');
+                document.getElementById(tab.getAttribute('data-target')).classList.add('active');
+            };
+        });
+
+        // Set developer content details
+        const devTitle = document.getElementById('dev-title-name');
+        const devBio = document.getElementById('dev-description-bio');
+        const devAvatarContainer = document.getElementById('dev-avatar-container');
+        const showcaseBanner = document.getElementById('showcase-bg-banner');
+
+        devTitle.innerText = devName.toUpperCase();
+        
+        // Load Developer Profile details dynamically
+        const loadDeveloperProfile = async () => {
+            try {
+                const usersRef = collection(db, "users");
+                const qUser = query(usersRef, where("sellerBrand", "==", devName));
+                const userSnap = await getDocs(qUser);
+
+                if (!userSnap.empty) {
+                    const userData = userSnap.docs[0].data();
+                    devBio.innerText = userData.sellerBio || "Benvenuto nella mia vetrina sviluppatore su IndiePlay-X!";
+                    if (userData.photoURL) {
+                        devAvatarContainer.innerHTML = `<img src="${userData.photoURL}" alt="Avatar">`;
+                    }
+                } else {
+                    // Custom branding presets fallback
+                    const bioData = {
+                        'NeonLabs': 'NeonLabs è uno studio di sviluppo indipendente specializzato in action cyberpunk ad alta precisione e pixel-art vibrante. Creatori del capolavoro acclamato dalla critica CyberNeon Runner e di Neon Samurai.',
+                        'Astro Games': 'Astro Games è un team di veterani del settore focalizzato sullo sviluppo di giochi a scorrimento spaziali e avventure fantascientifiche basate sulla fisica. Creatori del successo arcade Void Star.',
+                        'IndiePlay': 'Sviluppatore certificato e collaboratore dell\'ecosistema IndiePlay-X, dedito a creare esperienze di gioco innovative e divertenti per tutta la community.'
+                    };
+                    devBio.innerText = bioData[devName] || bioData['IndiePlay'];
+                }
+            } catch (err) {
+                console.error("Error loading developer profile:", err);
+            }
+        };
+        loadDeveloperProfile();
+
+        const bannerData = {
+            'NeonLabs': 'url(\'/images/neon_samurai_screenshot_1_1777200476248.png\')',
+            'Astro Games': 'url(\'/images/void_star_screenshot_1_1777200476311.png\')'
+        };
+        if (bannerData[devName]) {
+            showcaseBanner.style.background = bannerData[devName];
+            showcaseBanner.style.backgroundSize = 'cover';
+        }
+
+        // Set post authors
+        document.getElementById('post-author-name').innerText = devName;
+        document.getElementById('post-author-name-2').innerText = devName;
+
+        // Follow Button Toggle
+        const followBtn = document.getElementById('follow-btn');
+        let isFollowing = false;
+        followBtn.onclick = () => {
+            isFollowing = !isFollowing;
+            if (isFollowing) {
+                followBtn.className = 'btn btn-prime-outline';
+                followBtn.innerHTML = '<i class="fas fa-check"></i> Seguito';
+                showToast(`Ora segui lo studio ${devName}!`, 'success');
+            } else {
+                followBtn.className = 'btn btn-prime';
+                followBtn.innerHTML = '<i class="fas fa-plus"></i> Segui';
+                showToast(`Non segui più lo studio ${devName}.`, 'info');
+            }
+        };
+
+        // Share showcase button
+        document.getElementById('share-showcase-btn').onclick = () => {
+            navigator.clipboard.writeText(window.location.href);
+            showToast('Link della vetrina copiato negli appunti!', 'success');
+        };
+
+        // Message Modal
+        const messageModal = document.getElementById('message-modal');
+        const closeMessageModal = document.getElementById('close-message-modal');
+        const messageBtn = document.getElementById('message-btn');
+        const messageForm = document.getElementById('developer-message-form');
+
+        document.getElementById('message-modal-subtitle').innerText = `Contatta lo sviluppatore ${devName}`;
+
+        if (messageBtn) {
+            messageBtn.onclick = () => {
+                messageModal.style.display = 'flex';
+            };
+        }
+        if (closeMessageModal) {
+            closeMessageModal.onclick = () => {
+                messageModal.style.display = 'none';
+            };
+        }
+        if (messageForm) {
+            messageForm.onsubmit = (e) => {
+                e.preventDefault();
+                showToast('Messaggio inviato con successo allo sviluppatore!', 'success');
+                messageForm.reset();
+                messageModal.style.display = 'none';
+            };
+        }
+
+        // Load Developer Games from Firestore
+        const showcaseGameGrid = document.getElementById('showcase-game-grid');
+
+        const loadDeveloperGames = async () => {
+            try {
+                showcaseGameGrid.innerHTML = '<div class="loading">Caricamento giochi...</div>';
+                const q = query(collection(db, "games"), where("developer", "==", devName));
+                const snap = await getDocs(q);
+
+                if (snap.empty) {
+                    showcaseGameGrid.innerHTML = '<div class="loading">Nessun gioco pubblicato da questo sviluppatore.</div>';
+                    return;
+                }
+
+                showcaseGameGrid.innerHTML = '';
+                snap.forEach(docSnap => {
+                    const game = docSnap.data();
+                    const gameId = docSnap.id;
+                    
+                    const card = document.createElement('div');
+                    card.className = 'game-card';
+                    card.style.cursor = 'pointer';
+                    card.onclick = () => {
+                        window.location.href = `game.html?id=${gameId}`;
+                    };
+
+                    const rawHeaderSrc = (game.header && game.header.type === 'image') ? game.header.src : (game.gallery && game.gallery[0] ? game.gallery[0].src : '/images/placeholder.png');
+                    const headerSrc = getAssetUrl(rawHeaderSrc);
+                    const priceLabel = game.price === 'FREE' ? 'GRATIS' : `€${game.price}`;
+
+                    card.innerHTML = `
+                        <div class="game-card-img-container" style="position: relative;">
+                            <img src="${headerSrc}">
+                            <span class="game-card-badge" style="position: absolute; bottom: 8px; left: 8px;">DIGITALE</span>
+                        </div>
+                        <div class="game-card-info">
+                            <h3 style="color: white; margin-bottom: 5px;">${game.title}</h3>
+                            <p style="color: var(--text-gray); font-size: 0.85rem; margin-bottom: 10px;">${game.category}</p>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="color: var(--prime-blue); font-weight: 800; font-size: 1.1rem;">${priceLabel}</span>
+                                <span style="font-size: 0.8rem; background: rgba(255,255,255,0.06); padding: 4px 8px; border-radius: 4px; color: var(--text-gray);">${game.type.toUpperCase()}</span>
+                            </div>
+                        </div>
+                    `;
+                    showcaseGameGrid.appendChild(card);
+                });
+            } catch (err) {
+                console.error("Error loading developer games:", err);
+                showcaseGameGrid.innerHTML = '<div class="loading" style="color: red;">Errore nel caricamento dei giochi.</div>';
+            }
+        };
+
+        // Render Developer-Specific Merchandise
+        const loadDeveloperMerchandise = () => {
+            const showcaseMerchGrid = document.getElementById('showcase-merch-grid');
+            showcaseMerchGrid.innerHTML = '';
+
+            let merchItems = [];
+            if (devName === 'NeonLabs') {
+                merchItems = [
+                    {
+                        title: 'Felpa Ufficiale Neon Samurai',
+                        price: '49.99',
+                        image: '/images/merch_neon_samurai_hoodie.png',
+                        badge: 'LIMITED EDITION'
+                    },
+                    {
+                        title: 'T-shirt Logo NeonLabs',
+                        price: '24.99',
+                        image: '/images/merch_neon_samurai_tshirt.png',
+                        badge: 'COTTON'
+                    },
+                    {
+                        title: 'Poster CyberNeon Runner A2',
+                        price: '9.99',
+                        image: '/images/merch_neon_samurai_poster.png',
+                        badge: 'GLOSSY'
+                    }
+                ];
+            } else if (devName === 'Astro Games') {
+                merchItems = [
+                    {
+                        title: 'Action Figure Void Star (15cm)',
+                        price: '34.99',
+                        image: '/images/merch_action_figure.png',
+                        badge: 'LIMITED'
+                    },
+                    {
+                        title: 'T-shirt Void Star Premium',
+                        price: '24.99',
+                        image: '/images/merch_neon_samurai_tshirt.png',
+                        badge: '100% COTONE'
+                    }
+                ];
+            } else {
+                merchItems = [
+                    {
+                        title: 'Cappellino Premium IndiePlay',
+                        price: '19.99',
+                        image: '/images/merch_hat_mockup_1787498735582.png',
+                        badge: 'OFFICIAL'
+                    },
+                    {
+                        title: 'T-shirt Classica IndiePlay',
+                        price: '24.99',
+                        image: '/images/merch_tshirt_mockup_1787498735596.png',
+                        badge: 'BEST SELLER'
+                    },
+                    {
+                        title: 'Felpa Streetwear IndiePlay',
+                        price: '49.99',
+                        image: '/images/merch_hoodie_mockup_1787498735665.png',
+                        badge: 'NEW ARRIVAL'
+                    }
+                ];
+            }
+
+            merchItems.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'merch-card';
+                card.style.cursor = 'pointer';
+                card.onclick = () => {
+                    showToast(`Acquisto simulato per: ${item.title}!`, 'success');
+                };
+
+                const imgUrl = getAssetUrl(item.image);
+                card.innerHTML = `
+                    <div class="merch-img-container" style="position: relative; overflow: hidden; border-radius: 8px; margin-bottom: 12px; aspect-ratio: 1/1; background: rgba(255,255,255,0.02); display: flex; align-items: center; justify-content: center;">
+                        <img src="${imgUrl}" style="max-height: 100%; max-width: 100%; object-fit: contain; transition: 0.3s;">
+                        <span class="game-card-badge" style="position: absolute; top: 8px; left: 8px; background: var(--prime-blue);">${item.badge}</span>
+                    </div>
+                    <h4 style="color: white; margin-bottom: 5px; font-size: 1rem;">${item.title}</h4>
+                    <span style="color: var(--prime-blue); font-weight: 800; font-size: 1.1rem;">€${item.price}</span>
+                `;
+                showcaseMerchGrid.appendChild(card);
+            });
+        };
+
+        // Window modals click listener
+        const aboutModal = document.getElementById('about-modal');
+        const closeAbout = document.getElementById('close-about');
+        const openAboutLinks = document.querySelectorAll('.open-about-link');
+
+        openAboutLinks.forEach(link => {
+            link.onclick = (e) => {
+                e.preventDefault();
+                if (aboutModal) aboutModal.style.display = 'flex';
+            };
+        });
+        if (closeAbout && aboutModal) {
+            closeAbout.onclick = () => aboutModal.style.display = 'none';
+        }
+
+        const helpModal = document.getElementById('help-modal');
+        const closeHelp = document.getElementById('close-help');
+        const openHelpLinks = document.querySelectorAll('.open-help-link');
+        const helpForm = document.getElementById('help-contact-form');
+
+        openHelpLinks.forEach(link => {
+            link.onclick = (e) => {
+                e.preventDefault();
+                if (helpModal) helpModal.style.display = 'flex';
+            };
+        });
+        if (closeHelp && helpModal) {
+            closeHelp.onclick = () => helpModal.style.display = 'none';
+        }
+
+        if (helpForm) {
+            helpForm.onsubmit = (e) => {
+                e.preventDefault();
+                showToast('Messaggio inviato con successo! Ti risponderemo presto.', 'success');
+                helpForm.reset();
+                if (helpModal) helpModal.style.display = 'none';
+            };
+        }
+
+        window.addEventListener('click', (e) => {
+            if (e.target === messageModal) messageModal.style.display = 'none';
+            if (e.target === aboutModal) aboutModal.style.display = 'none';
+            if (e.target === helpModal) helpModal.style.display = 'none';
+        });
+
+        // Toggle feed post likes
+        window.togglePostLike = (el) => {
+            const icon = el.querySelector('i');
+            if (icon.className.includes('far')) {
+                icon.className = 'fas fa-thumbs-up';
+                el.style.color = 'var(--prime-blue)';
+                showToast('Grazie per il mi piace!', 'success');
+            } else {
+                icon.className = 'far fa-thumbs-up';
+                el.style.color = 'var(--text-gray)';
+            }
+        };
+
+        // Initial Data Load
+        loadDeveloperGames();
+        loadDeveloperMerchandise();
+    </script>
+</body>
+</html>

@@ -383,7 +383,7 @@
                 </a>
                 <ul class="nav-links">
                     <li><a href="/" data-i18n="nav_home">Home</a></li>
-                    <li><a href="/" class="active" data-i18n="nav_home">Giochi</a></li>
+                    <li><a href="index.html#merch-section" data-i18n="nav_merch">Merchandising</a></li>
                     <li><a href="account.html?tab=my-games" id="sell-link" class="hidden" data-i18n="nav_sell">Vendi</a></li>
                 </ul>
             </div>
@@ -688,15 +688,67 @@
             <span style="color: white; font-weight: 900; font-size: 1.5rem; letter-spacing: -1px;">INDIE<span style="color: var(--prime-blue);">PLAY-X</span></span>
         </div>
         <div class="footer-links">
-            <a href="javascript:void(0)" class="open-privacy-link">Termini e informativa sulla privacy</a>
-            <a href="javascript:void(0)" class="open-cookie-link">Informativa sui cookie</a>
-            <a href="mailto:support@indieplay.it">Inviaci un feedback</a>
-            <a href="mailto:support@indieplay.it">Aiuto</a>
+            <a href="javascript:void(0)" class="open-about-link" data-i18n="footer_about">Chi Siamo</a>
+            <a href="javascript:void(0)" class="open-privacy-link" data-i18n="footer_terms">Termini e informativa sulla privacy</a>
+            <a href="javascript:void(0)" class="open-cookie-link" data-i18n="footer_cookie">Informativa sui cookie</a>
+            <a href="javascript:void(0)" class="open-help-link" data-i18n="footer_help">Aiuto</a>
         </div>
-        <div class="footer-legal">
-            © 2026 IndiePlay v2.4. Tutti i diritti riservati.
+        <div class="footer-legal" data-i18n="footer_rights">
+            © 2026 IndiePlay-X. Tutti i diritti riservati.
         </div>
     </footer>
+
+    <!-- About Us Modal -->
+    <div id="about-modal" class="lightbox" style="display: none; justify-content: center; align-items: center; z-index: 2200;">
+        <div class="modal-content glass" style="background: rgba(26, 36, 47, 0.98); border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; padding: 2.5rem; max-width: 600px; width: 90%; color: white; position: relative; backdrop-filter: blur(25px); box-shadow: 0 20px 50px rgba(0,0,0,0.7); max-height: 80vh; display: flex; flex-direction: column;">
+            <span class="close-lightbox" id="close-about" style="position: absolute; top: 1rem; right: 1.5rem; font-size: 2.5rem; cursor: pointer; color: var(--text-gray);">&times;</span>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem;">
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(0, 168, 225, 0.15); border: 1px solid rgba(0, 168, 225, 0.4); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i class="fas fa-info-circle" style="color: var(--prime-blue); font-size: 1.4rem;"></i>
+                </div>
+                <div>
+                    <h2 style="font-size: 1.5rem; font-weight: 800; margin: 0; color: white;" data-i18n="footer_about">Chi Siamo</h2>
+                    <span style="font-size: 0.8rem; color: var(--text-gray);">IndiePlay-X Platform</span>
+                </div>
+            </div>
+            <div style="overflow-y: auto; padding-right: 10px; font-size: 0.95rem; line-height: 1.6; color: #d0dbe5;">
+                <p><strong>IndiePlay-X</strong> è il portale di riferimento per gli amanti dei videogiochi indipendenti italiani ed internazionali.</p>
+                <p>La nostra missione è connettere direttamente gli sviluppatori indipendenti con i videogiocatori, rimuovendo le barriere tradizionali della distribuzione. Crediamo nella creatività, nell'innovazione e nella libertà artistica.</p>
+                <p>Sviluppato con passione per supportare lo sviluppo e la crescita dell'ecosistema dei videogiochi indie.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help / Contact Modal -->
+    <div id="help-modal" class="lightbox" style="display: none; justify-content: center; align-items: center; z-index: 2200;">
+        <div class="modal-content glass" style="background: rgba(26, 36, 47, 0.98); border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; padding: 2.5rem; max-width: 500px; width: 90%; color: white; position: relative; backdrop-filter: blur(25px); box-shadow: 0 20px 50px rgba(0,0,0,0.7);">
+            <span class="close-lightbox" id="close-help" style="position: absolute; top: 1rem; right: 1.5rem; font-size: 2.5rem; cursor: pointer; color: var(--text-gray);">&times;</span>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem;">
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(0, 168, 225, 0.15); border: 1px solid rgba(0, 168, 225, 0.4); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i class="fas fa-question-circle" style="color: var(--prime-blue); font-size: 1.4rem;"></i>
+                </div>
+                <div>
+                    <h2 style="font-size: 1.5rem; font-weight: 800; margin: 0; color: white;" data-i18n="footer_help">Aiuto</h2>
+                    <span style="font-size: 0.8rem; color: var(--text-gray);">Invia una richiesta di supporto</span>
+                </div>
+            </div>
+            <form id="help-contact-form" style="display: flex; flex-direction: column; gap: 1rem; text-align: left;">
+                <div class="form-group">
+                    <label style="color: white; font-weight: 700; margin-bottom: 5px; display: block;">Nome</label>
+                    <input type="text" id="help-name" required style="width: 100%; padding: 12px; background: #2a343f; border: 1px solid #3a444f; color: white; border-radius: 4px;" placeholder="Il tuo nome">
+                </div>
+                <div class="form-group">
+                    <label style="color: white; font-weight: 700; margin-bottom: 5px; display: block;">Email</label>
+                    <input type="email" id="help-email" required style="width: 100%; padding: 12px; background: #2a343f; border: 1px solid #3a444f; color: white; border-radius: 4px;" placeholder="La tua email">
+                </div>
+                <div class="form-group">
+                    <label style="color: white; font-weight: 700; margin-bottom: 5px; display: block;">Messaggio</label>
+                    <textarea id="help-message" required rows="4" style="width: 100%; padding: 12px; background: #2a343f; border: 1px solid #3a444f; color: white; border-radius: 4px; resize: none;" placeholder="Come possiamo aiutarti?"></textarea>
+                </div>
+                <button type="submit" class="btn btn-prime" style="width: 100%; padding: 12px; font-weight: 700; margin-top: 1rem;">Invia Messaggio</button>
+            </form>
+        </div>
+    </div>
 
     <script type="module">
         import { db, auth, storage } from './src/firebase';
@@ -816,10 +868,13 @@
 
                     // Update Meta info
                     const metaSection = document.querySelector('.detail-meta');
+                    const devName = game.developer || 'IndiePlay';
+                    const devLink = `showcase.html?dev=${encodeURIComponent(devName)}`;
                     metaSection.innerHTML = `
                         <span class="prime-badge-large">${dict.game_included}</span>
                         <span>${game.category || 'Azione'} • ${modalityLabel}</span>
                         <span style="font-weight: bold; color: var(--prime-blue);">${priceLabel}</span>
+                        <span>Sviluppatore: <a href="${devLink}" style="color: var(--prime-blue); font-weight: 700; text-decoration: none;">${devName}</a></span>
                     `;
 
                     // Update Button Logic
@@ -1480,6 +1535,99 @@
                 }
             }, 1500);
         };
+
+        // Share Button click handler
+        const shareBtn = document.querySelector('.action-btn[title="Condividi"]');
+        if (shareBtn) {
+            shareBtn.onclick = () => {
+                navigator.clipboard.writeText(window.location.href);
+                showToast('Link copiato negli appunti!', 'success');
+            };
+        }
+
+        // Likes / Dislikes buttons click handlers
+        const likeBtn = document.querySelector('.action-btn[title="Mi piace"]');
+        const dislikeBtn = document.querySelector('.action-btn[title="Non fa per me"]');
+        if (likeBtn && dislikeBtn) {
+            likeBtn.onclick = () => {
+                const isActive = likeBtn.style.color === 'var(--prime-blue)';
+                if (isActive) {
+                    likeBtn.style.color = 'white';
+                } else {
+                    likeBtn.style.color = 'var(--prime-blue)';
+                    dislikeBtn.style.color = 'white';
+                    showToast('Grazie per il tuo feedback!', 'success');
+                }
+            };
+            dislikeBtn.onclick = () => {
+                const isActive = dislikeBtn.style.color === 'var(--prime-blue)';
+                if (isActive) {
+                    dislikeBtn.style.color = 'white';
+                } else {
+                    dislikeBtn.style.color = 'var(--prime-blue)';
+                    likeBtn.style.color = 'white';
+                    showToast('Feedback registrato!', 'success');
+                }
+            };
+        }
+
+        // Search redirection
+        const searchInput = document.querySelector('.search-bar input');
+        if (searchInput) {
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    const val = searchInput.value.trim();
+                    if (val) {
+                        window.location.href = `index.html?search=${encodeURIComponent(val)}`;
+                    }
+                }
+            });
+        }
+
+        // Modals management (About & Help)
+        const aboutModal = document.getElementById('about-modal');
+        const closeAbout = document.getElementById('close-about');
+        const openAboutLinks = document.querySelectorAll('.open-about-link');
+
+        openAboutLinks.forEach(link => {
+            link.onclick = (e) => {
+                e.preventDefault();
+                if (aboutModal) aboutModal.style.display = 'flex';
+            };
+        });
+        if (closeAbout && aboutModal) {
+            closeAbout.onclick = () => aboutModal.style.display = 'none';
+        }
+
+        const helpModal = document.getElementById('help-modal');
+        const closeHelp = document.getElementById('close-help');
+        const openHelpLinks = document.querySelectorAll('.open-help-link');
+        const helpForm = document.getElementById('help-contact-form');
+
+        openHelpLinks.forEach(link => {
+            link.onclick = (e) => {
+                e.preventDefault();
+                if (helpModal) helpModal.style.display = 'flex';
+            };
+        });
+        if (closeHelp && helpModal) {
+            closeHelp.onclick = () => helpModal.style.display = 'none';
+        }
+
+        if (helpForm) {
+            helpForm.onsubmit = (e) => {
+                e.preventDefault();
+                showToast('Messaggio inviato con successo! Ti risponderemo presto.', 'success');
+                helpForm.reset();
+                if (helpModal) helpModal.style.display = 'none';
+            };
+        }
+
+        // Add modals to window click listener
+        window.addEventListener('click', (e) => {
+            if (e.target === aboutModal) aboutModal.style.display = 'none';
+            if (e.target === helpModal) helpModal.style.display = 'none';
+        });
     </script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
