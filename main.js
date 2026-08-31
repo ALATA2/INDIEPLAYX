@@ -475,15 +475,18 @@ subscribeToAuthChanges(async (user) => {
 // Initial Load
 loadGames();
 
-// Drag-to-scroll implementation for categories
+// Drag-to-scroll implementation for all horizontal rows
 const initDragToScroll = (slider) => {
   if (!slider) return;
   let isDown = false;
-  let startX;
-  let scrollLeft;
+  let startX = 0;
+  let scrollLeft = 0;
+  let isDragging = false;
 
   slider.addEventListener('mousedown', (e) => {
+    if (e.button !== 0) return;
     isDown = true;
+    isDragging = false;
     slider.classList.add('active-drag');
     startX = e.pageX - slider.offsetLeft;
     scrollLeft = slider.scrollLeft;
@@ -497,42 +500,140 @@ const initDragToScroll = (slider) => {
   slider.addEventListener('mouseup', () => {
     isDown = false;
     slider.classList.remove('active-drag');
+    setTimeout(() => { isDragging = false; }, 50);
   });
   
   slider.addEventListener('mousemove', (e) => {
-    if(!isDown) return;
+    if (!isDown) return;
     e.preventDefault();
     const x = e.pageX - slider.offsetLeft;
-    const walk = (x - startX) * 2; // scroll speed multiplier
+    const walk = (x - startX) * 1.8;
+    if (Math.abs(walk) > 5) isDragging = true;
     slider.scrollLeft = scrollLeft - walk;
+  });
+
+  slider.addEventListener('click', (e) => {
+    if (isDragging) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, true);
+};
+
+// Initialize drag-to-scroll on all horizontal lists
+const initAllScrollContainers = () => {
+  const containers = document.querySelectorAll('.genre-row, .game-row, #news-grid, #recent-games-grid, #bestsellers-grid, #deals-grid, .hero-split');
+  containers.forEach(initDragToScroll);
+};
+initAllScrollContainers();
+
+// Hero Carousel Controller (Touch Swiping, Dots, and Auto-Rotation)
+const initHeroCarousel = () => {
+  const heroSlider = document.querySelector('.hero-split');
+  const dots = document.querySelectorAll('.hero-dots .dot');
+  if (!heroSlider) return;
+
+  let currentSlide = 0;
+  const totalSlides = 3;
+  let autoSlideTimer = null;
+  let touchStartX = 0;
+  let touchEndX = 0;
+
+  const getSlideWidth = () => heroSlider.offsetWidth || window.innerWidth;
+
+  const goToSlide = (index, smooth = true) => {
+    currentSlide = (index + totalSlides) % totalSlides;
+    const width = getSlideWidth();
+    heroSlider.scrollTo({
+      left: currentSlide * width,
+      behavior: smooth ? 'smooth' : 'auto'
+    });
+    updateDots(currentSlide);
+  };
+
+  const updateDots = (index) => {
+    dots.forEach((dot, i) => {
+      dot.classList.toggle('active', i === index);
+    });
+  };
+
+  // Sync dots with manual scrolling
+  heroSlider.addEventListener('scroll', () => {
+    const width = getSlideWidth();
+    if (width > 0) {
+      const activeIdx = Math.round(heroSlider.scrollLeft / width);
+      updateDots(activeIdx);
+      currentSlide = activeIdx;
+    }
+  }, { passive: true });
+
+  // Dot click handlers
+  dots.forEach(dot => {
+    dot.addEventListener('click', (e) => {
+      e.preventDefault();
+      const index = parseInt(dot.getAttribute('data-index'), 10);
+      goToSlide(index);
+      resetAutoSlide();
+    });
+  });
+
+  // Touch Swipe gestures for mobile
+  heroSlider.addEventListener('touchstart', (e) => {
+    touchStartX = e.changedTouches[0].screenX;
+    stopAutoSlide();
+  }, { passive: true });
+
+  heroSlider.addEventListener('touchend', (e) => {
+    touchEndX = e.changedTouches[0].screenX;
+    handleSwipe();
+    startAutoSlide();
+  }, { passive: true });
+
+  const handleSwipe = () => {
+    const swipeDistance = touchEndX - touchStartX;
+    if (Math.abs(swipeDistance) > 40) {
+      if (swipeDistance < 0) {
+        goToSlide(currentSlide + 1);
+      } else {
+        goToSlide(currentSlide - 1);
+      }
+    }
+  };
+
+  // Auto rotation timer (only on small screens <= 900px)
+  const startAutoSlide = () => {
+    stopAutoSlide();
+    if (window.innerWidth <= 900) {
+      autoSlideTimer = setInterval(() => {
+        goToSlide(currentSlide + 1);
+      }, 5000);
+    }
+  };
+
+  const stopAutoSlide = () => {
+    if (autoSlideTimer) {
+      clearInterval(autoSlideTimer);
+      autoSlideTimer = null;
+    }
+  };
+
+  const resetAutoSlide = () => {
+    stopAutoSlide();
+    startAutoSlide();
+  };
+
+  heroSlider.addEventListener('mouseenter', stopAutoSlide);
+  heroSlider.addEventListener('mouseleave', startAutoSlide);
+
+  // Initialize
+  startAutoSlide();
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 900) stopAutoSlide();
+    else startAutoSlide();
   });
 };
 
-initDragToScroll(document.querySelector('.genre-row'));
-
-// Hero Slider dot navigation (mobile carousel)
-const heroSlider = document.querySelector('.hero-split');
-const dots = document.querySelectorAll('.hero-dots .dot');
-if (heroSlider && dots.length > 0) {
-  heroSlider.addEventListener('scroll', () => {
-    const width = heroSlider.offsetWidth;
-    const index = Math.round(heroSlider.scrollLeft / width);
-    dots.forEach((dot, i) => {
-      if (i === index) dot.classList.add('active');
-      else dot.classList.remove('active');
-    });
-  });
-  dots.forEach(dot => {
-    dot.addEventListener('click', () => {
-      const index = parseInt(dot.getAttribute('data-index'));
-      const width = heroSlider.offsetWidth;
-      heroSlider.scrollTo({
-        left: index * width,
-        behavior: 'smooth'
-      });
-    });
-  });
-}
+initHeroCarousel();
 
 // Category filtering
 function initCategoryFilters() {
@@ -741,16 +842,10 @@ function loadNewsFeed() {
 
   news.forEach(item => {
     const card = document.createElement('div');
-    card.className = 'game-card';
-    card.style.background = 'rgba(255,255,255,0.03)';
-    card.style.border = '1px solid rgba(255,255,255,0.05)';
-    card.style.padding = '0';
-    card.style.borderRadius = '8px';
-    card.style.overflow = 'hidden';
-    card.style.cursor = 'default';
+    card.className = 'news-card';
     
     card.innerHTML = `
-      <div style="height: 150px; background: url('${item.img}') no-repeat center center; background-size: cover; position: relative;">
+      <div style="height: 150px; background: url('${getAssetUrl(item.img)}') no-repeat center center; background-size: cover; position: relative;">
         <span style="position: absolute; top: 10px; left: 10px; background: var(--prime-blue); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700;">${item.badge}</span>
       </div>
       <div style="padding: 1.2rem;">
@@ -761,6 +856,7 @@ function loadNewsFeed() {
     `;
     newsGrid.appendChild(card);
   });
+  initDragToScroll(newsGrid);
 }
 
 // Initialize all features

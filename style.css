@@ -130,10 +130,17 @@ nav {
 }
 
 /* Hero Split Section */
+.hero-container {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background: var(--prime-bg);
+}
+
 .hero-split {
   display: grid;
   grid-template-columns: 1.4fr 1fr; /* More space to the side banners */
-  width: 100vw;
+  width: 100%;
   height: 89vh;
   margin-left: 0;
   margin-top: 0;
@@ -750,31 +757,70 @@ input:focus {
   display: none;
 }
 
+.news-card {
+  flex: 0 0 320px;
+  width: 320px;
+  min-width: 320px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: grab;
+  transition: transform 0.3s ease, border-color 0.3s ease;
+  scroll-snap-align: start;
+  user-select: none;
+}
+.news-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(0, 168, 225, 0.4);
+}
+
 .hamburger-menu {
   display: none;
 }
 
 @media (max-width: 900px) {
+  .hero-container {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+  }
   .hero-split {
     display: flex !important;
     flex-direction: row;
-    overflow-x: auto;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
     scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
     scrollbar-width: none;
-    width: 100vw;
+    width: 100% !important;
+    max-width: 100% !important;
     height: auto;
     position: relative;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y;
+    user-select: none;
+    cursor: grab;
+  }
+  .hero-split.active-drag {
+    cursor: grabbing;
+    scroll-behavior: auto;
   }
   .hero-split::-webkit-scrollbar {
     display: none;
   }
   .hero-main {
-    flex: 0 0 100%;
-    width: 100%;
+    flex: 0 0 100% !important;
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
     scroll-snap-align: start;
+    scroll-snap-stop: always;
     display: flex;
     flex-direction: column;
     height: auto;
+    position: relative;
+    box-sizing: border-box;
   }
   .hero-main img {
     height: 250px;
@@ -785,9 +831,9 @@ input:focus {
   .hero-overlay {
     position: relative;
     background: var(--prime-bg);
-    padding: 1.5rem 5% 2.5rem;
+    padding: 1.5rem 5% 3.5rem;
     width: 100%;
-    min-height: 280px;
+    min-height: 260px;
     display: flex;
     align-items: flex-start;
     box-sizing: border-box;
@@ -797,24 +843,29 @@ input:focus {
     width: 100%;
   }
   .hero-content h1 {
-    font-size: 2rem;
+    font-size: 1.8rem;
     margin-bottom: 0.5rem;
   }
   .hero-content p {
-    font-size: 0.95rem;
-    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+    margin-bottom: 1.2rem;
   }
   .hero-side {
     display: contents !important;
   }
   .hero-sub {
-    flex: 0 0 100%;
-    width: 100%;
+    flex: 0 0 100% !important;
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
     scroll-snap-align: start;
+    scroll-snap-stop: always;
     display: flex;
     flex-direction: column;
     height: auto;
     aspect-ratio: auto;
+    position: relative;
+    box-sizing: border-box;
   }
   .hero-sub img {
     height: 250px;
@@ -825,9 +876,9 @@ input:focus {
   .hero-sub .hero-overlay-sub {
     position: relative;
     background: var(--prime-bg);
-    padding: 1.5rem 5% 2.5rem;
+    padding: 1.5rem 5% 3.5rem;
     width: 100%;
-    min-height: 280px;
+    min-height: 260px;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
@@ -835,7 +886,7 @@ input:focus {
     box-sizing: border-box;
   }
   .hero-sub .hero-overlay-sub h3 {
-    font-size: 2rem;
+    font-size: 1.8rem;
     font-weight: 900;
     margin-bottom: 0.5rem;
   }
@@ -848,28 +899,45 @@ input:focus {
     width: fit-content;
   }
   .hero-dots {
-    display: flex;
+    display: flex !important;
     position: absolute;
-    bottom: 15px;
+    bottom: 14px;
     left: 50%;
     transform: translateX(-50%);
     gap: 8px;
-    z-index: 10;
+    z-index: 25;
+    pointer-events: auto;
   }
   .hero-dots .dot {
-    width: 8px;
-    height: 8px;
+    width: 9px;
+    height: 9px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.35);
     cursor: pointer;
-    transition: var(--transition);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   .hero-dots .dot.active {
     background: var(--prime-blue);
-    transform: scale(1.2);
+    width: 26px;
+    border-radius: 5px;
+    transform: none;
+    box-shadow: 0 0 10px rgba(0, 168, 225, 0.6);
+  }
+  .news-card {
+    flex: 0 0 84vw !important;
+    width: 84vw !important;
+    min-width: 84vw !important;
+    max-width: 350px;
+    scroll-snap-align: start;
+  }
+  .game-row {
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    touch-action: pan-x pan-y;
   }
   .game-card {
     width: 110px;
+    scroll-snap-align: start;
   }
   .game-card h3 {
     font-size: 0.75rem;
