@@ -1,10 +1,10 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
 
-const isVercel = process.env.VERCEL === '1';
+const isRootHost = process.env.VERCEL === '1' || process.env.CF_PAGES === '1' || Boolean(process.env.CF_PAGES_URL) || process.env.GITHUB_ACTIONS !== 'true';
 
 export default defineConfig({
-  base: isVercel ? '/' : '/INDIEPLAYX/',
+  base: isRootHost ? '/' : '/INDIEPLAYX/',
   build: {
     rollupOptions: {
       input: {
