@@ -20,6 +20,7 @@ const DEFAULT_PAYMENT_CONFIG = {
   magazineVisible: true,            // 5. Sezione IndiePlay Magazine in Homepage (Default: ATTIVO)
   reviewsEnabled: true,             // 6. Invio Nuove Recensioni Utenti (Default: ATTIVO)
   sellerRegistrationEnabled: true,  // 7. Registrazione Venditori & Pubblicazione Giochi (Default: ATTIVO)
+  donationsEnabled: true,           // 8. Sistema Donazioni Profili Social (Privati & Professionisti) (Default: ATTIVO)
 
   // Parametri economici e chiavi Gateway
   platformFeePercent: 15, // 15% piattaforma, 85% sviluppatore in automatico
@@ -844,6 +845,13 @@ function openBackendConsole() {
       title: '7. Registrazione Nuovi Venditori & Pubblicazione',
       desc: 'Consente o blocca temporaneamente l\'opzione di registrazione per nuovi profili sviluppatore/venditore.',
       active: cfg.sellerRegistrationEnabled !== false
+    },
+    {
+      key: 'donationsEnabled',
+      icon: 'fa-hand-holding-heart',
+      title: '8. Sistema Donazioni Profili Social (Privati & Professionisti)',
+      desc: 'Abilita o disabilita la possibilità per utenti privati e studi professionali di ricevere donazioni sul proprio profilo social.',
+      active: cfg.donationsEnabled !== false
     }
   ];
 

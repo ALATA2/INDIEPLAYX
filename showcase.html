@@ -307,14 +307,21 @@
                 </div>
                 <div class="dev-meta">
                     <h1 class="dev-name" id="dev-title-name">Caricamento...</h1>
-                    <div class="dev-subtitle">
+                    <div class="dev-subtitle" style="flex-wrap: wrap;">
                         <span id="dev-followers-count"><i class="fas fa-users"></i> 1,240 Followers</span>
-                        <span><i class="fas fa-gamepad"></i> Studio Certificato</span>
+                        <span id="dev-profile-type-badge"><i class="fas fa-id-badge"></i> Studio / Creator</span>
+                        <span id="dev-role-badge" style="color: #38bdf8; font-weight: 700; display: none;"></span>
+                        <span id="dev-collab-badge" style="background: rgba(16, 185, 129, 0.18); border: 1px solid rgba(16, 185, 129, 0.5); color: #34d399; padding: 3px 10px; border-radius: 999px; font-size: 0.78rem; font-weight: 800; display: inline-flex; align-items: center; gap: 5px;">
+                            <i class="fas fa-handshake"></i> Disponibile per Collaborazioni
+                        </span>
                     </div>
-                    <p class="dev-bio" id="dev-description-bio">Caricamento dei dettagli dello sviluppatore indipendente...</p>
-                    <div class="dev-actions">
-                        <button id="follow-btn" class="btn btn-prime" style="min-width: 150px;"><i class="fas fa-plus"></i> Segui</button>
-                        <button id="message-btn" class="btn btn-prime-outline"><i class="far fa-envelope"></i> Invia Messaggio</button>
+                    <p class="dev-bio" id="dev-description-bio">Caricamento dei dettagli del profilo social...</p>
+                    <div class="dev-actions" style="flex-wrap: wrap;">
+                        <button id="follow-btn" class="btn btn-prime" style="min-width: 140px;"><i class="fas fa-plus"></i> Segui</button>
+                        <button id="donate-btn" class="btn" style="background: linear-gradient(135deg, #f43f5e, #e11d48); color: white; font-weight: 800; box-shadow: 0 4px 15px rgba(244, 63, 94, 0.4); display: inline-flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-hand-holding-heart"></i> Dona / Supporta
+                        </button>
+                        <button id="message-btn" class="btn btn-prime-outline"><i class="far fa-envelope"></i> Contatta / Collabora</button>
                         <button id="share-showcase-btn" class="btn btn-prime-outline"><i class="fas fa-share-alt"></i> Condividi</button>
                     </div>
                 </div>
@@ -322,14 +329,41 @@
         </section>
 
         <section class="showcase-tabs">
-            <div class="showcase-tab active" data-target="games-tab"><i class="fas fa-gamepad"></i> GIOCHI</div>
+            <div class="showcase-tab active" data-target="social-tab"><i class="fas fa-id-card"></i> PROFILO SOCIAL, BIO & COLLABORAZIONI</div>
+            <div class="showcase-tab" data-target="games-tab"><i class="fas fa-gamepad"></i> GIOCHI PUBBLICATI</div>
             <div class="showcase-tab" data-target="merch-tab"><i class="fas fa-shopping-bag"></i> MERCHANDISING</div>
-            <div class="showcase-tab" data-target="social-tab"><i class="far fa-newspaper"></i> SOCIAL / BACHECA</div>
         </section>
 
         <section class="showcase-body">
+            <!-- SCHEDA BIO ESTESA, COLLABORAZIONI, CONTATTI & DONAZIONI (SEMPRE VISIBILE IN ALTO) -->
+            <div id="social-profile-details-card" style="background: rgba(26, 36, 47, 0.72); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 14px; padding: 1.8rem; margin-bottom: 2.5rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 1.5rem;">
+                <div>
+                    <h3 style="margin: 0 0 0.7rem; font-size: 1.1rem; color: white; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-user-astronaut" style="color: var(--prime-blue);"></i> Descrizione, Competenze & Progetti
+                    </h3>
+                    <p id="social-full-description" style="color: #d0dbe5; font-size: 0.94rem; line-height: 1.65; margin: 0; white-space: pre-line;">
+                        Sviluppatore e creator attivo nella community di IndiePlay-X. Scopri i progetti pubblicati o invia una proposta di collaborazione!
+                    </p>
+                </div>
+
+                <div id="social-collab-box" style="background: rgba(16, 185, 129, 0.07); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 12px; padding: 1.25rem;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 0.6rem;">
+                        <h4 style="margin: 0; font-size: 1rem; color: #34d399; font-weight: 800;">
+                            <i class="fas fa-handshake"></i> Ricerca Collaborazioni & Contatti
+                        </h4>
+                        <span id="social-collab-status-pill" style="background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 2px 9px; border-radius: 999px; font-size: 0.72rem; font-weight: 800;">APERTO A COLLABORAZIONI</span>
+                    </div>
+                    <p id="social-collab-text" style="color: #e2e8f0; font-size: 0.88rem; line-height: 1.55; margin: 0 0 1rem;">
+                        Disponibile per collaborazioni su nuovi videogiochi indie, game jam, colonne sonore, grafica 2D/3D e programmazione.
+                    </p>
+                    <div id="social-contacts-bar" style="display: flex; flex-wrap: wrap; gap: 0.55rem;">
+                        <!-- Populated dynamically with Email, Discord, Website, Socials -->
+                    </div>
+                </div>
+            </div>
+
             <!-- Games Grid -->
-            <div id="games-tab" class="showcase-section active">
+            <div id="games-tab" class="showcase-section">
                 <div class="game-grid-equal" id="showcase-game-grid">
                     <div class="loading">Caricamento giochi dello sviluppatore...</div>
                 </div>
@@ -343,8 +377,32 @@
             </div>
 
             <!-- Social Feed -->
-            <div id="social-tab" class="showcase-section">
-                <div class="social-feed">
+            <div id="social-tab" class="showcase-section active">
+                <!-- Box Pubblica Post Social / Annuncio Collaborazione (Visibile al proprietario o visitatori) -->
+                <div class="social-feed" style="margin-bottom: 1.5rem;">
+                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(0, 168, 225, 0.3); border-radius: 12px; padding: 1.3rem;">
+                        <h4 style="margin: 0 0 0.7rem; color: white; font-size: 1rem; font-weight: 800;">
+                            <i class="fas fa-bullhorn" style="color: var(--prime-blue);"></i> Pubblica in Bacheca / Proponi una Collaborazione
+                        </h4>
+                        <form id="social-wall-post-form" style="display: flex; flex-direction: column; gap: 0.7rem;">
+                            <div style="display: flex; gap: 0.7rem; flex-wrap: wrap;">
+                                <input type="text" id="wall-post-author-input" required placeholder="Il tuo Nome / Studio" style="flex: 1; min-width: 180px; padding: 10px; background: #141e28; border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: white;">
+                                <select id="wall-post-tag-input" style="padding: 10px; background: #141e28; border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: white; font-weight: 700;">
+                                    <option value="Aggiornamento Social">📢 Aggiornamento Social</option>
+                                    <option value="Cerco Collaborazione">🤝 Cerco / Propongo Collaborazione</option>
+                                    <option value="Work in Progress">🎮 Work in Progress</option>
+                                </select>
+                            </div>
+                            <textarea id="wall-post-body-input" rows="2" required placeholder="Scrivi un aggiornamento sul tuo progetto o proponi una collaborazione..." style="width: 100%; padding: 10px; background: #141e28; border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: white; resize: vertical;"></textarea>
+                            <div style="display: flex; justify-content: flex-end;">
+                                <button type="submit" class="btn btn-prime" style="padding: 0.6rem 1.3rem; font-size: 0.85rem; font-weight: 800;">
+                                    <i class="fas fa-paper-plane"></i> Pubblica sulla Bacheca
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="social-feed" id="social-feed-list">
                     <div class="feed-post">
                         <div class="post-header">
                             <div class="dev-avatar" style="width: 40px; height: 40px; border-width: 1px; font-size: 1rem; border-color: rgba(255,255,255,0.2);">
@@ -388,6 +446,56 @@
     </main>
 
     <!-- Send Message Modal -->
+    <div id="donation-modal" class="lightbox" style="display: none; justify-content: center; align-items: center; z-index: 2300;">
+        <div class="modal-content glass" style="background: rgba(20, 29, 39, 0.99); border: 1px solid rgba(244, 63, 94, 0.5); border-radius: 16px; padding: 2.2rem; max-width: 520px; width: 92%; color: white; position: relative; backdrop-filter: blur(25px); box-shadow: 0 25px 60px rgba(0,0,0,0.85);">
+            <span class="close-lightbox" id="close-donation-modal" style="position: absolute; top: 0.9rem; right: 1.4rem; font-size: 2.3rem; cursor: pointer; color: var(--text-gray);">&times;</span>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 1.2rem;">
+                <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(244, 63, 94, 0.16); border: 1px solid #f43f5e; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i class="fas fa-hand-holding-heart" style="color: #fb7185; font-size: 1.45rem;"></i>
+                </div>
+                <div>
+                    <h2 style="font-size: 1.4rem; font-weight: 900; margin: 0; color: white;">Supporta con una Donazione</h2>
+                    <span style="font-size: 0.82rem; color: var(--text-gray);" id="donation-modal-subtitle">Sostieni direttamente questo profilo</span>
+                </div>
+            </div>
+
+            <p id="donation-custom-pitch" style="background: rgba(255,255,255,0.04); border-left: 3px solid #f43f5e; padding: 10px 12px; border-radius: 6px; font-size: 0.88rem; color: #e2e8f0; margin-bottom: 1.1rem;">
+                Supporta lo sviluppo indipendente o offrimi un caffè per i prossimi progetti! ☕❤️
+            </p>
+
+            <form id="donation-checkout-form" style="display: flex; flex-direction: column; gap: 0.95rem; text-align: left;">
+                <div>
+                    <label style="color: white; font-weight: 700; font-size: 0.82rem; margin-bottom: 6px; display: block;">Scegli l'importo della Donazione (€)</label>
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 8px;">
+                        <button type="button" class="btn btn-prime-outline donation-preset-btn" data-amount="2" style="padding: 8px; font-weight: 800; font-size: 0.85rem;">€2 ☕</button>
+                        <button type="button" class="btn btn-prime donation-preset-btn" data-amount="5" style="padding: 8px; font-weight: 800; font-size: 0.85rem;">€5 ❤️</button>
+                        <button type="button" class="btn btn-prime-outline donation-preset-btn" data-amount="10" style="padding: 8px; font-weight: 800; font-size: 0.85rem;">€10 🚀</button>
+                        <button type="button" class="btn btn-prime-outline donation-preset-btn" data-amount="25" style="padding: 8px; font-weight: 800; font-size: 0.85rem;">€25 💎</button>
+                    </div>
+                    <input type="number" id="donation-amount-input" min="1" step="0.5" value="5" required style="width: 100%; padding: 11px; background: #141e28; border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 6px; font-weight: 800; font-size: 1rem;">
+                </div>
+
+                <div>
+                    <label style="color: white; font-weight: 700; font-size: 0.82rem; margin-bottom: 4px; display: block;">Il tuo Nome o Nickname</label>
+                    <input type="text" id="donation-donor-name" required placeholder="Es: Marco / IndieFan99" style="width: 100%; padding: 10px; background: #141e28; border: 1px solid rgba(255,255,255,0.18); color: white; border-radius: 6px;">
+                </div>
+
+                <div>
+                    <label style="color: white; font-weight: 700; font-size: 0.82rem; margin-bottom: 4px; display: block;">Messaggio di Supporto (Opzionale)</label>
+                    <textarea id="donation-donor-msg" rows="2" placeholder="Lascia un messaggio di incoraggiamento..." style="width: 100%; padding: 10px; background: #141e28; border: 1px solid rgba(255,255,255,0.18); color: white; border-radius: 6px; resize: none;"></textarea>
+                </div>
+
+                <button type="submit" class="btn" style="width: 100%; padding: 12px; font-weight: 800; background: linear-gradient(135deg, #f43f5e, #e11d48); color: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <i class="fas fa-heart"></i> Invia Donazione con Carta / IndiePlay Pay
+                </button>
+
+                <a id="donation-external-btn" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-prime-outline" style="width: 100%; padding: 11px; font-weight: 800; text-decoration: none; text-align: center; display: none; justify-content: center; align-items: center; gap: 8px;">
+                    <i class="fab fa-paypal"></i> Dona tramite Link Diretto (PayPal / Ko-fi)
+                </a>
+            </form>
+        </div>
+    </div>
+
     <div id="message-modal" class="lightbox" style="display: none; justify-content: center; align-items: center; z-index: 2200;">
         <div class="modal-content glass" style="background: rgba(26, 36, 47, 0.98); border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; padding: 2.5rem; max-width: 500px; width: 90%; color: white; position: relative; backdrop-filter: blur(25px); box-shadow: 0 20px 50px rgba(0,0,0,0.7);">
             <span class="close-lightbox" id="close-message-modal" style="position: absolute; top: 1rem; right: 1.5rem; font-size: 2.5rem; cursor: pointer; color: var(--text-gray);">&times;</span>
@@ -484,9 +592,9 @@
 
     <script type="module">
         import { db, auth } from './src/firebase';
-        import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
+        import { collection, query, where, getDocs, doc, getDoc, addDoc } from 'firebase/firestore';
         import { initLanguageSelectors, translations, getLanguage, autoTranslateDOM } from './src/i18n';
-        import { initBackendSystem } from './src/backend-payments';
+        import { initBackendSystem, getPaymentConfig, recordSplitTransaction } from './src/backend-payments';
 
         const getAssetUrl = (path) => {
             if (!path) return '';
@@ -501,9 +609,11 @@
         initLanguageSelectors();
         initBackendSystem();
 
-        // Get Developer Name from query parameters
+        // Get Developer Name or User UID from query parameters
         const urlParams = new URLSearchParams(window.location.search);
+        const uidParam = urlParams.get('uid') || '';
         const devName = urlParams.get('dev') || 'NeonLabs';
+        let loadedProfileData = null;
 
         // Tabs Toggle Logic
         const tabs = document.querySelectorAll('.showcase-tab');
@@ -526,17 +636,123 @@
         const showcaseBanner = document.getElementById('showcase-bg-banner');
 
         devTitle.innerText = devName.toUpperCase();
-        
-        // Load Developer Profile details dynamically
+
+        const renderSocialContacts = (profile) => {
+            const bar = document.getElementById('social-contacts-bar');
+            if (!bar) return;
+            const email = profile.contactEmail || profile.email || 'collaborazioni@indieplayx.com';
+            const discord = profile.contactDiscord || 'IndiePlayX_Community';
+            const website = profile.contactWebsite || '';
+            const social = profile.contactSocial || '';
+
+            let html = '';
+            if (email) {
+                html += `<a href="mailto:${email}" class="btn btn-prime-outline" style="padding: 6px 12px; font-size: 0.8rem; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;"><i class="fas fa-envelope" style="color: var(--prime-blue);"></i> ${email}</a>`;
+            }
+            if (discord) {
+                html += `<button type="button" class="btn btn-prime-outline copy-discord-btn" data-discord="${discord}" style="padding: 6px 12px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px;"><i class="fab fa-discord" style="color: #5865F2;"></i> ${discord}</button>`;
+            }
+            if (website) {
+                const href = website.startsWith('http') ? website : `https://${website}`;
+                html += `<a href="${href}" target="_blank" rel="noopener noreferrer" class="btn btn-prime-outline" style="padding: 6px 12px; font-size: 0.8rem; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;"><i class="fas fa-globe" style="color: #34d399;"></i> Portfolio / Web</a>`;
+            }
+            if (social) {
+                const href = social.startsWith('http') ? social : `https://instagram.com/${social.replace('@', '')}`;
+                html += `<a href="${href}" target="_blank" rel="noopener noreferrer" class="btn btn-prime-outline" style="padding: 6px 12px; font-size: 0.8rem; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;"><i class="fas fa-share-alt" style="color: #f472b6;"></i> Social</a>`;
+            }
+            bar.innerHTML = html;
+            bar.querySelectorAll('.copy-discord-btn').forEach(btn => {
+                btn.onclick = () => {
+                    const handle = btn.getAttribute('data-discord');
+                    navigator.clipboard.writeText(handle);
+                    showToast(`Contatto Discord/Telegram "${handle}" copiato negli appunti!`, 'success');
+                };
+            });
+        };
+
+        // Load Developer / User Social Profile details dynamically
         const loadDeveloperProfile = async () => {
             try {
-                const usersRef = collection(db, "users");
-                const qUser = query(usersRef, where("sellerBrand", "==", devName));
-                const userSnap = await getDocs(qUser);
+                let userData = null;
+                let resolvedUid = uidParam;
 
-                if (!userSnap.empty) {
-                    const userData = userSnap.docs[0].data();
-                    devBio.innerText = userData.sellerBio || "Benvenuto nella mia vetrina sviluppatore su IndiePlay-X!";
+                if (uidParam) {
+                    const docSnap = await getDoc(doc(db, "users", uidParam));
+                    if (docSnap.exists()) {
+                        userData = docSnap.data();
+                    }
+                }
+
+                if (!userData) {
+                    const usersRef = collection(db, "users");
+                    const qUser = query(usersRef, where("sellerBrand", "==", devName));
+                    const userSnap = await getDocs(qUser);
+                    if (!userSnap.empty) {
+                        userData = userSnap.docs[0].data();
+                        resolvedUid = userSnap.docs[0].id;
+                    } else {
+                        // Also check private users by full name
+                        const allSnap = await getDocs(usersRef);
+                        allSnap.forEach(d => {
+                            const u = d.data();
+                            const fullName = `${u.firstName || ''} ${u.lastName || ''}`.trim();
+                            if (fullName && fullName.toLowerCase() === devName.toLowerCase()) {
+                                userData = u;
+                                resolvedUid = d.id;
+                            }
+                        });
+                    }
+                }
+
+                const typeBadge = document.getElementById('dev-profile-type-badge');
+                const roleBadge = document.getElementById('dev-role-badge');
+                const collabBadge = document.getElementById('dev-collab-badge');
+                const fullDescEl = document.getElementById('social-full-description');
+                const collabTextEl = document.getElementById('social-collab-text');
+                const collabPillEl = document.getElementById('social-collab-status-pill');
+                const donateBtn = document.getElementById('donate-btn');
+                const paymentCfg = getPaymentConfig();
+
+                if (userData) {
+                    loadedProfileData = { ...userData, uid: resolvedUid };
+                    const displayTitle = userData.sellerBrand || `${userData.firstName || ''} ${userData.lastName || ''}`.trim() || devName;
+                    devTitle.innerText = displayTitle.toUpperCase();
+                    devBio.innerText = userData.socialBio || userData.sellerBio || "Benvenuto nel mio profilo social su IndiePlay-X!";
+
+                    const isPro = (userData.socialProfileType === 'professionista') || Boolean(userData.isSeller);
+                    if (typeBadge) {
+                        typeBadge.innerHTML = isPro
+                            ? '<i class="fas fa-briefcase" style="color: #fbbf24;"></i> Professionista / Studio'
+                            : '<i class="fas fa-user" style="color: #38bdf8;"></i> Profilo Privato / Creator';
+                    }
+
+                    if (roleBadge && userData.socialRole) {
+                        roleBadge.style.display = 'inline-flex';
+                        roleBadge.innerHTML = `<i class="fas fa-code" style="margin-right: 5px;"></i> ${userData.socialRole}`;
+                    }
+
+                    const lookingCollab = userData.lookingForCollab !== false;
+                    if (collabBadge) {
+                        collabBadge.style.display = lookingCollab ? 'inline-flex' : 'none';
+                    }
+                    if (collabPillEl) {
+                        collabPillEl.textContent = lookingCollab ? 'APERTO A COLLABORAZIONI' : 'CONTATTI DIRETTI';
+                    }
+                    if (fullDescEl) {
+                        fullDescEl.textContent = userData.socialDescription || userData.socialBio || userData.sellerBio || 'Nessuna descrizione estesa ancora inserita.';
+                    }
+                    if (collabTextEl) {
+                        collabTextEl.textContent = userData.collabDetails || 'Disponibile per valutare collaborazioni su progetti indie, programmazione, grafica 2D/3D, musica o testing.';
+                    }
+
+                    renderSocialContacts(userData);
+
+                    // Donations visibility (enabled for both Private & Professional profiles)
+                    const profileAcceptsDonations = userData.acceptDonations !== false;
+                    if (donateBtn) {
+                        donateBtn.style.display = (profileAcceptsDonations && paymentCfg.donationsEnabled !== false) ? 'inline-flex' : 'none';
+                    }
+
                     if (userData.photoURL) {
                         devAvatarContainer.innerHTML = `<img src="${userData.photoURL}" alt="Avatar">`;
                     }
@@ -547,7 +763,25 @@
                         'Astro Games': 'Astro Games è un team di veterani del settore focalizzato sullo sviluppo di giochi a scorrimento spaziali e avventure fantascientifiche basate sulla fisica. Creatori del successo arcade Void Star.',
                         'IndiePlay': 'Sviluppatore certificato e collaboratore dell\'ecosistema IndiePlay-X, dedito a creare esperienze di gioco innovative e divertenti per tutta la community.'
                     };
+                    const descData = {
+                        'NeonLabs': 'Competenze: Unity 6, C#, Shader Graph, Pixel Art 2D & Animazione Frame-by-Frame, Synthwave Audio Production.\nProgetti Attivi: Neon Samurai (Espansione DLC), CyberNeon Runner 2.',
+                        'Astro Games': 'Competenze: Unreal Engine 5, C++, Fisica Spaziale 3D, Level Design Sci-Fi.\nProgetti Attivi: Void Star Odyssey.',
+                        'IndiePlay': 'Team multidisciplinare dedicato allo sviluppo e al supporto dei creatori indipendenti su IndiePlay-X.'
+                    };
                     devBio.innerText = bioData[devName] || bioData['IndiePlay'];
+                    if (fullDescEl) fullDescEl.textContent = descData[devName] || descData['IndiePlay'];
+                    if (roleBadge) {
+                        roleBadge.style.display = 'inline-flex';
+                        roleBadge.innerHTML = '<i class="fas fa-gamepad" style="margin-right: 5px;"></i> Game Studio & Indie Creator';
+                    }
+                    renderSocialContacts({
+                        contactEmail: `${devName.toLowerCase().replace(/\s+/g, '')}@indieplayx.com`,
+                        contactDiscord: `${devName}#2026`,
+                        contactWebsite: 'https://indieplayx.vercel.app'
+                    });
+                    if (donateBtn && paymentCfg.donationsEnabled === false) {
+                        donateBtn.style.display = 'none';
+                    }
                 }
                 devBio.setAttribute('data-auto-translate', 'true');
                 autoTranslateDOM(getLanguage());
@@ -557,14 +791,18 @@
         };
         loadDeveloperProfile();
 
-        // Listen to Auth Changes to show customization link for owner
+        // Listen to Auth Changes to show customization link for owner (Private OR Seller)
         auth.onAuthStateChanged(async (user) => {
             if (user) {
                 try {
                     const userDoc = await getDoc(doc(db, "users", user.uid));
                     if (userDoc.exists()) {
                         const userData = userDoc.data();
-                        if (userData.isSeller && userData.sellerBrand === devName) {
+                        const fullName = `${userData.firstName || ''} ${userData.lastName || ''}`.trim();
+                        const isOwner = (uidParam && uidParam === user.uid) ||
+                                        (userData.sellerBrand && userData.sellerBrand === devName) ||
+                                        (fullName && fullName.toLowerCase() === devName.toLowerCase());
+                        if (isOwner) {
                             const actionsContainer = document.querySelector('.dev-actions');
                             if (actionsContainer && !document.getElementById('edit-showcase-btn')) {
                                 const editBtn = document.createElement('a');
@@ -572,7 +810,7 @@
                                 editBtn.href = 'account.html?tab=profile';
                                 editBtn.className = 'btn btn-prime-outline';
                                 editBtn.style.textDecoration = 'none';
-                                editBtn.innerHTML = '<i class="fas fa-cog"></i> Personalizza Profilo';
+                                editBtn.innerHTML = '<i class="fas fa-cog"></i> Modifica Bio, Collaborazioni & Donazioni';
                                 actionsContainer.appendChild(editBtn);
                             }
                         }
@@ -639,9 +877,144 @@
         if (messageForm) {
             messageForm.onsubmit = (e) => {
                 e.preventDefault();
-                showToast('Messaggio inviato con successo allo sviluppatore!', 'success');
+                showToast('Messaggio inviato con successo!', 'success');
                 messageForm.reset();
                 messageModal.style.display = 'none';
+            };
+        }
+
+        // Donation Modal Logic (supports both Private Users & Professional Studios)
+        const donateBtn = document.getElementById('donate-btn');
+        const donationModal = document.getElementById('donation-modal');
+        const closeDonationModal = document.getElementById('close-donation-modal');
+        const donationForm = document.getElementById('donation-checkout-form');
+        const donationAmountInput = document.getElementById('donation-amount-input');
+        const donationExternalBtn = document.getElementById('donation-external-btn');
+        const donationPitch = document.getElementById('donation-custom-pitch');
+        const donationSubtitle = document.getElementById('donation-modal-subtitle');
+
+        document.querySelectorAll('.donation-preset-btn').forEach(btn => {
+            btn.onclick = () => {
+                document.querySelectorAll('.donation-preset-btn').forEach(b => b.className = 'btn btn-prime-outline donation-preset-btn');
+                btn.className = 'btn btn-prime donation-preset-btn';
+                if (donationAmountInput) donationAmountInput.value = btn.getAttribute('data-amount');
+            };
+        });
+
+        if (donateBtn && donationModal) {
+            donateBtn.onclick = () => {
+                const targetName = devTitle.innerText || devName;
+                const isPro = loadedProfileData ? ((loadedProfileData.socialProfileType === 'professionista') || Boolean(loadedProfileData.isSeller)) : true;
+                if (donationSubtitle) {
+                    donationSubtitle.textContent = `Donazione diretta a ${targetName} (${isPro ? 'Professionista / Studio' : 'Profilo Privato / Creator'})`;
+                }
+                if (donationPitch) {
+                    donationPitch.textContent = (loadedProfileData && loadedProfileData.donationMessage)
+                        ? loadedProfileData.donationMessage
+                        : `Supporta i progetti indie di ${targetName} o offri un caffè per sostenere il suo lavoro! ☕❤️`;
+                }
+                if (donationExternalBtn) {
+                    const extUrl = loadedProfileData && loadedProfileData.donationExternalUrl ? loadedProfileData.donationExternalUrl.trim() : '';
+                    if (extUrl) {
+                        donationExternalBtn.href = extUrl.startsWith('http') ? extUrl : `https://${extUrl}`;
+                        donationExternalBtn.style.display = 'inline-flex';
+                    } else {
+                        donationExternalBtn.style.display = 'none';
+                    }
+                }
+                donationModal.style.display = 'flex';
+            };
+        }
+
+        if (closeDonationModal && donationModal) {
+            closeDonationModal.onclick = () => (donationModal.style.display = 'none');
+        }
+
+        const feedList = document.getElementById('social-feed-list');
+        const prependWallPost = (author, tag, contentHtml, timeText = 'Adesso') => {
+            if (!feedList) return;
+            const post = document.createElement('div');
+            post.className = 'feed-post';
+            post.innerHTML = `
+                <div class="post-header">
+                    <div class="dev-avatar" style="width: 40px; height: 40px; border-width: 1px; font-size: 1rem; border-color: rgba(255,255,255,0.2);">
+                        <i class="fas fa-user-astronaut"></i>
+                    </div>
+                    <div class="post-info">
+                        <span class="post-author">${author} <span style="background: rgba(0,168,225,0.18); color: #38bdf8; padding: 2px 8px; border-radius: 999px; font-size: 0.7rem; margin-left: 6px;">${tag}</span></span>
+                        <span class="post-time">${timeText}</span>
+                    </div>
+                </div>
+                <div class="post-content">${contentHtml}</div>
+                <div class="post-actions">
+                    <span class="post-action-btn" onclick="togglePostLike(this)"><i class="far fa-thumbs-up"></i> 1 Mi piace</span>
+                </div>
+            `;
+            feedList.prepend(post);
+        };
+
+        if (donationForm) {
+            donationForm.onsubmit = async (e) => {
+                e.preventDefault();
+                const amount = parseFloat(donationAmountInput.value) || 5;
+                const donor = document.getElementById('donation-donor-name').value.trim() || 'Sostenitore Indie';
+                const msg = document.getElementById('donation-donor-msg').value.trim();
+                const targetName = devTitle.innerText || devName;
+                const recipientIban = (loadedProfileData && (loadedProfileData.donationIban || loadedProfileData.iban)) || 'IBAN Profilo Social';
+
+                const tx = await recordSplitTransaction({
+                    gameId: 'DONATION-' + Date.now(),
+                    gameTitle: `Donazione Social a ${targetName}`,
+                    developerName: targetName,
+                    sellerId: (loadedProfileData && loadedProfileData.uid) || uidParam || devName,
+                    sellerIban: recipientIban,
+                    buyerEmail: donor,
+                    price: amount
+                });
+
+                prependWallPost(
+                    donor,
+                    `❤️ Donazione €${amount.toFixed(2)}`,
+                    `Ha supportato <strong>${targetName}</strong> con una donazione di <strong>€${amount.toFixed(2)}</strong>!${msg ? `<br><em>"${msg}"</em>` : ''}`
+                );
+
+                donationModal.style.display = 'none';
+                donationForm.reset();
+                if (donationAmountInput) donationAmountInput.value = '5';
+                showToast(`Grazie ${donor}! Donazione di €${amount.toFixed(2)} inviata a ${targetName} (${tx.mode}).`, 'success');
+            };
+        }
+
+        // Social Wall Post Form Handler
+        const wallPostForm = document.getElementById('social-wall-post-form');
+        const wallStorageKey = `indieplay_wall_posts_${(uidParam || devName).toLowerCase()}`;
+        try {
+            const savedPosts = JSON.parse(localStorage.getItem(wallStorageKey) || '[]');
+            savedPosts.forEach(p => prependWallPost(p.author, p.tag, p.body, p.date));
+        } catch (e) {}
+
+        if (wallPostForm) {
+            wallPostForm.onsubmit = async (e) => {
+                e.preventDefault();
+                const author = document.getElementById('wall-post-author-input').value.trim() || devName;
+                const tag = document.getElementById('wall-post-tag-input').value;
+                const body = document.getElementById('wall-post-body-input').value.trim();
+                if (!body) return;
+
+                const newPost = {
+                    author,
+                    tag,
+                    body,
+                    date: new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+                };
+                prependWallPost(newPost.author, newPost.tag, newPost.body, newPost.date);
+                try {
+                    const existing = JSON.parse(localStorage.getItem(wallStorageKey) || '[]');
+                    existing.push(newPost);
+                    localStorage.setItem(wallStorageKey, JSON.stringify(existing.slice(-30)));
+                } catch (err) {}
+                wallPostForm.reset();
+                showToast('Post pubblicato sulla Bacheca Social!', 'success');
             };
         }
 

@@ -378,7 +378,24 @@
         <main class="account-main">
             <div id="profile-section">
                 <button class="btn btn-prime-outline mobile-back-btn"><i class="fas fa-arrow-left"></i> Torna al Menu</button>
-                <h1 style="margin-bottom: 2rem;">Dati dell'account</h1>
+                <h1 style="margin-bottom: 1.2rem;">Dati dell'account & Profilo Social</h1>
+                <div id="public-social-profile-banner" style="background: linear-gradient(135deg, rgba(0, 168, 225, 0.16), rgba(16, 185, 129, 0.1)); border: 1px solid rgba(0, 168, 225, 0.45); padding: 1.25rem 1.5rem; border-radius: 12px; margin-bottom: 2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
+                    <div>
+                        <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(0, 168, 225, 0.2); color: #38bdf8; padding: 3px 10px; border-radius: 999px; font-size: 0.72rem; font-weight: 800; margin-bottom: 6px;">
+                            <i class="fas fa-users"></i> SOCIAL NETWORK & COLLABORAZIONI INDIEPLAY-X
+                        </div>
+                        <h4 style="color: white; margin: 0 0 4px; font-weight: 800; font-size: 1.1rem;">Il Tuo Profilo Social Pubblico è Attivo</h4>
+                        <p style="color: var(--text-gray); font-size: 0.86rem; margin: 0;">Condividi la tua Bio, cerca collaboratori e ricevi donazioni (sia come Privato che come Professionista).</p>
+                    </div>
+                    <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
+                        <a id="view-my-social-profile-btn" href="showcase.html" target="_blank" class="btn btn-prime" style="padding: 0.65rem 1.2rem; text-decoration: none; font-weight: 800; font-size: 0.85rem;">
+                            <i class="fas fa-external-link-alt"></i> Apri Profilo Social
+                        </a>
+                        <button type="button" id="copy-my-social-profile-btn" class="btn btn-prime-outline" style="padding: 0.65rem 1.1rem; font-weight: 700; font-size: 0.85rem;">
+                            <i class="fas fa-link"></i> Copia Link
+                        </button>
+                    </div>
+                </div>
                 <div class="settings-grid">
                     <div class="form-row" style="display: flex; gap: 1rem;">
                         <div class="form-group" style="flex: 1;">
@@ -420,6 +437,115 @@
                             <div class="form-group" style="flex: 1;">
                                 <label>IBAN</label>
                                 <input type="text" id="edit-iban">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SEZIONE SOCIAL PROFILE: BIO, DESCRIZIONE, COLLABORAZIONI & DONAZIONI (PER PRIVATI E PROFESSIONISTI) -->
+                    <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 12px; padding: 1.6rem; margin-top: 0.8rem;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 1rem;">
+                            <i class="fas fa-id-badge" style="color: var(--prime-blue); font-size: 1.35rem;"></i>
+                            <div>
+                                <h3 style="margin: 0; font-size: 1.15rem; color: white; font-weight: 800;">1. Profilo Social, Bio & Descrizione</h3>
+                                <span style="font-size: 0.8rem; color: var(--text-gray);">Visibile sulla tua pagina profilo pubblica per farti conoscere dalla community</span>
+                            </div>
+                        </div>
+
+                        <div class="form-row" style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
+                            <div class="form-group" style="flex: 1; min-width: 220px;">
+                                <label>Qualifica / Tipologia Utente</label>
+                                <select id="edit-social-type" style="width: 100%; padding: 12px; background: #2a343f; border: 1px solid #3a444f; color: white; border-radius: 4px; font-weight: 700;">
+                                    <option value="privato">Utente Privato / Indie Creator / Gamer</option>
+                                    <option value="professionista">Professionista / Freelance / Studio Sviluppatore</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="flex: 1; min-width: 220px;">
+                                <label>Ruolo / Specializzazione (Headline)</label>
+                                <input type="text" id="edit-social-role" placeholder="Es: Game Designer, Programmatore C#, 2D/3D Artist, Sound Designer...">
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 1rem;">
+                            <label>Bio Breve Social (In evidenza sotto il tuo nome)</label>
+                            <textarea id="edit-social-bio" rows="2" style="width: 100%; padding: 12px; background: #2a343f; border: 1px solid #3a444f; color: white; border-radius: 4px; resize: vertical;" placeholder="Racconta in poche parole chi sei e cosa ti appassiona nel mondo indie..."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Descrizione Completa, Competenze & Progetti</label>
+                            <textarea id="edit-social-description" rows="4" style="width: 100%; padding: 12px; background: #2a343f; border: 1px solid #3a444f; color: white; border-radius: 4px; resize: vertical;" placeholder="Descrivi nel dettaglio la tua storia, i motori di gioco o software che usi (Unity, Unreal, Godot, Blender...), i progetti a cui stai lavorando e le tue esperienze..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- SEZIONE RICERCA COLLABORAZIONI & CONTATTI -->
+                    <div style="background: rgba(16, 185, 129, 0.06); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 12px; padding: 1.6rem; margin-top: 0.8rem;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <i class="fas fa-handshake" style="color: #34d399; font-size: 1.35rem;"></i>
+                                <div>
+                                    <h3 style="margin: 0; font-size: 1.15rem; color: white; font-weight: 800;">2. Ricerca Collaborazioni & Contatti Diretti</h3>
+                                    <span style="font-size: 0.8rem; color: var(--text-gray);">Inserisci i tuoi recapiti per trovare programmatori, artisti, musicisti o team</span>
+                                </div>
+                            </div>
+                            <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.45); padding: 8px 14px; border-radius: 8px;">
+                                <input type="checkbox" id="edit-looking-collab" style="width: 18px; height: 18px;">
+                                <span style="font-weight: 800; color: #34d399; font-size: 0.88rem;">Disponibile per Collaborazioni</span>
+                            </label>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 1rem;">
+                            <label>Annuncio Collaborazione (Cosa cerchi o cosa offri al team?)</label>
+                            <textarea id="edit-collab-details" rows="2" style="width: 100%; padding: 12px; background: #2a343f; border: 1px solid #3a444f; color: white; border-radius: 4px; resize: vertical;" placeholder="Es: Cerco un Pixel Artist 2D per un metroidvania in Godot, oppure mi offro come Sound Designer per progetti indie..."></textarea>
+                        </div>
+
+                        <div class="form-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
+                            <div class="form-group">
+                                <label><i class="fas fa-envelope" style="color: var(--prime-blue);"></i> Email Contatto Collaborazioni</label>
+                                <input type="email" id="edit-contact-email" placeholder="collaborazioni@tuamail.it">
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fab fa-discord" style="color: #5865F2;"></i> Discord / Telegram</label>
+                                <input type="text" id="edit-contact-discord" placeholder="Es: username#1234 o @telegram">
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-globe" style="color: #34d399;"></i> Portfolio / GitHub / Sito Web</label>
+                                <input type="text" id="edit-contact-website" placeholder="https://github.com/... o portfolio">
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-share-alt" style="color: #f472b6;"></i> Social (Instagram / X / YouTube)</label>
+                                <input type="text" id="edit-contact-social" placeholder="https://instagram.com/... o @handle">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SEZIONE DONAZIONI (ABILITATA SIA PER PRIVATI CHE PER PROFESSIONISTI) -->
+                    <div style="background: rgba(244, 63, 94, 0.07); border: 1px solid rgba(244, 63, 94, 0.38); border-radius: 12px; padding: 1.6rem; margin-top: 0.8rem; margin-bottom: 1rem;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <i class="fas fa-hand-holding-heart" style="color: #fb7185; font-size: 1.35rem;"></i>
+                                <div>
+                                    <h3 style="margin: 0; font-size: 1.15rem; color: white; font-weight: 800;">3. Ricevi Donazioni & Supporto (Privati e Professionisti)</h3>
+                                    <span style="font-size: 0.8rem; color: var(--text-gray);">Attiva il pulsante Donazioni sul tuo profilo per ricevere supporto economico dalla community</span>
+                                </div>
+                            </div>
+                            <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; background: rgba(244, 63, 94, 0.16); border: 1px solid rgba(244, 63, 94, 0.5); padding: 8px 14px; border-radius: 8px;">
+                                <input type="checkbox" id="edit-accept-donations" style="width: 18px; height: 18px;">
+                                <span style="font-weight: 800; color: #fb7185; font-size: 0.88rem;">Accetta Donazioni</span>
+                            </label>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 1rem;">
+                            <label>Messaggio per i Sostenitori / Obiettivo Donazione</label>
+                            <input type="text" id="edit-donation-message" placeholder="Es: Supporta lo sviluppo del mio progetto indie o offrimi un caffè! ☕❤️">
+                        </div>
+
+                        <div class="form-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem;">
+                            <div class="form-group">
+                                <label><i class="fab fa-paypal" style="color: #38bdf8;"></i> Link Donazione Esterno (PayPal.me, Ko-fi, Patreon - Opzionale)</label>
+                                <input type="text" id="edit-donation-link" placeholder="https://paypal.me/tuonome o https://ko-fi.com/...">
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-university" style="color: #fbbf24;"></i> IBAN per Accredito Donazioni (Privati o Professionisti - Opzionale)</label>
+                                <input type="text" id="edit-donation-iban" placeholder="IT00... (Usato per ricevere donazioni dirette con carta)">
                             </div>
                         </div>
                     </div>
@@ -1452,6 +1578,36 @@
                     editPiva.value = data.piva || '';
                     editIban.value = data.iban || '';
 
+                    // Populate Social Profile, Collaborations & Donations fields (for both Private & Professional users)
+                    document.getElementById('edit-social-type').value = data.socialProfileType || (data.isSeller ? 'professionista' : 'privato');
+                    document.getElementById('edit-social-role').value = data.socialRole || '';
+                    document.getElementById('edit-social-bio').value = data.socialBio || data.sellerBio || '';
+                    document.getElementById('edit-social-description').value = data.socialDescription || '';
+                    document.getElementById('edit-looking-collab').checked = Boolean(data.lookingForCollab);
+                    document.getElementById('edit-collab-details').value = data.collabDetails || '';
+                    document.getElementById('edit-contact-email').value = data.contactEmail || user.email || '';
+                    document.getElementById('edit-contact-discord').value = data.contactDiscord || '';
+                    document.getElementById('edit-contact-website').value = data.contactWebsite || '';
+                    document.getElementById('edit-contact-social').value = data.contactSocial || '';
+                    document.getElementById('edit-accept-donations').checked = Boolean(data.acceptDonations);
+                    document.getElementById('edit-donation-message').value = data.donationMessage || '';
+                    document.getElementById('edit-donation-link').value = data.donationExternalUrl || '';
+                    document.getElementById('edit-donation-iban').value = data.donationIban || data.iban || '';
+
+                    // Configure public Social Profile link for ANY user (Private or Seller)
+                    const socialDisplayName = data.sellerBrand || `${data.firstName || ''} ${data.lastName || ''}`.trim() || 'Utente';
+                    const socialProfileUrl = `showcase.html?uid=${encodeURIComponent(user.uid)}&dev=${encodeURIComponent(socialDisplayName)}`;
+                    const viewSocialBtn = document.getElementById('view-my-social-profile-btn');
+                    const copySocialBtn = document.getElementById('copy-my-social-profile-btn');
+                    if (viewSocialBtn) viewSocialBtn.href = socialProfileUrl;
+                    if (copySocialBtn) {
+                        copySocialBtn.onclick = () => {
+                            const fullUrl = new URL(socialProfileUrl, window.location.href).href;
+                            navigator.clipboard.writeText(fullUrl);
+                            showToast('Link del tuo Profilo Social copiato negli appunti!', 'success');
+                        };
+                    }
+
                     if (data.isSeller) {
                         sellerInfoFields.classList.remove('hidden');
                         sellerNavItem.classList.remove('hidden');
@@ -1555,7 +1711,21 @@
                     sellerBio: editIsSeller.checked ? document.getElementById('edit-seller-bio').value.trim() : '',
                     piva: editIsSeller.checked ? editPiva.value.trim().toUpperCase() : '',
                     iban: editIsSeller.checked ? editIban.value.replace(/\s+/g, '').toUpperCase() : '',
-                    role: editIsSeller.checked ? 'seller' : 'user'
+                    role: editIsSeller.checked ? 'seller' : 'user',
+                    socialProfileType: document.getElementById('edit-social-type').value || 'privato',
+                    socialRole: document.getElementById('edit-social-role').value.trim(),
+                    socialBio: document.getElementById('edit-social-bio').value.trim() || (editIsSeller.checked ? document.getElementById('edit-seller-bio').value.trim() : ''),
+                    socialDescription: document.getElementById('edit-social-description').value.trim(),
+                    lookingForCollab: document.getElementById('edit-looking-collab').checked,
+                    collabDetails: document.getElementById('edit-collab-details').value.trim(),
+                    contactEmail: document.getElementById('edit-contact-email').value.trim(),
+                    contactDiscord: document.getElementById('edit-contact-discord').value.trim(),
+                    contactWebsite: document.getElementById('edit-contact-website').value.trim(),
+                    contactSocial: document.getElementById('edit-contact-social').value.trim(),
+                    acceptDonations: document.getElementById('edit-accept-donations').checked,
+                    donationMessage: document.getElementById('edit-donation-message').value.trim(),
+                    donationExternalUrl: document.getElementById('edit-donation-link').value.trim(),
+                    donationIban: document.getElementById('edit-donation-iban').value.replace(/\s+/g, '').toUpperCase()
                 };
 
                 if (profileImageBase64) {
@@ -1566,6 +1736,10 @@
                 
                 await updateDoc(doc(db, "users", currentUser.uid), updateData);
                 profileName.innerText = editName.value;
+                const updatedDisplayName = updateData.sellerBrand || editName.value.trim() || 'Utente';
+                const updatedSocialUrl = `showcase.html?uid=${encodeURIComponent(currentUser.uid)}&dev=${encodeURIComponent(updatedDisplayName)}`;
+                const viewSocialBtnAfterSave = document.getElementById('view-my-social-profile-btn');
+                if (viewSocialBtnAfterSave) viewSocialBtnAfterSave.href = updatedSocialUrl;
                 
                 if (updateData.isSeller) {
                     sellerNavItem.classList.remove('hidden');
