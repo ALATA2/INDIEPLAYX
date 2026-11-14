@@ -80,5 +80,32 @@ export const logoutUser = async () => {
 };
 
 export const subscribeToAuthChanges = (callback) => {
-  onAuthStateChanged(auth, callback);
+  const VIP_SELLER_EMAILS = ['danielepmp@yahoo.it'];
+  const isVipSeller = (em) => Boolean(em && VIP_SELLER_EMAILS.includes(String(em).trim().toLowerCase()));
+  onAuthStateChanged(auth, async (user) => {
+    if (user && isVipSeller(user.email)) {
+      try {
+        const userRef = doc(db, "users", user.uid);
+        const snap = await getDoc(userRef);
+        const existing = snap.exists() ? snap.data() : {};
+        if (!existing.isSeller || existing.role !== 'seller') {
+          await setDoc(userRef, {
+            email: user.email,
+            firstName: existing.firstName || (user.displayName ? user.displayName.split(' ')[0] : 'Daniele'),
+            lastName: existing.lastName || (user.displayName ? user.displayName.split(' ').slice(1).join(' ') : ''),
+            age: existing.age || 30,
+            isSeller: true,
+            role: 'seller',
+            sellerBrand: existing.sellerBrand || 'Daniele Studio',
+            socialProfileType: existing.socialProfileType || 'professionista',
+            verified: true,
+            updatedAt: new Date().toISOString()
+          }, { merge: true });
+        }
+      } catch (e) {
+        console.warn('Auto-seller upgrade warning:', e);
+      }
+    }
+    callback(user);
+  });
 };

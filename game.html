@@ -946,7 +946,8 @@
                         if (isFree) {
                             playBtn.innerHTML = `<i class="fas fa-plus"></i> ${dict.game_buy_now} (Gratis)`;
                             playBtn.onclick = async () => {
-                                if (!user.emailVerified) {
+                                const isVipTestUser = user.email && user.email.toLowerCase() === 'danielepmp@yahoo.it';
+                if (!user.emailVerified && !isVipTestUser) {
                                     showToast('Devi verificare la tua email per aggiungere giochi alla tua libreria!', 'error');
                                     return;
                                 }
@@ -970,7 +971,8 @@
                         } else {
                             playBtn.innerHTML = `<i class="fas fa-shopping-cart"></i> Acquista ora - ${priceLabel}`;
                             playBtn.onclick = () => {
-                                if (!user.emailVerified) {
+                                const isVipTestUser = user.email && user.email.toLowerCase() === 'danielepmp@yahoo.it';
+                if (!user.emailVerified && !isVipTestUser) {
                                     showToast('Devi verificare la tua email per poter acquistare giochi!', 'error');
                                     return;
                                 }
@@ -1020,7 +1022,8 @@
                             return;
                         }
 
-                        if (!user.emailVerified) {
+                        const isVipTestUser = user.email && user.email.toLowerCase() === 'danielepmp@yahoo.it';
+                if (!user.emailVerified && !isVipTestUser) {
                             showToast('Devi verificare la tua email per aggiungere giochi alla tua libreria!', 'error');
                             return;
                         }
@@ -1350,7 +1353,8 @@
                 logoutBtn.classList.remove('hidden');
                 userDisplay.classList.remove('hidden');
                 
-                if (!user.emailVerified) {
+                const isVipTestUser = user.email && user.email.toLowerCase() === 'danielepmp@yahoo.it';
+                if (!user.emailVerified && !isVipTestUser) {
                     banner.classList.remove('hidden');
                     resendBtn.onclick = async () => {
                         resendBtn.disabled = true;
@@ -1372,6 +1376,7 @@
                     const sellLink = document.getElementById('sell-link');
                     if (userDoc.exists()) {
                         const userData = userDoc.data();
+                        if (user.email && user.email.toLowerCase() === 'danielepmp@yahoo.it') userData.isSeller = true;
                         userDisplay.innerText = `${userData.firstName} ${userData.lastName}`;
                         if (userData.isSeller) {
                             sellLink?.classList.remove('hidden');

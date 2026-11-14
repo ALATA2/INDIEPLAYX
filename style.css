@@ -1204,11 +1204,27 @@ input:focus {
 .footer-logo img {
   display: inline-block !important;
   margin: 0 auto;
+  height: 48px !important;
+}
+
+.prime-logo-img {
+  height: 50px !important;
+  width: auto !important;
 }
 
 @media (max-width: 900px) {
+  .prime-header {
+    padding: 0.35rem 1rem !important;
+  }
+  .nav-left {
+    gap: 0.65rem !important;
+  }
+  .hamburger-menu {
+    margin-right: 6px !important;
+  }
   .prime-logo-img {
-    height: 34px !important;
+    height: 48px !important;
+    max-width: 74vw !important;
   }
   .indieplay-version-badge {
     bottom: 8px;

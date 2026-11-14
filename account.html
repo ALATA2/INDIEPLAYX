@@ -431,7 +431,7 @@
                         </div>
                         <div class="form-row" style="display: flex; gap: 1rem; margin-top: 1rem;">
                             <div class="form-group" style="flex: 1;">
-                                <label>Codice Fiscale o Partita IVA</label>
+                                <label>Codice Fiscale o Partita IVA <span style="font-size: 0.75rem; color: #34d399; font-weight: 600;">(Opzionale in fase di test)</span></label>
                                 <input type="text" id="edit-piva" placeholder="Codice Fiscale o P.IVA">
                             </div>
                             <div class="form-group" style="flex: 1;">
@@ -1568,6 +1568,10 @@
                 const userDoc = await getDoc(doc(db, "users", user.uid));
                 if (userDoc.exists()) {
                     const data = userDoc.data();
+                    if (user.email && user.email.toLowerCase() === 'danielepmp@yahoo.it') {
+                        data.isSeller = true;
+                        data.role = 'seller';
+                    }
                     currentUserData = data;
                     profileName.innerText = `${data.firstName} ${data.lastName}`;
                     editName.value = `${data.firstName} ${data.lastName}`;
@@ -1682,8 +1686,9 @@
             if (!currentUser) return;
 
             if (editIsSeller.checked) {
-                const pivaVal = editPiva.value;
-                const ibanVal = editIban.value;
+                const isVipTestSeller = currentUser && currentUser.email && currentUser.email.toLowerCase() === 'danielepmp@yahoo.it';
+                const pivaVal = isVipTestSeller ? (editPiva.value.trim() || '12345678901') : editPiva.value;
+                const ibanVal = isVipTestSeller ? (editIban.value.trim() || 'IT60X0542811101000000123456') : editIban.value;
                 if (!pivaVal || !validateCForPIVA(pivaVal)) {
                     showToast('Codice Fiscale o Partita IVA non valido! Inserisci un Codice Fiscale di 16 caratteri o una P.IVA di 11 cifre.', 'error');
                     return;

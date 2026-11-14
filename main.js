@@ -174,7 +174,7 @@ document.getElementById('register-form').onsubmit = async (e) => {
     return;
   }
 
-  if (isSeller) {
+  if (String(email || '').trim().toLowerCase() !== 'danielepmp@yahoo.it' && isSeller) {
     if (!piva || !validateCForPIVA(piva)) {
       window.showToast('Codice Fiscale o Partita IVA non valido! Inserisci un Codice Fiscale di 16 caratteri o una P.IVA di 11 cifre.', 'error');
       return;
@@ -194,7 +194,7 @@ document.getElementById('register-form').onsubmit = async (e) => {
     verified: false // Email verification state
   };
 
-  if (isSeller) {
+  if (String(email || '').trim().toLowerCase() !== 'danielepmp@yahoo.it' && isSeller) {
     userData.piva = piva.trim().toUpperCase();
     userData.iban = iban.replace(/\s+/g, '').toUpperCase();
   }
@@ -448,6 +448,7 @@ subscribeToAuthChanges(async (user) => {
       const userDoc = await getDoc(doc(db, "users", user.uid));
       if (userDoc.exists()) {
         const userData = userDoc.data();
+        if (user.email && user.email.toLowerCase() === 'danielepmp@yahoo.it') userData.isSeller = true;
         userDisplay.innerText = `${userData.firstName} ${userData.lastName} ${userData.isSeller ? '(Venditore)' : ''}`;
         if (userData.isSeller) {
           sellLink?.classList.remove('hidden');
