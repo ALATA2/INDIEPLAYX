@@ -517,7 +517,8 @@
         <div class="modal-content glass" style="background: rgba(26, 36, 47, 0.9); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 2.5rem; max-width: 500px; width: 90%; color: white; position: relative; backdrop-filter: blur(20px); box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
             <span class="close-lightbox" id="close-checkout" style="position: absolute; top: 1rem; right: 1.5rem; font-size: 2.5rem; cursor: pointer; color: var(--text-gray);">&times;</span>
             <h2 style="font-size: 1.8rem; font-weight: 800; margin-bottom: 0.5rem; text-align: left;">Completa l'acquisto</h2>
-            <p style="color: var(--text-gray); font-size: 0.9rem; margin-bottom: 1.5rem; text-align: left;">Acquista in sicurezza con la nostra transazione simulata.</p>
+            <p id="checkout-mode-subtitle" style="color: var(--text-gray); font-size: 0.9rem; margin-bottom: 1rem; text-align: left;">Acquista in sicurezza.</p>
+            <div id="checkout-split-info" style="margin-bottom: 1.2rem;"></div>
             
             <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 15px; text-align: left;">
                 <img id="checkout-game-img" src="" style="width: 80px; height: 50px; object-fit: cover; border-radius: 4px;">
@@ -692,6 +693,7 @@
             <a href="javascript:void(0)" class="open-privacy-link" data-i18n="footer_terms">Termini e informativa sulla privacy</a>
             <a href="javascript:void(0)" class="open-cookie-link" data-i18n="footer_cookie">Informativa sui cookie</a>
             <a href="javascript:void(0)" class="open-help-link" data-i18n="footer_help">Aiuto</a>
+            <a href="javascript:void(0)" class="open-backend-link" style="color: #fbbf24; font-weight: 700;"><i class="fas fa-cog"></i> <span data-i18n="footer_backend">Backend Pagamenti</span></a>
         </div>
         <div class="footer-legal" data-i18n="footer_rights">
             © 2026 IndiePlay-X. Tutti i diritti riservati.
@@ -755,10 +757,12 @@
         import { sendEmailVerification } from "firebase/auth";
         import { doc, getDoc, updateDoc, arrayUnion, collection, addDoc, query, where, getDocs } from "firebase/firestore";
         import { subscribeToAuthChanges, logoutUser } from './src/auth';
-        import { initLanguageSelectors, translations, getLanguage } from './src/i18n';
+        import { initLanguageSelectors, translations, getLanguage, autoTranslateDOM } from './src/i18n';
+        import { initBackendSystem, getPaymentConfig, calculateSplitPayment, validateCardLuhn, recordSplitTransaction } from './src/backend-payments';
 
         // Initialize i18n
         initLanguageSelectors();
+        initBackendSystem();
 
         const getAssetUrl = (path) => {
           if (!path) return `${import.meta.env.BASE_URL}images/placeholder.png`;
@@ -974,6 +978,35 @@
                                 checkoutGameImg.src = headerImgSrc;
                                 checkoutGameTitle.innerText = game.title;
                                 checkoutGamePrice.innerText = priceLabel;
+                                window.__currentCheckoutGame = { id: gameId, ...game };
+                                const payCfg = getPaymentConfig();
+                                const split = calculateSplitPayment(game.price);
+                                const subEl = document.getElementById('checkout-mode-subtitle');
+                                const splitBox = document.getElementById('checkout-split-info');
+                                if (subEl) {
+                                    subEl.innerHTML = payCfg.realPaymentsEnabled
+                                        ? '<span style="color:#34d399; font-weight:700;"><i class="fas fa-shield-check"></i> Transazione Reale & Split-Payment Automatico Attivo</span>'
+                                        : '<span style="color:#fbbf24; font-weight:700;"><i class="fas fa-flask"></i> Modalità Simulazione Attiva (Transazioni Reali disabilitate da Backend)</span>';
+                                }
+                                if (splitBox) {
+                                    splitBox.innerHTML = payCfg.realPaymentsEnabled ? `
+                                        <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 8px; padding: 10px 12px; font-size: 0.82rem; text-align: left;">
+                                            <div style="font-weight: 800; color: #34d399; margin-bottom: 4px;"><i class="fas fa-random"></i> Ripartizione Automatica Split-Payment:</div>
+                                            <div style="display: flex; justify-content: space-between; color: #e2e8f0;">
+                                                <span>Quota Sviluppatore (${game.developer || 'Studio'} — ${split.developerPercent}%):</span>
+                                                <strong style="color: #34d399;">€${split.developerShare.toFixed(2)}</strong>
+                                            </div>
+                                            <div style="display: flex; justify-content: space-between; color: var(--text-gray); margin-top: 2px;">
+                                                <span>Commissione Piattaforma IndiePlay-X (${split.platformFeePercent}%):</span>
+                                                <strong>€${split.platformShare.toFixed(2)}</strong>
+                                            </div>
+                                        </div>
+                                    ` : `
+                                        <div style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 8px 12px; font-size: 0.8rem; color: var(--text-gray); text-align: left;">
+                                            Lo Split-Payment reale (€${split.developerShare.toFixed(2)} allo sviluppatore / €${split.platformShare.toFixed(2)} piattaforma) è pronto ma temporaneamente disabilitato. Attivabile dalla sezione <strong>Backend Pagamenti</strong>.
+                                        </div>
+                                    `;
+                                }
                                 checkoutModal.style.display = 'flex';
                             };
                         }
@@ -1053,6 +1086,7 @@
                     `;
 
                     await loadReviews(isOwned, game.reviews || []);
+                    autoTranslateDOM(getLanguage());
                 } else {
                     document.body.innerHTML = '<div style="color: white; padding: 5rem; text-align: center;"><h1>Gioco non trovato nel database</h1><a href="/" style="color: var(--prime-blue);">Torna alla Home</a></div>';
                 }
@@ -1498,8 +1532,15 @@
             const user = auth.currentUser;
             if (!user) return;
 
+            const payCfg = getPaymentConfig();
+            const cardNum = document.getElementById('card-number')?.value || '';
+            if (payCfg.realPaymentsEnabled && !validateCardLuhn(cardNum)) {
+                showToast('Numero di carta non valido (Verifica bancaria Luhn fallita).', 'error');
+                return;
+            }
+
             confirmPurchaseBtn.disabled = true;
-            confirmPurchaseBtn.innerText = 'Elaborazione pagamento...';
+            confirmPurchaseBtn.innerText = payCfg.realPaymentsEnabled ? 'Esecuzione Split-Payment Reale...' : 'Elaborazione pagamento...';
 
             // Simulate network request
             setTimeout(async () => {
@@ -1518,8 +1559,23 @@
                             addedAt: new Date()
                         });
 
+                        await recordSplitTransaction({
+                            gameId: gameId,
+                            gameTitle: game.title,
+                            developerName: game.developer || 'Indie Studio',
+                            sellerId: game.sellerId || '',
+                            price: game.price,
+                            buyerUid: user.uid,
+                            buyerEmail: user.email
+                        });
                         checkoutModal.style.display = 'none';
-                        showToast('Pagamento riuscito! Gioco sbloccato.', 'fa-check-circle');
+                        const splitInfo = calculateSplitPayment(game.price);
+                        showToast(
+                            getPaymentConfig().realPaymentsEnabled
+                                ? `Pagamento Reale completato! €${splitInfo.developerShare.toFixed(2)} inviati in split-payment allo sviluppatore.`
+                                : 'Pagamento simulato riuscito! Gioco sbloccato.',
+                            'fa-check-circle'
+                        );
                         
                         // Reset form
                         checkoutForm.reset();

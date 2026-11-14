@@ -56,6 +56,7 @@
                 <ul class="nav-links">
                     <li><a href="#store" class="active" data-i18n="nav_home">Home</a></li>
                     <li><a href="#merch-section" data-i18n="nav_merch">Merchandising</a></li>
+                    <li><a href="#magazine-section" data-i18n="nav_magazine">Magazine</a></li>
                     <li><a href="account.html?tab=my-games" id="sell-link" class="hidden" data-i18n="nav_sell">Vendi</a></li>
                 </ul>
             </div>
@@ -94,7 +95,7 @@
                 <img src="/images/placeholder.png" id="hero-main-img" alt="Alchemist" style="width: 100%; height: 100%; object-fit: cover;">
                 <div class="hero-overlay">
                     <div class="hero-content">
-                        <span class="prime-badge">✓ Incluso con IndiePlay</span>
+                        <span class="prime-badge" data-i18n="game_included">✓ Incluso con IndiePlay</span>
                         <h1 id="hero-main-title">ALCHEMIST</h1>
                         <p id="hero-main-desc">Unisci elementi, scopri segreti e crea potenti pozioni nel gioco di simulazione e magia dell'anno.</p>
                         <div class="hero-actions">
@@ -104,7 +105,7 @@
                                 <div class="action-btn" title="Non fa per me"><i class="fas fa-thumbs-down"></i></div>
                                 <div class="action-btn" title="Condividi"><i class="fas fa-share-alt"></i></div>
                             </div>
-                            <a href="#" id="hero-btn" class="btn btn-prime" style="text-decoration: none; min-width: 250px; justify-content: center;"><i class="fas fa-info-circle"></i> Scopri di più</a>
+                            <a href="#" id="hero-btn" class="btn btn-prime" style="text-decoration: none; min-width: 250px; justify-content: center;"><i class="fas fa-info-circle"></i> <span data-i18n="game_discover_more">Scopri di più</span></a>
                         </div>
                     </div>
                 </div>
@@ -352,22 +353,9 @@
             </div>
         </section>
 
-        <!-- Sezione Rivista (Spenta/Prossimamente) -->
-        <section class="game-section" id="magazine-section" style="opacity: 0.5; position: relative; margin-top: 4rem; padding-bottom: 2rem; border-top: 1px solid rgba(255,255,255,0.05);">
-            <div style="position: absolute; top: 20px; right: 0; background: var(--prime-blue); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; z-index: 10;">PROSSIMAMENTE</div>
-            <div class="section-header" style="margin-top: 1.5rem;">
-                <h2>Rivista Ufficiale IndiePlay-X</h2>
-            </div>
-            <div style="display: flex; gap: 2rem; align-items: center; background: rgba(255,255,255,0.02); padding: 2rem; border-radius: 12px; border: 1px dashed rgba(255,255,255,0.1); flex-wrap: wrap;">
-                <div style="width: 130px; height: 180px; background: #152230; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.1); flex-shrink: 0; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
-                    <i class="fas fa-book-open" style="font-size: 3rem; color: rgba(255,255,255,0.2);"></i>
-                </div>
-                <div style="flex: 1; min-width: 250px;">
-                    <h3 style="color: white; margin-bottom: 10px; font-size: 1.3rem;">IndiePlay Magazine - Numero 1</h3>
-                    <p style="color: var(--text-gray); font-size: 0.95rem; line-height: 1.6; margin-bottom: 1.5rem;">La prima rivista digitale italiana interamente dedicata allo sviluppo indipendente. Interviste esclusive, recensioni approfondite, retroscena dello sviluppo e guide tecniche scritte dai migliori esperti del settore.</p>
-                    <button class="btn btn-outline" disabled style="cursor: not-allowed; opacity: 0.6;"><i class="fas fa-lock" style="margin-right: 8px;"></i> Sezione non attiva</button>
-                </div>
-            </div>
+        <!-- Sezione Magazine Editoriale (Attiva con Login Password: Numero11!!!) -->
+        <section class="game-section" id="magazine-section" style="position: relative; margin-top: 4rem; padding-bottom: 2.5rem; border-top: 1px solid rgba(255,255,255,0.08);">
+            <!-- Popolata dinamicamente da src/backend-payments.js -->
         </section>
     </main>
 
@@ -509,17 +497,20 @@
             <a href="javascript:void(0)" class="open-privacy-link" data-i18n="footer_terms">Termini e informativa sulla privacy</a>
             <a href="javascript:void(0)" class="open-cookie-link" data-i18n="footer_cookie">Informativa sui cookie</a>
             <a href="javascript:void(0)" class="open-help-link" data-i18n="footer_help">Aiuto</a>
+            <a href="javascript:void(0)" class="open-backend-link" style="color: #fbbf24; font-weight: 700;"><i class="fas fa-cog"></i> <span data-i18n="footer_backend">Backend Pagamenti</span></a>
         </div>
         <div class="footer-legal" data-i18n="footer_rights">
             © 2026 IndiePlay-X. Tutti i diritti riservati.
         </div>
+        <div id="footer-version-label" style="text-align: left; font-size: 0.75rem; color: rgba(255,255,255,0.55); font-weight: 600; margin-top: 0.8rem;">Version 1.11261</div>
     </footer>
+    <div id="indieplay-version-badge" class="indieplay-version-badge">Version 1.11261</div>
 
     <!-- Login Modal -->
     <div id="login-modal" class="modal">
         <div class="modal-content glass">
             <span class="close-modal">&times;</span>
-            <h2>Bentornato</h2>
+            <h2 data-i18n="modal_login_title">Bentornato</h2>
             <form id="login-form">
                 <div class="form-group">
                     <label>Email</label>
@@ -547,8 +538,8 @@
         <div class="modal-content glass">
             <span class="close-modal">&times;</span>
             <div class="modal-header">
-                <h2>Crea Account IndiePlay</h2>
-                <p>Inserisci i dati obbligatori per iniziare subito.</p>
+                <h2 data-i18n="modal_register_title">Crea Account IndiePlay</h2>
+                <p data-i18n="modal_register_subtitle">Inserisci i dati obbligatori per iniziare subito.</p>
             </div>
             <form id="register-form">
                 <div class="form-row">

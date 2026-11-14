@@ -2,7 +2,9 @@ import { registerUser, loginUser, logoutUser, subscribeToAuthChanges, loginWithG
 import { getGames, getGamesPaged } from './src/store';
 import { db, auth } from './src/firebase';
 import { doc, getDoc, collection, getDocs, query, orderBy, limit } from "firebase/firestore";
-import { initLanguageSelectors, translations, getLanguage } from './src/i18n';
+import { initLanguageSelectors, translations, getLanguage, autoTranslateDOM } from './src/i18n';
+import { renderVersionBadge } from './src/version';
+import { initMagazineSystem, initBackendSystem, getPaymentConfig } from './src/backend-payments';
 
 // Initialize language selector and translate page
 initLanguageSelectors();
@@ -130,12 +132,12 @@ function validateIBAN(value) {
   const iban = value.replace(/\s+/g, '').toUpperCase();
   if (iban.startsWith('IT')) {
     if (iban.length !== 27) return false;
-    const itRegex = /^IT\d{2}[A-Z]\d{10}[A-Z0-9]{12}$/;
-    if (!itRegex.test(iban)) return false;
   } else {
     if (iban.length < 15 || iban.length > 34) return false;
-    const genericRegex = /^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/;
-    if (!genericRegex.test(iban)) return false;
+  }
+  const cfg = getPaymentConfig();
+  if (!cfg.strictIbanValidation) {
+    return true;
   }
   const rearranged = iban.slice(4) + iban.slice(0, 4);
   let numericString = '';
@@ -857,9 +859,21 @@ function loadNewsFeed() {
     newsGrid.appendChild(card);
   });
   initDragToScroll(newsGrid);
+  autoTranslateDOM(getLanguage());
 }
 
 // Initialize all features
 initCategoryFilters();
 initSearchFilter();
 initModals();
+
+// Initialize Version Badge, Editorial Magazine (Numero11!!!) & Payments Backend (Money68030??)
+renderVersionBadge();
+initMagazineSystem();
+initBackendSystem();
+
+window.addEventListener('indieplay:langchange', (e) => {
+  const lang = e.detail?.lang || getLanguage();
+  loadNewsFeed();
+  autoTranslateDOM(lang);
+});

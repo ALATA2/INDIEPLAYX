@@ -476,6 +476,7 @@
             <a href="javascript:void(0)" class="open-privacy-link" data-i18n="footer_terms">Termini e informativa sulla privacy</a>
             <a href="javascript:void(0)" class="open-cookie-link" data-i18n="footer_cookie">Informativa sui cookie</a>
             <a href="javascript:void(0)" class="open-help-link" data-i18n="footer_help">Aiuto</a>
+            <a href="javascript:void(0)" class="open-backend-link" style="color: #fbbf24; font-weight: 700;"><i class="fas fa-cog"></i> <span data-i18n="footer_backend">Backend Pagamenti</span></a>
         </div>
         <div class="footer-legal" data-i18n="footer_rights">
             © 2026 IndiePlay-X. Tutti i diritti riservati.
@@ -485,7 +486,8 @@
     <script type="module">
         import { db, auth } from './src/firebase';
         import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
-        import { initLanguageSelectors, translations, getLanguage } from './src/i18n';
+        import { initLanguageSelectors, translations, getLanguage, autoTranslateDOM } from './src/i18n';
+        import { initBackendSystem } from './src/backend-payments';
 
         const getAssetUrl = (path) => {
             if (!path) return '';
@@ -498,6 +500,7 @@
 
         // Initialize i18n
         initLanguageSelectors();
+        initBackendSystem();
 
         // Get Developer Name from query parameters
         const urlParams = new URLSearchParams(window.location.search);
@@ -547,6 +550,8 @@
                     };
                     devBio.innerText = bioData[devName] || bioData['IndiePlay'];
                 }
+                devBio.setAttribute('data-auto-translate', 'true');
+                autoTranslateDOM(getLanguage());
             } catch (err) {
                 console.error("Error loading developer profile:", err);
             }

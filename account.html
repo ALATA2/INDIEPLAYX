@@ -689,6 +689,15 @@
                         </div>
                     </div>
                     <button id="add-payment-btn" class="btn btn-prime-outline" style="width: 100%;"><i class="fas fa-plus"></i> Aggiungi un nuovo metodo di pagamento</button>
+                    <div style="margin-top: 2rem; background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.35); padding: 1.4rem; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                        <div>
+                            <h4 style="margin: 0 0 4px; color: #fbbf24; font-size: 1rem;"><i class="fas fa-server"></i> Motore Transazioni Reali & Split-Payment Automatico</h4>
+                            <p style="margin: 0; font-size: 0.85rem; color: var(--text-gray);">La ripartizione automatica dei pagamenti verso gli sviluppatori è protetta e gestibile dalla sezione Backend.</p>
+                        </div>
+                        <button type="button" id="open-backend-from-account-btn" class="btn btn-prime open-backend-link" style="background: #f59e0b; color: #0f172a; font-weight: 800; padding: 0.7rem 1.3rem;">
+                            <i class="fas fa-lock"></i> Accedi a Backend Pagamenti
+                        </button>
+                    </div>
                 </div>
             </div>
         </main>
@@ -780,6 +789,7 @@
             <a href="javascript:void(0)" class="open-privacy-link" data-i18n="footer_terms">Termini e informativa sulla privacy</a>
             <a href="javascript:void(0)" class="open-cookie-link" data-i18n="footer_cookie">Informativa sui cookie</a>
             <a href="javascript:void(0)" class="open-help-link" data-i18n="footer_help">Aiuto</a>
+            <a href="javascript:void(0)" class="open-backend-link" style="color: #fbbf24; font-weight: 700;"><i class="fas fa-cog"></i> <span data-i18n="footer_backend">Backend Pagamenti</span></a>
         </div>
         <div class="footer-legal" data-i18n="footer_rights">
             © 2026 IndiePlay-X. Tutti i diritti riservati.
@@ -879,10 +889,12 @@
         import { subscribeToAuthChanges } from './src/auth';
         import { db, auth, storage } from './src/firebase';
         import { doc, getDoc, updateDoc, deleteDoc, addDoc, setDoc, collection, query, where, getDocs, orderBy } from "firebase/firestore";
-        import { initLanguageSelectors } from './src/i18n';
+        import { initLanguageSelectors, getLanguage, autoTranslateDOM } from './src/i18n';
+        import { initBackendSystem, getPaymentConfig } from './src/backend-payments';
 
         // Initialize i18n
         initLanguageSelectors();
+        initBackendSystem();
 
         const getAssetUrl = (path) => {
           if (!path) return `${import.meta.env.BASE_URL}images/placeholder.png`;
