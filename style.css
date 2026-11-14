@@ -1201,7 +1201,15 @@ input:focus {
   border-color: rgba(0, 168, 225, 0.45) !important;
 }
 
+.footer-logo img {
+  display: inline-block !important;
+  margin: 0 auto;
+}
+
 @media (max-width: 900px) {
+  .prime-logo-img {
+    height: 34px !important;
+  }
   .indieplay-version-badge {
     bottom: 8px;
     left: 10px;
