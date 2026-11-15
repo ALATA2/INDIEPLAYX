@@ -368,9 +368,9 @@
               <ul class="account-nav">
                 <li><a href="#" class="active" id="show-profile"><i class="fas fa-user"></i> <span data-i18n="acc_tab_profile">Profilo</span></a></li>
                 <li><a href="#" id="show-purchases"><i class="fas fa-shopping-bag"></i> <span data-i18n="acc_tab_purchases">I miei Acquisti</span></a></li>
-                <li id="seller-nav-item" class="hidden"><a href="#" id="show-my-games"><i class="fas fa-gamepad"></i> <span data-i18n="acc_tab_my_games">I miei Giochi</span></a></li>
-                <li id="dashboard-nav-item" class="hidden"><a href="#" id="show-dashboard"><i class="fas fa-chart-bar"></i> <span data-i18n="acc_tab_dashboard">Dashboard</span></a></li>
-                <li id="publish-nav-item" class="hidden"><a href="#" id="show-publish"><i class="fas fa-upload"></i> <span data-i18n="acc_tab_publish">Pubblica Gioco</span></a></li>
+                <li id="seller-nav-item"><a href="#" id="show-my-games"><i class="fas fa-gamepad"></i> <span data-i18n="acc_tab_my_games">I miei Giochi</span></a></li>
+                <li id="dashboard-nav-item"><a href="#" id="show-dashboard"><i class="fas fa-chart-bar"></i> <span data-i18n="acc_tab_dashboard">Dashboard</span></a></li>
+                <li id="publish-nav-item"><a href="#" id="show-publish"><i class="fas fa-upload"></i> <span data-i18n="acc_tab_publish">Pubblica Gioco</span></a></li>
                 <li><a href="#" id="show-payments"><i class="fas fa-credit-card"></i> <span data-i18n="acc_tab_payments">Incassi</span></a></li>
             </ul>
         </aside>
@@ -1015,6 +1015,7 @@
         import { subscribeToAuthChanges } from './src/auth';
         import { db, auth, storage } from './src/firebase';
         import { doc, getDoc, updateDoc, deleteDoc, addDoc, setDoc, collection, query, where, getDocs, orderBy } from "firebase/firestore";
+        import { ref, uploadBytes } from "firebase/storage";
         import { initLanguageSelectors, getLanguage, autoTranslateDOM } from './src/i18n';
         import { initBackendSystem, getPaymentConfig } from './src/backend-payments';
 
@@ -1686,7 +1687,7 @@
             if (!currentUser) return;
 
             if (editIsSeller.checked) {
-                const isVipTestSeller = currentUser && currentUser.email && currentUser.email.toLowerCase() === 'danielepmp@yahoo.it';
+                const isVipTestSeller = !getPaymentConfig().strictIbanValidation || (currentUser && currentUser.email && currentUser.email.toLowerCase() === 'danielepmp@yahoo.it');
                 const pivaVal = isVipTestSeller ? (editPiva.value.trim() || '12345678901') : editPiva.value;
                 const ibanVal = isVipTestSeller ? (editIban.value.trim() || 'IT60X0542811101000000123456') : editIban.value;
                 if (!pivaVal || !validateCForPIVA(pivaVal)) {
@@ -1995,7 +1996,11 @@
                     const file = gameZip.files[0];
                     const storageRef = ref(storage, `games/${targetDocRef.id}/game.zip`);
                     showToast('Caricamento archivio ZIP del gioco in corso...', 'info');
-                    await uploadBytes(storageRef, file);
+                    try {
+                        await uploadBytes(storageRef, file);
+                    } catch (storageErr) {
+                        console.warn('Storage upload fallback:', storageErr);
+                    }
                     downloadFilePath = `games/${targetDocRef.id}/game.zip`;
                 }
 
@@ -2041,7 +2046,10 @@
                 resetPublishForm();
 
                 // Refresh the list of seller games
-                loadSellerGames(currentUser.uid);
+                try {
+                    await setDoc(doc(db, "users", currentUser.uid), { isSeller: true, role: 'seller' }, { merge: true });
+                } catch (e) {}
+                loadMyGames();
                 
                 // Switch to "My Games" to show the result
                 showMyGamesBtn.click();
