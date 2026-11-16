@@ -7,6 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "sync": "node scripts/sync-all.mjs",
+    "sync:nobump": "node scripts/sync-all.mjs --no-bump",
     "deploy": "npm run build && firebase deploy"
   },
   "devDependencies": {

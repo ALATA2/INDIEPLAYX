@@ -859,6 +859,7 @@ function openBackendConsole() {
     <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 1rem; margin-bottom: 1.2rem;">
       <div>
         <span style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; padding: 3px 10px; border-radius: 4px; font-size: 0.72rem; font-weight: 800;">CONSOLE AMMINISTRATORE BACKEND</span>
+        <span style="background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 3px 10px; border-radius: 4px; font-size: 0.72rem; font-weight: 800; margin-left: 6px;"><i class="fas fa-sync-alt"></i> SYNC TRIPLA ATTIVA: HARD DISK • GITHUB • CLOUDFLARE/VERCEL</span>
         <h2 style="margin: 6px 0 0; font-size: 1.45rem; font-weight: 900;">Controllo Singole Funzioni, Pagamenti Reali & Split-Payment</h2>
       </div>
       <div style="display: flex; gap: 8px;">
