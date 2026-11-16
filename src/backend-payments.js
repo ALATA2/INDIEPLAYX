@@ -1066,7 +1066,7 @@ function openBackendConsole() {
         const payload = {
           exportedAt: new Date().toISOString(),
           platform: 'INDIE PLAY X',
-          firebaseProject: 'indiestore-d9cb2',
+          firebaseProject: 'indieplayx',
           gamesCount: games.length,
           usersCount: users.length,
           games,
