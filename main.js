@@ -826,7 +826,7 @@ function loadNewsFeed() {
       desc: "Ora i venditori possono personalizzare la propria pagina social con descrizione, prodotti e accessori di merchandising ufficiale.",
       date: "31 Agosto 2026",
       badge: "NUOVA FEATURE",
-      img: "/images/merch_neon_samurai_poster.png"
+      img: "/images/merch_hoodie_samurai_1777198641485.png"
     },
     {
       title: "Accordo Strategico con NeonLabs",
@@ -840,7 +840,7 @@ function loadNewsFeed() {
       desc: "Abbiamo integrato nuovi sistemi di cifratura end-to-end per proteggere gli acquisti e l'inserimento dei metodi di pagamento.",
       date: "25 Agosto 2026",
       badge: "SICUREZZA",
-      img: "/images/merch_tshirt_mockup_1787498735596.png"
+      img: "/images/merch_tshirt_samurai_1777201074364.png"
     }
   ];
 

@@ -41,7 +41,7 @@ const DEFAULT_MAGAZINE_ARTICLES = [
     author: 'Redazione IndiePlay-X',
     date: 'Novembre 2026',
     readTime: '6 min',
-    coverImg: '/images/merch_neon_samurai_poster.png',
+    coverImg: '/images/merch_hoodie_samurai_1777198641485.png',
     gallery: ['/images/neon_samurai_screenshot_1_1777200476248.png'],
     linkedGameTitle: 'Alchemyst',
     linkedDev: 'NeonLabs',
@@ -83,7 +83,7 @@ Lo studio ha inoltre annunciato tre nuovi capitoli arcade retrò ispirati all'ep
     author: 'Team Tecnico IndiePlay-X',
     date: 'Novembre 2026',
     readTime: '4 min',
-    coverImg: '/images/merch_tshirt_mockup_1787498735596.png',
+    coverImg: '/images/merch_tshirt_samurai_1777201074364.png',
     gallery: [],
     linkedGameTitle: '',
     linkedDev: 'IndiePlay',
@@ -747,7 +747,7 @@ function injectMagazineModals() {
                 <span id="cms-cover-status" style="display: block; font-size: 0.72rem; color: var(--text-gray); margin-top: 3px;">Oppure usa URL qui sotto</span>
               </label>
               <input type="file" id="cms-mag-cover-file" accept="image/*" hidden>
-              <input type="text" id="cms-mag-img" placeholder="URL immagine (opzionale)" value="/images/merch_neon_samurai_poster.png" style="width: 100%; margin-top: 8px; padding: 7px; background: #111922; border: 1px solid rgba(255,255,255,0.15); border-radius: 4px; color: white; font-size: 0.78rem;">
+              <input type="text" id="cms-mag-img" placeholder="URL immagine (opzionale)" value="/images/merch_hoodie_samurai_1777198641485.png" style="width: 100%; margin-top: 8px; padding: 7px; background: #111922; border: 1px solid rgba(255,255,255,0.15); border-radius: 4px; color: white; font-size: 0.78rem;">
             </div>
 
             <div style="background: rgba(255,255,255,0.03); border: 1px dashed rgba(255, 255, 255, 0.25); border-radius: 8px; padding: 12px; text-align: center;">
@@ -868,7 +868,7 @@ function injectMagazineModals() {
   document.getElementById('magazine-cms-form').onsubmit = async (e) => {
     e.preventDefault();
     const articles = getMagazineArticles();
-    const coverImg = pendingCoverDataUrl || document.getElementById('cms-mag-img').value.trim() || '/images/merch_neon_samurai_poster.png';
+    const coverImg = pendingCoverDataUrl || document.getElementById('cms-mag-img').value.trim() || '/images/merch_hoodie_samurai_1777198641485.png';
     const existingArt = editingMagazineArticleId ? articles.find(a => a.id === editingMagazineArticleId) : null;
 
     const artPayload = {
@@ -1063,7 +1063,7 @@ function openMagazineIssueViewer(startPage = 0) {
     if (currentPage === 0) {
       const lead = articles[0] || {};
       stage.innerHTML = `
-        <div class="mag-issue-cover" style="position: relative; min-height: 100%; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.12); background: linear-gradient(180deg, rgba(8,14,26,0.35) 0%, rgba(8,14,26,0.92) 65%, #070c16 100%), url('${assetHelper(lead.coverImg || '/images/merch_neon_samurai_poster.png')}') no-repeat center center; background-size: cover; padding: 2rem; display: flex; flex-direction: column; justify-content: space-between; gap: 1.5rem;">
+        <div class="mag-issue-cover" style="position: relative; min-height: 100%; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.12); background: linear-gradient(180deg, rgba(8,14,26,0.35) 0%, rgba(8,14,26,0.92) 65%, #070c16 100%), url('${assetHelper(lead.coverImg || '/images/merch_hoodie_samurai_1777198641485.png')}') no-repeat center center; background-size: cover; padding: 2rem; display: flex; flex-direction: column; justify-content: space-between; gap: 1.5rem;">
           <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; border-bottom: 2px solid rgba(0, 168, 225, 0.7); padding-bottom: 1rem;">
             <div>
               <div style="font-size: 0.78rem; font-weight: 800; letter-spacing: 2px; color: #fbbf24;">LA RIVISTA UFFICIALE DEL VIDEOGIOCO INDIPENDENTE</div>
@@ -1263,7 +1263,7 @@ function openMagazineCmsModal(articleToEdit = null) {
   document.getElementById('cms-mag-title').value = articleToEdit ? (articleToEdit.title || '') : '';
   document.getElementById('cms-mag-author').value = articleToEdit ? (articleToEdit.author || '') : 'Redazione IndiePlay-X';
   document.getElementById('cms-mag-readtime').value = articleToEdit ? (articleToEdit.readTime || '5 min') : '5 min';
-  document.getElementById('cms-mag-img').value = articleToEdit && !String(articleToEdit.coverImg || '').startsWith('data:') ? (articleToEdit.coverImg || '') : '/images/merch_neon_samurai_poster.png';
+  document.getElementById('cms-mag-img').value = articleToEdit && !String(articleToEdit.coverImg || '').startsWith('data:') ? (articleToEdit.coverImg || '') : '/images/merch_hoodie_samurai_1777198641485.png';
   document.getElementById('cms-mag-summary').value = articleToEdit ? (articleToEdit.summary || '') : '';
   document.getElementById('cms-mag-content').value = articleToEdit ? (articleToEdit.content || '') : '';
   document.getElementById('cms-mag-yt').value = articleToEdit ? (articleToEdit.youtubeUrl || '') : '';
