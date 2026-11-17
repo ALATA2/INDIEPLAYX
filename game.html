@@ -3,8 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Neon Samurai - IndiePlay</title>
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <title>Dettaglio Gioco — Scarica e Gioca su INDIE PLAY X</title>
+    <meta name="description" content="Scarica su PC o gioca online su INDIE PLAY X, il portale alternativo dedicato ai videogiochi indipendenti.">
+    <meta name="robots" content="index, follow, max-image-preview:large">
+    <meta name="theme-color" content="#00050d">
+    <link rel="canonical" href="https://indieplayx.com/game.html">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="alternate icon" type="image/png" href="/images/logo_litte.png">
+    <link rel="apple-touch-icon" href="/images/logo_litte.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="./style.css">
     <script>
@@ -814,7 +820,35 @@
                     console.log("Game data loaded:", game);
                     
                     // Update Title and Meta
-                    document.title = `${game.title || 'Gioco'} - IndiePlay`;
+                    document.title = `${game.title || 'Gioco Indie'} — Scarica e Gioca su INDIE PLAY X`;
+                    const metaDesc = document.querySelector('meta[name="description"]');
+                    if (metaDesc) {
+                        metaDesc.setAttribute('content', `${game.title} (${game.category || 'Indie'}) di ${game.developer || 'IndiePlay'}: ${String(game.desc || '').slice(0, 140)} — Scarica o gioca su INDIE PLAY X.`);
+                    }
+                    const canonicalEl = document.querySelector('link[rel="canonical"]');
+                    if (canonicalEl) canonicalEl.setAttribute('href', window.location.href);
+                    let ldScript = document.getElementById('dynamic-game-jsonld');
+                    if (!ldScript) {
+                        ldScript = document.createElement('script');
+                        ldScript.id = 'dynamic-game-jsonld';
+                        ldScript.type = 'application/ld+json';
+                        document.head.appendChild(ldScript);
+                    }
+                    ldScript.textContent = JSON.stringify({
+                        "@context": "https://schema.org",
+                        "@type": "VideoGame",
+                        "name": game.title || "Indie Game",
+                        "genre": game.category || "Indie",
+                        "gamePlatform": ["PC", "Web Browser"],
+                        "author": { "@type": "Organization", "name": game.developer || "IndiePlay-X" },
+                        "description": game.desc || "Videogioco indipendente su INDIE PLAY X",
+                        "offers": {
+                            "@type": "Offer",
+                            "price": game.price === 'FREE' ? "0" : String(game.price || "0"),
+                            "priceCurrency": "EUR",
+                            "availability": "https://schema.org/InStock"
+                        }
+                    });
                     titleEl.innerText = (game.title || 'Senza Titolo').toUpperCase();
                     descEl.innerText = game.desc || 'Nessuna descrizione disponibile per questo titolo.';
 
