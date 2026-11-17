@@ -1201,6 +1201,37 @@ input:focus {
   border-color: rgba(0, 168, 225, 0.45) !important;
 }
 
+#open-mag-title-trigger:hover {
+  color: #38bdf8 !important;
+}
+
+.mag-issue-spread {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+.mag-dropcap-p::first-letter {
+  float: left;
+  font-size: 3rem;
+  line-height: 0.85;
+  padding-right: 8px;
+  padding-top: 4px;
+  font-weight: 900;
+  color: #38bdf8;
+}
+
+@media (max-width: 900px) {
+  .mag-issue-spread {
+    grid-template-columns: 1fr;
+    gap: 1.2rem;
+  }
+  #magazine-issue-stage {
+    padding: 1rem !important;
+  }
+}
+
 .footer-logo img {
   display: inline-block !important;
   margin: 0 auto;

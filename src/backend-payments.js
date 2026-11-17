@@ -411,10 +411,10 @@ function renderMagazineSection() {
   magSection.innerHTML = `
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-top: 1rem; margin-bottom: 1.1rem;">
       <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-        <h2 style="margin: 0; font-size: 1.6rem; color: white; font-weight: 900;" data-i18n="title_magazine">IndiePlay Magazine</h2>
-        <span style="background: rgba(0, 168, 225, 0.2); border: 1px solid var(--prime-blue); color: #38bdf8; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 800; letter-spacing: 0.5px;">
-          <i class="fas fa-book-open"></i> EDIZIONE PUBBLICA GRATUITA
-        </span>
+        <h2 id="open-mag-title-trigger" title="Clicca per entrare nella rivista sfogliabile" style="margin: 0; font-size: 1.65rem; color: white; font-weight: 900; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; transition: color 0.2s ease;" data-i18n="title_magazine">IndiePlay Magazine</h2>
+        <button id="open-mag-issue-btn" class="btn btn-prime" style="padding: 0.45rem 1rem; border-radius: 999px; font-size: 0.78rem; font-weight: 800; letter-spacing: 0.4px; display: inline-flex; align-items: center; gap: 7px; box-shadow: 0 4px 14px rgba(0, 168, 225, 0.35);">
+          <i class="fas fa-book-open"></i> <span>ENTRA NELLA RIVISTA</span>
+        </button>
       </div>
       <div style="display: flex; gap: 10px; flex-wrap: wrap;">
         ${!isEditor ? `
@@ -516,6 +516,12 @@ function renderMagazineSection() {
       renderMagazineSection();
     };
   });
+
+  // Wire Enter Full Interactive Magazine Viewer (clicking title or "Entra nella Rivista" button)
+  const enterMagTitle = document.getElementById('open-mag-title-trigger');
+  const enterMagBtn = document.getElementById('open-mag-issue-btn');
+  if (enterMagTitle) enterMagTitle.onclick = () => openMagazineIssueViewer(0);
+  if (enterMagBtn) enterMagBtn.onclick = () => openMagazineIssueViewer(0);
 
   // Wire Editorial Login button
   const openLoginBtn = document.getElementById('open-mag-login-btn');
@@ -663,6 +669,41 @@ function injectMagazineModals() {
       <img id="magazine-photo-lightbox-img" src="" alt="Foto Ingrandita" style="max-width: 92vw; max-height: 88vh; border-radius: 10px; box-shadow: 0 20px 60px rgba(0,0,0,0.9); object-fit: contain;">
     </div>
 
+    <!-- Modal Rivista Digitale Sfogliabile a Tutto Schermo (Digital Issue Viewer) -->
+    <div id="magazine-issue-viewer-modal" class="lightbox" style="display: none; justify-content: center; align-items: center; z-index: 3200; background: rgba(2, 6, 14, 0.96); backdrop-filter: blur(16px);">
+      <div id="magazine-issue-shell" style="width: 96vw; max-width: 1120px; height: 92vh; background: #0c1420; border: 1px solid rgba(0, 168, 225, 0.35); border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,0.9);">
+        <!-- Masthead Barra Superiore della Rivista -->
+        <div style="background: rgba(15, 23, 36, 0.98); border-bottom: 1px solid rgba(255,255,255,0.1); padding: 0.75rem 1.25rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="background: linear-gradient(135deg, #00a8e1, #0284c7); color: white; padding: 4px 10px; border-radius: 6px; font-weight: 900; font-size: 0.76rem; letter-spacing: 0.8px;">INDIEPLAY MAGAZINE</span>
+            <span id="mag-issue-page-indicator" style="font-size: 0.8rem; color: #94a3b8; font-weight: 700;">Copertina</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <select id="mag-issue-toc-select" style="background: #172231; border: 1px solid rgba(255,255,255,0.18); color: white; padding: 6px 10px; border-radius: 6px; font-size: 0.78rem; font-weight: 700; max-width: 230px; cursor: pointer;"></select>
+            <button type="button" id="close-mag-issue-viewer" class="btn btn-prime-outline" style="padding: 5px 12px; font-size: 0.8rem; font-weight: 800; border-color: rgba(255,255,255,0.2);">
+              <i class="fas fa-times"></i> Chiudi Rivista
+            </button>
+          </div>
+        </div>
+
+        <!-- Area Pagina Sfogliabile -->
+        <div id="magazine-issue-stage" style="flex: 1; overflow-y: auto; padding: 1.5rem 2rem; position: relative;"></div>
+
+        <!-- Barra Inferiore Sfoglia Pagina -->
+        <div style="background: rgba(15, 23, 36, 0.98); border-top: 1px solid rgba(255,255,255,0.1); padding: 0.7rem 1.25rem; display: flex; justify-content: space-between; align-items: center; gap: 0.8rem;">
+          <button type="button" id="mag-prev-page-btn" class="btn btn-prime-outline" style="padding: 0.55rem 1.1rem; font-size: 0.82rem; font-weight: 800;">
+            <i class="fas fa-chevron-left"></i> Pagina Precedente
+          </button>
+          <button type="button" id="mag-cover-jump-btn" class="btn btn-prime-outline" style="padding: 0.5rem 0.95rem; font-size: 0.78rem; font-weight: 700; border-color: rgba(0,168,225,0.4); color: #38bdf8;">
+            <i class="fas fa-th-list"></i> Sommario / Copertina
+          </button>
+          <button type="button" id="mag-next-page-btn" class="btn btn-prime" style="padding: 0.55rem 1.1rem; font-size: 0.82rem; font-weight: 800;">
+            Pagina Successiva <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Modal CMS Redazione Magazine (Caricamento & Modifica Articoli + Upload Foto) -->
     <div id="magazine-cms-modal" class="lightbox" style="display: none; justify-content: center; align-items: center; z-index: 3100;">
       <div class="modal-content glass" style="background: rgba(18, 26, 36, 0.99); border: 1px solid rgba(0, 168, 225, 0.45); border-radius: 16px; padding: 2rem; max-width: 720px; width: 94%; max-height: 90vh; overflow-y: auto; color: white; position: relative;">
@@ -762,6 +803,11 @@ function injectMagazineModals() {
   const closePhotoLb = document.getElementById('close-mag-photo-lightbox');
   if (closePhotoLb && photoLb) closePhotoLb.onclick = () => (photoLb.style.display = 'none');
   if (photoLb) photoLb.onclick = (e) => { if (e.target === photoLb) photoLb.style.display = 'none'; };
+
+  const issueModal = document.getElementById('magazine-issue-viewer-modal');
+  const closeIssueBtn = document.getElementById('close-mag-issue-viewer');
+  if (closeIssueBtn && issueModal) closeIssueBtn.onclick = () => (issueModal.style.display = 'none');
+  if (issueModal) issueModal.onclick = (e) => { if (e.target === issueModal) issueModal.style.display = 'none'; };
 
   // Handle cover file upload
   const coverFileInput = document.getElementById('cms-mag-cover-file');
@@ -974,6 +1020,224 @@ function openMagazineReaderModal(article) {
   }
 
   readerModal.style.display = 'flex';
+}
+
+function openMagazineIssueViewer(startPage = 0) {
+  const modal = document.getElementById('magazine-issue-viewer-modal');
+  const stage = document.getElementById('magazine-issue-stage');
+  const indicator = document.getElementById('mag-issue-page-indicator');
+  const tocSelect = document.getElementById('mag-issue-toc-select');
+  const prevBtn = document.getElementById('mag-prev-page-btn');
+  const nextBtn = document.getElementById('mag-next-page-btn');
+  const coverBtn = document.getElementById('mag-cover-jump-btn');
+  if (!modal || !stage) return;
+
+  const articles = getMagazineArticles();
+  const assetHelper = window.getAssetUrl || ((p) => p);
+  const totalPages = articles.length + 1; // Pagina 0 = Copertina, 1..N = Articoli
+  let currentPage = Math.max(0, Math.min(startPage, totalPages - 1));
+
+  if (tocSelect) {
+    tocSelect.innerHTML = [
+      `<option value="0">📖 Copertina & Sommario</option>`,
+      ...articles.map((a, idx) => `<option value="${idx + 1}">Pag. ${idx + 1}: ${a.title.slice(0, 38)}${a.title.length > 38 ? '...' : ''}</option>`)
+    ].join('');
+    tocSelect.onchange = () => {
+      currentPage = parseInt(tocSelect.value, 10) || 0;
+      renderIssuePage();
+    };
+  }
+
+  const renderIssuePage = () => {
+    if (tocSelect) tocSelect.value = String(currentPage);
+    if (indicator) {
+      indicator.textContent = currentPage === 0
+        ? `Copertina • ${articles.length} Articoli`
+        : `Pagina ${currentPage} di ${articles.length}`;
+    }
+    if (prevBtn) prevBtn.disabled = currentPage <= 0;
+    if (nextBtn) nextBtn.disabled = currentPage >= totalPages - 1;
+
+    stage.scrollTop = 0;
+
+    if (currentPage === 0) {
+      const lead = articles[0] || {};
+      stage.innerHTML = `
+        <div class="mag-issue-cover" style="position: relative; min-height: 100%; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.12); background: linear-gradient(180deg, rgba(8,14,26,0.35) 0%, rgba(8,14,26,0.92) 65%, #070c16 100%), url('${assetHelper(lead.coverImg || '/images/merch_neon_samurai_poster.png')}') no-repeat center center; background-size: cover; padding: 2rem; display: flex; flex-direction: column; justify-content: space-between; gap: 1.5rem;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; border-bottom: 2px solid rgba(0, 168, 225, 0.7); padding-bottom: 1rem;">
+            <div>
+              <div style="font-size: 0.78rem; font-weight: 800; letter-spacing: 2px; color: #fbbf24;">LA RIVISTA UFFICIALE DEL VIDEOGIOCO INDIPENDENTE</div>
+              <h1 style="margin: 4px 0 0; font-size: clamp(2rem, 5vw, 3.3rem); font-weight: 900; letter-spacing: -1px; color: white; line-height: 1;">
+                INDIEPLAY <span style="color: #38bdf8;">MAGAZINE</span>
+              </h1>
+            </div>
+            <div style="text-align: right;">
+              <div style="background: #f59e0b; color: #0f172a; font-weight: 900; font-size: 0.76rem; padding: 4px 10px; border-radius: 4px; display: inline-block;">${lead.issue || 'EDIZIONE #1'}</div>
+              <div style="font-size: 0.8rem; color: #cbd5e1; margin-top: 4px; font-weight: 700;">${lead.date || 'Novembre 2026'} • GRATIS</div>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem; align-items: end;">
+            <div>
+              <span style="background: var(--prime-blue); color: white; padding: 4px 10px; border-radius: 4px; font-size: 0.74rem; font-weight: 800;">COVER STORY</span>
+              <h2 style="font-size: clamp(1.35rem, 3vw, 2rem); font-weight: 900; color: white; margin: 10px 0 8px; line-height: 1.2;">${lead.title || 'Speciale IndiePlay-X'}</h2>
+              <p style="color: #cbd5e1; font-size: 0.94rem; line-height: 1.55; margin-bottom: 1.2rem;">${lead.summary || ''}</p>
+              <button type="button" id="mag-cover-start-btn" class="btn btn-prime" style="padding: 0.8rem 1.5rem; font-weight: 900; font-size: 0.92rem;">
+                <i class="fas fa-book-open"></i> Sfoglia la Rivista <i class="fas fa-arrow-right"></i>
+              </button>
+            </div>
+
+            <div style="background: rgba(10, 18, 30, 0.86); border: 1px solid rgba(255,255,255,0.14); border-radius: 12px; padding: 1.2rem; backdrop-filter: blur(10px);">
+              <div style="font-size: 0.78rem; font-weight: 900; color: #38bdf8; letter-spacing: 0.8px; margin-bottom: 0.8rem; text-transform: uppercase;">
+                <i class="fas fa-list-ul"></i> In questo numero (Sommario):
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 0.55rem;">
+                ${articles.map((art, idx) => `
+                  <button type="button" class="mag-toc-jump" data-page="${idx + 1}" style="text-align: left; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 8px 10px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                    <span style="font-size: 0.82rem; font-weight: 700; line-height: 1.3;">
+                      <strong style="color: #38bdf8;">0${idx + 1}.</strong> ${art.title}
+                    </span>
+                    <span style="font-size: 0.7rem; color: #94a3b8; white-space: nowrap;">Pag. ${idx + 1} →</span>
+                  </button>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      const startBtn = document.getElementById('mag-cover-start-btn');
+      if (startBtn) startBtn.onclick = () => { if (totalPages > 1) { currentPage = 1; renderIssuePage(); } };
+      stage.querySelectorAll('.mag-toc-jump').forEach(btn => {
+        btn.onclick = () => {
+          currentPage = parseInt(btn.getAttribute('data-page'), 10) || 1;
+          renderIssuePage();
+        };
+      });
+      return;
+    }
+
+    const art = articles[currentPage - 1];
+    if (!art) return;
+    const paragraphs = (art.content || '')
+      .split('\n\n')
+      .map((p, idx) => `<p class="${idx === 0 ? 'mag-dropcap-p' : ''}" style="margin-bottom: 1rem; line-height: 1.75; color: #e2e8f0; font-size: 0.98rem;">${p}</p>`)
+      .join('');
+    const ytEmbed = extractYouTubeEmbedUrl(art.youtubeUrl || '');
+
+    stage.innerHTML = `
+      <div class="mag-issue-spread">
+        <!-- Colonna Sinistra: Testo Editoriale -->
+        <div>
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 0.6rem;">
+            <span style="background: var(--prime-blue); color: white; padding: 3px 10px; border-radius: 4px; font-size: 0.72rem; font-weight: 800;">${art.category || 'EDITORIALE'}</span>
+            <span style="font-size: 0.8rem; color: #94a3b8; font-weight: 700;">${art.issue || ''} • ${art.date || ''} • ${art.readTime || '5 min'}</span>
+          </div>
+          <h2 style="font-size: clamp(1.4rem, 2.6vw, 1.95rem); font-weight: 900; color: white; line-height: 1.22; margin-bottom: 0.6rem;">${art.title}</h2>
+          <div style="font-size: 0.82rem; color: #38bdf8; font-weight: 700; margin-bottom: 1.1rem; padding-bottom: 0.8rem; border-bottom: 1px solid rgba(255,255,255,0.1);">
+            <i class="fas fa-pen-nib"></i> Di ${art.author || 'Redazione IndiePlay-X'}
+          </div>
+          <div>${paragraphs}</div>
+        </div>
+
+        <!-- Colonna Destra: Media, Galleria Foto, Video & CTA Gioco/Studio -->
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+          <div class="mag-zoomable-photo" data-src="${assetHelper(art.coverImg)}" style="height: 230px; border-radius: 10px; background: url('${assetHelper(art.coverImg)}') no-repeat center center; background-size: cover; position: relative; cursor: zoom-in; border: 1px solid rgba(255,255,255,0.12);">
+            <span style="position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.75); color: white; padding: 3px 9px; border-radius: 4px; font-size: 0.72rem;"><i class="fas fa-search-plus"></i> Ingrandisci</span>
+          </div>
+
+          ${ytEmbed ? `
+            <div style="border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,0.12); background: #000;">
+              <div style="position: relative; padding-bottom: 56.25%; height: 0;">
+                <iframe src="${ytEmbed}" loading="lazy" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;" allowfullscreen></iframe>
+              </div>
+            </div>
+          ` : ''}
+
+          ${Array.isArray(art.gallery) && art.gallery.length > 0 ? `
+            <div>
+              <div style="font-size: 0.8rem; font-weight: 800; color: #94a3b8; margin-bottom: 6px;"><i class="fas fa-images" style="color: var(--prime-blue);"></i> Galleria Fotografica</div>
+              <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
+                ${art.gallery.map(img => `<img src="${assetHelper(img)}" class="mag-zoomable-photo" alt="Foto" style="width: 100%; height: 95px; object-fit: cover; border-radius: 6px; border: 1px solid rgba(255,255,255,0.14); cursor: zoom-in;">`).join('')}
+              </div>
+            </div>
+          ` : ''}
+
+          ${(art.linkedGameTitle || art.linkedDev) ? `
+            <div style="background: rgba(0, 168, 225, 0.09); border: 1px solid rgba(0, 168, 225, 0.35); border-radius: 10px; padding: 1rem; display: flex; flex-direction: column; gap: 8px;">
+              <strong style="font-size: 0.86rem; color: white;">Collegamenti su IndiePlay-X</strong>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                ${art.linkedGameTitle ? `
+                  <button type="button" id="mag-issue-go-game" class="btn btn-prime" style="padding: 0.5rem 0.9rem; font-size: 0.8rem; font-weight: 800;">
+                    <i class="fas fa-gamepad"></i> Vai a ${art.linkedGameTitle}
+                  </button>
+                ` : ''}
+                ${art.linkedDev ? `
+                  <a href="showcase.html?dev=${encodeURIComponent(art.linkedDev)}" class="btn btn-prime-outline" style="padding: 0.5rem 0.9rem; font-size: 0.8rem; font-weight: 700; text-decoration: none;">
+                    <i class="fas fa-user-astronaut"></i> Profilo ${art.linkedDev}
+                  </a>
+                ` : ''}
+              </div>
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    `;
+
+    stage.querySelectorAll('.mag-zoomable-photo').forEach(el => {
+      el.onclick = () => {
+        const lb = document.getElementById('magazine-photo-lightbox');
+        const lbImg = document.getElementById('magazine-photo-lightbox-img');
+        const src = el.getAttribute('src') || el.getAttribute('data-src');
+        if (lb && lbImg && src) {
+          lbImg.src = src;
+          lb.style.display = 'flex';
+        }
+      };
+    });
+
+    const goGame = document.getElementById('mag-issue-go-game');
+    if (goGame && art.linkedGameTitle) {
+      goGame.onclick = () => {
+        try {
+          const cached = JSON.parse(localStorage.getItem('indieplay_fast_games_v3') || '[]');
+          const found = cached.find(g => g.title && g.title.toLowerCase().includes(art.linkedGameTitle.toLowerCase()));
+          if (found) {
+            window.location.href = `game.html?id=${encodeURIComponent(found.id)}`;
+            return;
+          }
+        } catch (e) {}
+        window.location.href = `index.html?search=${encodeURIComponent(art.linkedGameTitle)}`;
+      };
+    }
+  };
+
+  if (prevBtn) prevBtn.onclick = () => { if (currentPage > 0) { currentPage--; renderIssuePage(); } };
+  if (nextBtn) nextBtn.onclick = () => { if (currentPage < totalPages - 1) { currentPage++; renderIssuePage(); } };
+  if (coverBtn) coverBtn.onclick = () => { currentPage = 0; renderIssuePage(); };
+
+  // Touch swipe support inside the digital magazine
+  let touchStartX = 0;
+  stage.ontouchstart = (e) => { touchStartX = e.changedTouches?.[0]?.screenX || 0; };
+  stage.ontouchend = (e) => {
+    const dx = (e.changedTouches?.[0]?.screenX || 0) - touchStartX;
+    if (dx < -65 && currentPage < totalPages - 1) { currentPage++; renderIssuePage(); }
+    if (dx > 65 && currentPage > 0) { currentPage--; renderIssuePage(); }
+  };
+
+  // Keyboard navigation
+  const keyHandler = (e) => {
+    if (modal.style.display !== 'flex') {
+      window.removeEventListener('keydown', keyHandler);
+      return;
+    }
+    if (e.key === 'ArrowRight' && currentPage < totalPages - 1) { currentPage++; renderIssuePage(); }
+    if (e.key === 'ArrowLeft' && currentPage > 0) { currentPage--; renderIssuePage(); }
+    if (e.key === 'Escape') { modal.style.display = 'none'; window.removeEventListener('keydown', keyHandler); }
+  };
+  window.addEventListener('keydown', keyHandler);
+
+  renderIssuePage();
+  modal.style.display = 'flex';
 }
 
 function openMagazineCmsModal(articleToEdit = null) {

@@ -1,5 +1,25 @@
 [
   {
+    "version": "Version 1.11275",
+    "timestamp": "2026-11-17T21:13:51.096Z",
+    "message": "feat(Version 1.11275): rivista digitale sfogliabile IndiePlay Magazine",
+    "targets": [
+      "Hard Disk (c:\\Users\\green\\Desktop\\INDIE-PLAY-X + /dist)",
+      "GitHub (https://github.com/ALATA2/INDIEPLAYX - main)",
+      "Cloudflare Pages & Vercel Hosting (Auto-Deploy su push main)"
+    ]
+  },
+  {
+    "version": "Version 1.11275",
+    "timestamp": "2026-11-17T21:13:03.947Z",
+    "message": "feat(Version 1.11275): rivista digitale sfogliabile IndiePlay Magazine",
+    "targets": [
+      "Hard Disk (c:\\Users\\green\\Desktop\\INDIE-PLAY-X + /dist)",
+      "GitHub (https://github.com/ALATA2/INDIEPLAYX - main)",
+      "Cloudflare Pages & Vercel Hosting (Auto-Deploy su push main)"
+    ]
+  },
+  {
     "version": "Version 1.11274",
     "timestamp": "2026-11-17T21:05:26.173Z",
     "message": "feat(Version 1.11274): spostamento IndiePlay Magazine sotto Merchandising",
