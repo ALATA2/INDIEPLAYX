@@ -1,0 +1,125 @@
+[
+  {
+    "id": "1IfEFuUvYN2KyjxPICxI",
+    "title": "Dead o Clock",
+    "developer": "IndiePlay",
+    "price": "27.90",
+    "category": "Azione",
+    "type": "online",
+    "desc": "",
+    "imageUrl": "/images/db_games/1IfEFuUvYN2KyjxPICxI_header.jpg",
+    "header": {
+      "src": "/images/db_games/1IfEFuUvYN2KyjxPICxI_header.jpg",
+      "type": "image"
+    }
+  },
+  {
+    "id": "EpT2fkm8mumzulYWevAE",
+    "title": "Mimù Kakuto",
+    "developer": "IndiePlay",
+    "price": "FREE",
+    "category": "Azione",
+    "type": "download",
+    "desc": "In questo gioco picchi botte da orbi, d'altronde siamo Amighisti noi ..gente con le palle quadrate",
+    "imageUrl": "/images/db_games/EpT2fkm8mumzulYWevAE_header.jpg",
+    "header": {
+      "type": "image",
+      "src": "/images/db_games/EpT2fkm8mumzulYWevAE_header.jpg"
+    }
+  },
+  {
+    "id": "Sp5NzbfzJqTXykL7nhZX",
+    "title": "Alchemyst",
+    "developer": "IndiePlay",
+    "price": "FREE",
+    "category": "Strategia",
+    "type": "browser",
+    "desc": "Gioco tra maghi! vinci a tutti i costi.",
+    "imageUrl": "/images/db_games/Sp5NzbfzJqTXykL7nhZX_header.jpg",
+    "header": {
+      "src": "/images/db_games/Sp5NzbfzJqTXykL7nhZX_header.jpg",
+      "type": "image"
+    }
+  },
+  {
+    "id": "YBkBNUyIB1EFNeanDsmj",
+    "title": "SuperGonp",
+    "developer": "IndiePlay",
+    "price": "FREE",
+    "category": "Azione",
+    "type": "download",
+    "desc": "SUPER GONP è un frenetico arcade neon dove riflessi, velocità e strategia si fondono in una sfida futuristica. Affronta avversari umani o controllati dall'IA, raccogli potenziamenti speciali e domina l'arena in partite rapide, spettacolari e sempre diverse. Facile da imparare, difficile da padroneggiare.\n\nSUPER GONP is a fast-paced neon arcade game where reflexes, speed, and strategy collide in a futuristic battle arena. Challenge friends or AI opponents, collect powerful upgrades, and outplay your rivals in intense matches filled with glowing action. Easy to learn, hard to master.\n\n\"Fast. Neon. Battle.\" ⚡🎮✨",
+    "imageUrl": "/images/db_games/YBkBNUyIB1EFNeanDsmj_header.jpg",
+    "header": {
+      "src": "/images/db_games/YBkBNUyIB1EFNeanDsmj_header.jpg",
+      "type": "image"
+    }
+  },
+  {
+    "id": "YgG9qwR68MKGHv10vDOe",
+    "title": "ROANOKE COLONY (alpha)",
+    "developer": "IndiePlay",
+    "price": "FREE",
+    "category": "Strategia",
+    "type": "online",
+    "desc": "In 1587, over 100 settlers mysteriously vanished from Roanoke Island, leaving behind only one chilling clue carved into a tree: \"CROATOAN\". What really happened to the Lost Colony?",
+    "imageUrl": "/images/db_games/YgG9qwR68MKGHv10vDOe_header.jpg",
+    "header": {
+      "type": "image",
+      "src": "/images/db_games/YgG9qwR68MKGHv10vDOe_header.jpg"
+    }
+  },
+  {
+    "id": "e1b606u96eDLVm0CkhF4",
+    "title": "Roguelike",
+    "developer": "IndiePlay",
+    "price": "FREE",
+    "category": "RPG",
+    "type": "browser",
+    "desc": "",
+    "imageUrl": "/images/db_games/e1b606u96eDLVm0CkhF4_header.jpg",
+    "header": {
+      "src": "/images/db_games/e1b606u96eDLVm0CkhF4_header.jpg",
+      "type": "image"
+    }
+  },
+  {
+    "id": "qyZeRMqIsAJXDuUkxA0r",
+    "title": "Antonio",
+    "developer": "Daniele Pomposelli (Venditore)",
+    "price": "0.0",
+    "category": "Indie",
+    "type": "download",
+    "desc": "",
+    "imageUrl": "https://r41tech.com/coverAntonio/AntonioCover.jpg",
+    "header": null
+  },
+  {
+    "id": "rCFzMZ0jdmTGxjhbKEen",
+    "title": "Serpe",
+    "developer": "Daniele Pomposelli ",
+    "price": "0",
+    "category": "Indie",
+    "type": "download",
+    "desc": "",
+    "imageUrl": "/images/serpe_cover.png",
+    "header": {
+      "src": "/images/serpe_cover.png",
+      "type": "image"
+    }
+  },
+  {
+    "id": "w8qRAah6nVOR0UapZCZQ",
+    "title": "SERPE",
+    "developer": "IndiePlay",
+    "price": "FREE",
+    "category": "Azione",
+    "type": "browser",
+    "desc": "",
+    "imageUrl": "/images/db_games/w8qRAah6nVOR0UapZCZQ_header.jpg",
+    "header": {
+      "src": "/images/db_games/w8qRAah6nVOR0UapZCZQ_header.jpg",
+      "type": "image"
+    }
+  }
+]

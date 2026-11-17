@@ -1,15 +1,45 @@
 import { db } from './firebase';
-import { 
-  collection, 
-  addDoc, 
-  getDocs, 
-  query, 
+import {
+  collection,
+  addDoc,
+  getDocs,
+  query,
   orderBy,
   limit,
   startAfter
 } from "firebase/firestore";
 
 const GAMES_COLLECTION = 'games';
+const FAST_CACHE_KEY = 'indieplay_fast_games_v3';
+
+export function getCachedGamesSync() {
+  try {
+    const raw = localStorage.getItem(FAST_CACHE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (e) {}
+  return null;
+}
+
+export function setCachedGamesSync(games) {
+  try {
+    // Store lightweight summary in localStorage for 0ms instant rendering
+    const slim = games.map(g => ({
+      id: g.id,
+      title: g.title || '',
+      developer: g.developer || 'IndiePlay',
+      price: g.price || 'FREE',
+      category: g.category || 'Indie',
+      type: g.type || 'download',
+      desc: g.desc || '',
+      imageUrl: g.imageUrl || (g.header && g.header.type === 'image' ? g.header.src : (g.gallery && g.gallery[0] ? g.gallery[0].src : '/images/placeholder.png')),
+      header: g.header && g.header.type === 'image' ? { type: 'image', src: g.header.src } : null
+    }));
+    localStorage.setItem(FAST_CACHE_KEY, JSON.stringify(slim));
+  } catch (e) {}
+}
 
 export const addGame = async (gameData) => {
   try {
@@ -65,39 +95,25 @@ export const getGames = async () => {
     querySnapshot.forEach((doc) => {
       games.push({ id: doc.id, ...doc.data() });
     });
-    return games;
+    if (games.length > 0) {
+      setCachedGamesSync(games);
+      return games;
+    }
   } catch (error) {
-    console.error("Error getting games: ", error);
-    // Return mock data if Firebase fails (useful for initial setup)
-    return [
-      {
-        id: '1',
-        title: 'CyberNeon Runner',
-        developer: 'NeonLabs',
-        price: '19.99',
-        imageUrl: '/images/cyberneon_runner_cover_1777108135472.png'
-      },
-      {
-        id: '2',
-        title: 'Mystic Grove',
-        developer: 'Woodland Tales',
-        price: '14.99',
-        imageUrl: '/images/mystic_grove_cover_1777108148651.png'
-      },
-      {
-        id: '3',
-        title: 'Void Star',
-        developer: 'Astro Games',
-        price: '24.99',
-        imageUrl: '/images/void_star_cover_1777108162772.png'
-      },
-      {
-        id: '4',
-        title: 'Card Quest',
-        developer: 'Ink & Paper',
-        price: '9.99',
-        imageUrl: '/images/card_quest_cover_1777108176295.png'
-      }
-    ];
+    console.error("Error getting games from Firestore: ", error);
   }
+
+  // Fallback to pre-generated static CDN cache if Firestore is still connecting
+  try {
+    const res = await fetch(`${import.meta.env.BASE_URL}games-fast-cache.json`);
+    if (res.ok) {
+      const staticGames = await res.json();
+      if (Array.isArray(staticGames) && staticGames.length > 0) {
+        setCachedGamesSync(staticGames);
+        return staticGames;
+      }
+    }
+  } catch (e) {}
+
+  return getCachedGamesSync() || [];
 };

@@ -1,5 +1,5 @@
 import { registerUser, loginUser, logoutUser, subscribeToAuthChanges, loginWithGoogle } from './src/auth';
-import { getGames, getGamesPaged } from './src/store';
+import { getGames, getGamesPaged, getCachedGamesSync } from './src/store';
 import { db, auth } from './src/firebase';
 import { doc, getDoc, collection, getDocs, query, orderBy, limit } from "firebase/firestore";
 import { initLanguageSelectors, translations, getLanguage, autoTranslateDOM } from './src/i18n';
@@ -236,7 +236,7 @@ function createGameCard(game) {
     const imgUrl = getAssetUrl(game.imageUrl);
     const placeholderUrl = getAssetUrl('/images/placeholder.png');
     card.innerHTML = `
-        <img src="${imgUrl}" alt="${game.title}" onerror="this.onerror=null; this.src='${placeholderUrl}'">
+        <img src="${imgUrl}" alt="${game.title}" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='${placeholderUrl}'">
         <div class="card-info">
             <span class="prime-tag" style="color: #00a8e1; font-weight: bold; font-size: 0.8rem;">${includedTag}</span>
             <h3>${game.title}</h3>
@@ -359,7 +359,8 @@ const loadGames = async () => {
   if (gameList) {
     gameList.innerHTML = '';
     lastVisibleGameDoc = null;
-    await fetchNextGamesPage();
+    allGames.slice(0, PAGE_SIZE).forEach(game => gameList.appendChild(createGameCard(game)));
+    loadMoreBtn?.classList.add('hidden');
   }
 
   // Cleanup empty grids
