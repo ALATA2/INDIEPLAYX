@@ -43,6 +43,10 @@ const DEFAULT_MAGAZINE_ARTICLES = [
     readTime: '6 min',
     coverImg: '/images/merch_neon_samurai_poster.png',
     gallery: ['/images/neon_samurai_screenshot_1_1777200476248.png'],
+    linkedGameTitle: 'Alchemyst',
+    linkedDev: 'NeonLabs',
+    youtubeUrl: 'https://www.youtube.com/watch?v=dgITt4-wF6Y',
+    likes: 24,
     summary: 'Come le nuove Vetrine Sviluppatore, il Cloud Gaming istantaneo e la distribuzione diretta stanno cambiando il modo di creare e vendere videogiochi indipendenti.',
     content: `Il panorama dello sviluppo indipendente sta vivendo una trasformazione storica. Con il lancio delle nuove Vetrine Sviluppatore su IndiePlay-X, ogni studio — dal singolo creatore nella propria stanza ai team strutturati come NeonLabs — dispone finalmente di uno spazio social e commerciale completo.
 
@@ -59,7 +63,11 @@ Inoltre, l'integrazione del merchandising ufficiale direttamente nella scheda de
     date: 'Novembre 2026',
     readTime: '5 min',
     coverImg: '/images/neon_samurai_screenshot_1_1777200476248.png',
-    gallery: [],
+    gallery: ['/images/neon_samurai_screenshot_2_1777200491479.png', '/images/neon_samurai_screenshot_3_1777200504709.png'],
+    linkedGameTitle: 'Neon Samurai',
+    linkedDev: 'NeonLabs',
+    youtubeUrl: '',
+    likes: 18,
     summary: 'Un viaggio nel level design, nella colonna sonora synthwave e nelle tecniche di ottimizzazione grafica che hanno reso Neon Samurai uno dei titoli più giocati.',
     content: `Abbiamo incontrato il team di NeonLabs per scoprire come è nato il sistema di combattimento all'arma bianca di Neon Samurai.
 
@@ -77,6 +85,10 @@ Lo studio ha inoltre annunciato tre nuovi capitoli arcade retrò ispirati all'ep
     readTime: '4 min',
     coverImg: '/images/merch_tshirt_mockup_1787498735596.png',
     gallery: [],
+    linkedGameTitle: '',
+    linkedDev: 'IndiePlay',
+    youtubeUrl: 'https://www.youtube.com/watch?v=gbRqg1oY8hs',
+    likes: 15,
     summary: 'I consigli pratici per configurare il proprio profilo venditore, comprimere gli asset grafici sotto i 300KB e massimizzare le conversioni.',
     content: `Pubblicare un videogioco è solo metà dell'opera: presentarlo al meglio ai giocatori è ciò che determina il successo commerciale.
 
@@ -308,6 +320,23 @@ export async function syncMagazineFromCloud() {
   } catch (e) {}
 }
 
+let currentMagazineCategory = 'TUTTE';
+let editingMagazineArticleId = null;
+
+function extractYouTubeEmbedUrl(url) {
+  if (!url || typeof url !== 'string') return '';
+  const match = url.trim().match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{11})/);
+  return match ? `https://www.youtube.com/embed/${match[1]}` : '';
+}
+
+function getLikedMagazineIds() {
+  try {
+    return JSON.parse(localStorage.getItem('indieplay_mag_likes_v1') || '[]');
+  } catch (e) {
+    return [];
+  }
+}
+
 export function initMagazineSystem() {
   const magSection = document.getElementById('magazine-section');
   if (!magSection) return;
@@ -315,6 +344,18 @@ export function initMagazineSystem() {
   injectMagazineModals();
   renderMagazineSection();
   syncMagazineFromCloud();
+
+  // Deep-link: apri direttamente l'articolo condiviso se presente ?article=<id>
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const articleId = params.get('article');
+    if (articleId) {
+      const target = getMagazineArticles().find(a => a.id === articleId);
+      if (target) {
+        setTimeout(() => openMagazineReaderModal(target), 250);
+      }
+    }
+  } catch (e) {}
 
   window.addEventListener('indieplay:langchange', () => {
     autoTranslateDOM(getLanguage());
@@ -329,9 +370,46 @@ function renderMagazineSection() {
   const articles = getMagazineArticles();
   const assetHelper = window.getAssetUrl || ((p) => p);
 
+  const categories = ['TUTTE', ...new Set(articles.map(a => (a.category || 'EDITORIALE').toUpperCase()))];
+  if (!categories.includes(currentMagazineCategory)) currentMagazineCategory = 'TUTTE';
+
+  const filtered = currentMagazineCategory === 'TUTTE'
+    ? articles
+    : articles.filter(a => (a.category || 'EDITORIALE').toUpperCase() === currentMagazineCategory);
+
+  const coverStory = (currentMagazineCategory === 'TUTTE' && filtered.length > 0) ? filtered[0] : null;
+  const gridArticles = coverStory ? filtered.slice(1) : filtered;
+  const likedIds = getLikedMagazineIds();
+
+  const renderCardActions = (art) => {
+    const liked = likedIds.includes(art.id);
+    const likesCount = Number(art.likes || 0);
+    return `
+      <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+        <button class="btn btn-prime-outline like-mag-btn" data-art-id="${art.id}" title="Mi piace" style="padding: 0.42rem 0.7rem; font-size: 0.78rem; border-color: ${liked ? '#f43f5e' : 'rgba(255,255,255,0.18)'}; color: ${liked ? '#fb7185' : '#cbd5e1'};">
+          <i class="${liked ? 'fas' : 'far'} fa-heart"></i> <span>${likesCount}</span>
+        </button>
+        <button class="btn btn-prime-outline share-mag-btn" data-art-id="${art.id}" title="Condividi link articolo" style="padding: 0.42rem 0.7rem; font-size: 0.78rem;">
+          <i class="fas fa-share-alt"></i>
+        </button>
+        ${isEditor ? `
+          <button class="btn btn-prime-outline edit-mag-article-btn" data-art-id="${art.id}" title="Modifica articolo" style="padding: 0.42rem 0.7rem; font-size: 0.78rem; border-color: #fbbf24; color: #fbbf24;">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button class="btn btn-prime-outline delete-mag-article-btn" data-art-id="${art.id}" title="Elimina articolo" style="padding: 0.42rem 0.7rem; font-size: 0.78rem; border-color: #ef4444; color: #f87171;">
+            <i class="fas fa-trash"></i>
+          </button>
+        ` : ''}
+        <button class="btn btn-prime read-mag-article-btn" data-art-id="${art.id}" style="padding: 0.48rem 0.95rem; font-size: 0.82rem; font-weight: 700;">
+          <i class="fas fa-book-open"></i> <span data-i18n="mag_read_btn">Leggi Articolo</span>
+        </button>
+      </div>
+    `;
+  };
+
   magSection.style.opacity = '1';
   magSection.innerHTML = `
-    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-top: 1rem; margin-bottom: 1.5rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-top: 1rem; margin-bottom: 1.1rem;">
       <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
         <h2 style="margin: 0; font-size: 1.6rem; color: white; font-weight: 900;" data-i18n="title_magazine">IndiePlay Magazine</h2>
         <span style="background: rgba(0, 168, 225, 0.2); border: 1px solid var(--prime-blue); color: #38bdf8; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 800; letter-spacing: 0.5px;">
@@ -354,43 +432,90 @@ function renderMagazineSection() {
       </div>
     </div>
 
-    <!-- Griglia Pubblica degli Articoli del Magazine (Sempre visibile a tutti gli utenti) -->
+    <!-- Filtri per Rubrica / Categoria -->
+    <div class="mag-category-filters" style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 0.8rem; margin-bottom: 1.2rem; scrollbar-width: none;">
+      ${categories.map(cat => {
+        const active = cat === currentMagazineCategory;
+        return `
+          <button type="button" class="mag-cat-pill" data-cat="${cat}" style="white-space: nowrap; padding: 6px 14px; border-radius: 999px; font-size: 0.78rem; font-weight: 800; cursor: pointer; border: 1px solid ${active ? 'var(--prime-blue)' : 'rgba(255,255,255,0.14)'}; background: ${active ? 'var(--prime-blue)' : 'rgba(255,255,255,0.04)'}; color: white; transition: all 0.2s ease;">
+            ${cat === 'TUTTE' ? '✦ Tutte le Rubriche' : cat}
+          </button>
+        `;
+      }).join('')}
+    </div>
+
+    ${coverStory ? `
+      <!-- Cover Story in Primo Piano -->
+      <article class="mag-cover-story" style="background: linear-gradient(135deg, rgba(0, 168, 225, 0.08), rgba(255, 255, 255, 0.02)); border: 1px solid rgba(0, 168, 225, 0.35); border-radius: 14px; overflow: hidden; display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); margin-bottom: 1.8rem;">
+        <div class="read-mag-article-trigger" data-art-id="${coverStory.id}" style="min-height: 250px; background: url('${assetHelper(coverStory.coverImg)}') no-repeat center center; background-size: cover; position: relative; cursor: pointer;">
+          <span style="position: absolute; top: 14px; left: 14px; background: linear-gradient(135deg, #f59e0b, #ea580c); color: white; padding: 4px 12px; border-radius: 6px; font-size: 0.74rem; font-weight: 900; box-shadow: 0 4px 12px rgba(0,0,0,0.4);">
+            <i class="fas fa-star"></i> IN COPERTINA • ${coverStory.category || 'COVER STORY'}
+          </span>
+          ${coverStory.youtubeUrl ? `<span style="position: absolute; bottom: 12px; left: 12px; background: rgba(220, 38, 38, 0.9); color: white; padding: 3px 10px; border-radius: 4px; font-size: 0.72rem; font-weight: 800;"><i class="fab fa-youtube"></i> Video Inclusi</span>` : ''}
+        </div>
+        <div style="padding: 1.6rem; display: flex; flex-direction: column; justify-content: space-between; gap: 1rem;">
+          <div>
+            <div style="font-size: 0.82rem; color: var(--prime-blue); font-weight: 800; margin-bottom: 6px;">
+              ${coverStory.issue || 'Numero #1'} • ${coverStory.date || '2026'} • <i class="far fa-clock"></i> ${coverStory.readTime || '5 min'}
+            </div>
+            <h3 class="read-mag-article-trigger" data-art-id="${coverStory.id}" style="color: white; font-size: 1.45rem; font-weight: 900; line-height: 1.28; margin-bottom: 0.75rem; cursor: pointer;">${coverStory.title}</h3>
+            <p style="color: #cbd5e1; font-size: 0.94rem; line-height: 1.6; margin-bottom: 0.9rem;">${coverStory.summary}</p>
+            ${(coverStory.linkedGameTitle || coverStory.linkedDev) ? `
+              <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 0.4rem;">
+                ${coverStory.linkedGameTitle ? `<span style="background: rgba(16,185,129,0.14); border: 1px solid rgba(16,185,129,0.35); color: #34d399; padding: 3px 10px; border-radius: 6px; font-size: 0.74rem; font-weight: 700;"><i class="fas fa-gamepad"></i> Gioco: ${coverStory.linkedGameTitle}</span>` : ''}
+                ${coverStory.linkedDev ? `<span style="background: rgba(56,189,248,0.14); border: 1px solid rgba(56,189,248,0.35); color: #38bdf8; padding: 3px 10px; border-radius: 6px; font-size: 0.74rem; font-weight: 700;"><i class="fas fa-user-astronaut"></i> Studio: ${coverStory.linkedDev}</span>` : ''}
+              </div>
+            ` : ''}
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 0.9rem;">
+            <span style="font-size: 0.8rem; color: var(--text-gray); font-weight: 600;"><i class="fas fa-pen-nib"></i> ${coverStory.author || 'Redazione'}</span>
+            ${renderCardActions(coverStory)}
+          </div>
+        </div>
+      </article>
+    ` : ''}
+
+    <!-- Griglia Pubblica degli Articoli del Magazine (Scrollabile su Mobile) -->
     <div class="magazine-articles-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(295px, 1fr)); gap: 1.5rem;">
-      ${articles.map((art, idx) => `
+      ${gridArticles.map((art) => `
         <article class="mag-article-card" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.25s ease, border-color 0.25s ease;">
           <div>
-            <div style="height: 185px; background: url('${assetHelper(art.coverImg)}') no-repeat center center; background-size: cover; position: relative; cursor: pointer;" class="read-mag-article-trigger" data-idx="${idx}">
+            <div style="height: 185px; background: url('${assetHelper(art.coverImg)}') no-repeat center center; background-size: cover; position: relative; cursor: pointer;" class="read-mag-article-trigger" data-art-id="${art.id}">
               <span style="position: absolute; top: 12px; left: 12px; background: var(--prime-blue); color: white; padding: 3px 10px; border-radius: 4px; font-size: 0.72rem; font-weight: 800;">${art.category || 'EDITORIALE'}</span>
               ${Array.isArray(art.gallery) && art.gallery.length > 0 ? `
                 <span style="position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.75); color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.72rem; font-weight: 700;">
                   <i class="fas fa-images"></i> +${art.gallery.length} foto
                 </span>
               ` : ''}
+              ${art.youtubeUrl ? `
+                <span style="position: absolute; bottom: 10px; left: 10px; background: rgba(220,38,38,0.9); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 800;">
+                  <i class="fab fa-youtube"></i> Video
+                </span>
+              ` : ''}
               <span style="position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.75); color: #e2e8f0; padding: 2px 8px; border-radius: 4px; font-size: 0.72rem; font-weight: 600;"><i class="far fa-clock"></i> ${art.readTime || '5 min'}</span>
             </div>
             <div style="padding: 1.3rem;">
               <div style="font-size: 0.78rem; color: var(--prime-blue); font-weight: 700; margin-bottom: 4px;">${art.issue || 'Numero #1'} • ${art.date || '2026'}</div>
-              <h3 style="color: white; font-size: 1.12rem; font-weight: 800; line-height: 1.35; margin-bottom: 10px; cursor: pointer;" class="read-mag-article-trigger" data-idx="${idx}">${art.title}</h3>
+              <h3 style="color: white; font-size: 1.12rem; font-weight: 800; line-height: 1.35; margin-bottom: 10px; cursor: pointer;" class="read-mag-article-trigger" data-art-id="${art.id}">${art.title}</h3>
               <p style="color: var(--text-gray); font-size: 0.88rem; line-height: 1.55; margin-bottom: 1rem;">${art.summary}</p>
             </div>
           </div>
           <div style="padding: 0 1.3rem 1.3rem; display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
             <span style="font-size: 0.78rem; color: var(--text-gray); font-weight: 600;"><i class="fas fa-pen-nib"></i> ${art.author || 'Redazione'}</span>
-            <div style="display: flex; gap: 6px;">
-              ${isEditor ? `
-                <button class="btn btn-prime-outline delete-mag-article-btn" data-idx="${idx}" title="Elimina articolo" style="padding: 0.45rem 0.75rem; font-size: 0.78rem; border-color: #ef4444; color: #f87171;">
-                  <i class="fas fa-trash"></i>
-                </button>
-              ` : ''}
-              <button class="btn btn-prime read-mag-article-btn" data-idx="${idx}" style="padding: 0.5rem 1rem; font-size: 0.82rem; font-weight: 700;">
-                <i class="fas fa-book-open"></i> <span data-i18n="mag_read_btn">Leggi Articolo</span>
-              </button>
-            </div>
+            ${renderCardActions(art)}
           </div>
         </article>
       `).join('')}
     </div>
   `;
+
+  // Wire category filter pills
+  magSection.querySelectorAll('.mag-cat-pill').forEach(pill => {
+    pill.onclick = () => {
+      currentMagazineCategory = pill.getAttribute('data-cat') || 'TUTTE';
+      renderMagazineSection();
+    };
+  });
 
   // Wire Editorial Login button
   const openLoginBtn = document.getElementById('open-mag-login-btn');
@@ -418,17 +543,61 @@ function renderMagazineSection() {
     };
   }
 
-  // Wire Open CMS Modal
+  // Wire Open CMS Modal (New Article)
   const openCmsBtn = document.getElementById('open-mag-cms-btn');
   if (openCmsBtn) {
-    openCmsBtn.onclick = () => openMagazineCmsModal();
+    openCmsBtn.onclick = () => openMagazineCmsModal(null);
   }
 
   // Wire Read Article triggers (public for everyone)
   magSection.querySelectorAll('.read-mag-article-btn, .read-mag-article-trigger').forEach(el => {
     el.onclick = () => {
-      const idx = parseInt(el.getAttribute('data-idx'), 10);
-      openMagazineReaderModal(articles[idx]);
+      const id = el.getAttribute('data-art-id');
+      const found = articles.find(a => a.id === id);
+      openMagazineReaderModal(found);
+    };
+  });
+
+  // Wire Like buttons
+  magSection.querySelectorAll('.like-mag-btn').forEach(btn => {
+    btn.onclick = async (e) => {
+      e.stopPropagation();
+      const id = btn.getAttribute('data-art-id');
+      const liked = getLikedMagazineIds();
+      const alreadyLiked = liked.includes(id);
+      const nextLiked = alreadyLiked ? liked.filter(x => x !== id) : [...liked, id];
+      localStorage.setItem('indieplay_mag_likes_v1', JSON.stringify(nextLiked));
+
+      const updated = articles.map(a => {
+        if (a.id !== id) return a;
+        const baseLikes = Number(a.likes || 0);
+        return { ...a, likes: Math.max(0, baseLikes + (alreadyLiked ? -1 : 1)) };
+      });
+      await saveMagazineArticles(updated);
+      renderMagazineSection();
+    };
+  });
+
+  // Wire Share buttons
+  magSection.querySelectorAll('.share-mag-btn').forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      const id = btn.getAttribute('data-art-id');
+      const shareUrl = `${window.location.origin}${window.location.pathname}?article=${encodeURIComponent(id)}`;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(shareUrl).catch(() => {});
+      }
+      if (window.showToast) window.showToast('Link diretto dell\'articolo copiato negli appunti!', 'success');
+    };
+  });
+
+  // Wire Edit Article buttons (only visible in Editorial mode)
+  magSection.querySelectorAll('.edit-mag-article-btn').forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      const id = btn.getAttribute('data-art-id');
+      const found = articles.find(a => a.id === id);
+      if (found) openMagazineCmsModal(found);
     };
   });
 
@@ -436,8 +605,8 @@ function renderMagazineSection() {
   magSection.querySelectorAll('.delete-mag-article-btn').forEach(btn => {
     btn.onclick = async (e) => {
       e.stopPropagation();
-      const idx = parseInt(btn.getAttribute('data-idx'), 10);
-      const updated = articles.filter((_, i) => i !== idx);
+      const id = btn.getAttribute('data-art-id');
+      const updated = articles.filter(a => a.id !== id);
       await saveMagazineArticles(updated);
       renderMagazineSection();
       if (window.showToast) window.showToast('Articolo rimosso dal Magazine.', 'info');
@@ -488,12 +657,18 @@ function injectMagazineModals() {
       </div>
     </div>
 
-    <!-- Modal CMS Redazione Magazine (Caricamento Articoli + Upload Foto) -->
+    <!-- Lightbox Ingrandimento Foto Articolo Magazine -->
+    <div id="magazine-photo-lightbox" class="lightbox" style="display: none; justify-content: center; align-items: center; z-index: 3300; background: rgba(0,0,0,0.92);">
+      <span class="close-lightbox" id="close-mag-photo-lightbox" style="position: absolute; top: 1.2rem; right: 1.8rem; font-size: 2.8rem; cursor: pointer; color: white;">&times;</span>
+      <img id="magazine-photo-lightbox-img" src="" alt="Foto Ingrandita" style="max-width: 92vw; max-height: 88vh; border-radius: 10px; box-shadow: 0 20px 60px rgba(0,0,0,0.9); object-fit: contain;">
+    </div>
+
+    <!-- Modal CMS Redazione Magazine (Caricamento & Modifica Articoli + Upload Foto) -->
     <div id="magazine-cms-modal" class="lightbox" style="display: none; justify-content: center; align-items: center; z-index: 3100;">
-      <div class="modal-content glass" style="background: rgba(18, 26, 36, 0.99); border: 1px solid rgba(0, 168, 225, 0.45); border-radius: 16px; padding: 2rem; max-width: 700px; width: 94%; max-height: 90vh; overflow-y: auto; color: white; position: relative;">
+      <div class="modal-content glass" style="background: rgba(18, 26, 36, 0.99); border: 1px solid rgba(0, 168, 225, 0.45); border-radius: 16px; padding: 2rem; max-width: 720px; width: 94%; max-height: 90vh; overflow-y: auto; color: white; position: relative;">
         <span class="close-lightbox" id="close-mag-cms" style="position: absolute; top: 0.8rem; right: 1.2rem; font-size: 2.2rem; cursor: pointer; color: var(--text-gray);">&times;</span>
-        <h3 style="font-size: 1.35rem; font-weight: 800; margin-bottom: 0.3rem;"><i class="fas fa-feather-alt" style="color: var(--prime-blue);"></i> Carica Nuovo Articolo & Foto nel Magazine</h3>
-        <p style="font-size: 0.84rem; color: var(--text-gray); margin-bottom: 1.2rem;">Compila il testo e carica la foto di copertina o una galleria fotografica direttamente dal tuo dispositivo.</p>
+        <h3 id="cms-mag-modal-heading" style="font-size: 1.35rem; font-weight: 800; margin-bottom: 0.3rem;"><i class="fas fa-feather-alt" style="color: var(--prime-blue);"></i> Carica Nuovo Articolo & Foto nel Magazine</h3>
+        <p style="font-size: 0.84rem; color: var(--text-gray); margin-bottom: 1.2rem;">Compila il testo, collega un gioco o uno studio, aggiungi un video YouTube o carica foto direttamente dal tuo dispositivo.</p>
         <form id="magazine-cms-form" style="display: flex; flex-direction: column; gap: 0.9rem;">
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem;">
             <div>
@@ -553,7 +728,21 @@ function injectMagazineModals() {
             <label style="font-size: 0.78rem; color: var(--text-gray); font-weight: 700;">Testo Completo dell'Articolo</label>
             <textarea id="cms-mag-content" rows="5" required placeholder="Scrivi qui l'articolo completo..." style="width: 100%; padding: 10px; background: #111922; border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: white;"></textarea>
           </div>
-          <button type="submit" class="btn btn-prime" style="padding: 0.95rem; font-weight: 800; justify-content: center;">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 0.8rem;">
+            <div>
+              <label style="font-size: 0.78rem; color: var(--text-gray); font-weight: 700;"><i class="fab fa-youtube" style="color: #ef4444;"></i> Video YouTube (Opzionale)</label>
+              <input type="text" id="cms-mag-yt" placeholder="https://www.youtube.com/watch?v=..." style="width: 100%; padding: 9px; background: #111922; border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: white; font-size: 0.84rem;">
+            </div>
+            <div>
+              <label style="font-size: 0.78rem; color: var(--text-gray); font-weight: 700;"><i class="fas fa-gamepad" style="color: #34d399;"></i> Gioco Collegato (Opzionale)</label>
+              <input type="text" id="cms-mag-game" placeholder="Es. Alchemyst, Neon Samurai" style="width: 100%; padding: 9px; background: #111922; border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: white; font-size: 0.84rem;">
+            </div>
+            <div>
+              <label style="font-size: 0.78rem; color: var(--text-gray); font-weight: 700;"><i class="fas fa-user-astronaut" style="color: #38bdf8;"></i> Studio / Creator (Opzionale)</label>
+              <input type="text" id="cms-mag-dev" placeholder="Es. NeonLabs, Astro Games" style="width: 100%; padding: 9px; background: #111922; border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: white; font-size: 0.84rem;">
+            </div>
+          </div>
+          <button type="submit" id="cms-mag-submit-btn" class="btn btn-prime" style="padding: 0.95rem; font-weight: 800; justify-content: center;">
             <i class="fas fa-paper-plane"></i> Pubblica Articolo e Foto nel Magazine
           </button>
         </form>
@@ -569,6 +758,10 @@ function injectMagazineModals() {
   document.getElementById('close-mag-auth').onclick = () => (authModal.style.display = 'none');
   document.getElementById('close-mag-reader').onclick = () => (readerModal.style.display = 'none');
   document.getElementById('close-mag-cms').onclick = () => (cmsModal.style.display = 'none');
+  const photoLb = document.getElementById('magazine-photo-lightbox');
+  const closePhotoLb = document.getElementById('close-mag-photo-lightbox');
+  if (closePhotoLb && photoLb) closePhotoLb.onclick = () => (photoLb.style.display = 'none');
+  if (photoLb) photoLb.onclick = (e) => { if (e.target === photoLb) photoLb.style.display = 'none'; };
 
   // Handle cover file upload
   const coverFileInput = document.getElementById('cms-mag-cover-file');
@@ -630,26 +823,37 @@ function injectMagazineModals() {
     e.preventDefault();
     const articles = getMagazineArticles();
     const coverImg = pendingCoverDataUrl || document.getElementById('cms-mag-img').value.trim() || '/images/merch_neon_samurai_poster.png';
-    const newArt = {
-      id: 'mag-art-' + Date.now(),
+    const existingArt = editingMagazineArticleId ? articles.find(a => a.id === editingMagazineArticleId) : null;
+
+    const artPayload = {
+      id: editingMagazineArticleId || ('mag-art-' + Date.now()),
       issue: document.getElementById('cms-mag-issue').value.trim(),
       category: document.getElementById('cms-mag-cat').value.trim().toUpperCase(),
       title: document.getElementById('cms-mag-title').value.trim(),
       author: document.getElementById('cms-mag-author').value.trim(),
-      date: new Date().toLocaleDateString('it-IT', { month: 'long', year: 'numeric' }),
+      date: existingArt ? existingArt.date : new Date().toLocaleDateString('it-IT', { month: 'long', year: 'numeric' }),
       readTime: document.getElementById('cms-mag-readtime').value.trim() || '5 min',
       coverImg,
-      gallery: [...pendingGalleryDataUrls],
+      gallery: pendingGalleryDataUrls.length > 0 ? [...pendingGalleryDataUrls] : (existingArt && Array.isArray(existingArt.gallery) ? existingArt.gallery : []),
+      youtubeUrl: document.getElementById('cms-mag-yt').value.trim(),
+      linkedGameTitle: document.getElementById('cms-mag-game').value.trim(),
+      linkedDev: document.getElementById('cms-mag-dev').value.trim(),
+      likes: existingArt ? (existingArt.likes || 0) : 0,
       summary: document.getElementById('cms-mag-summary').value.trim(),
       content: document.getElementById('cms-mag-content').value.trim()
     };
-    articles.unshift(newArt);
-    await saveMagazineArticles(articles);
+
+    const nextArticles = editingMagazineArticleId
+      ? articles.map(a => (a.id === editingMagazineArticleId ? artPayload : a))
+      : [artPayload, ...articles];
+
+    await saveMagazineArticles(nextArticles);
+    editingMagazineArticleId = null;
     pendingCoverDataUrl = '';
     pendingGalleryDataUrls = [];
     cmsModal.style.display = 'none';
     renderMagazineSection();
-    if (window.showToast) window.showToast('Articolo e foto pubblicati nel Magazine!', 'success');
+    if (window.showToast) window.showToast(existingArt ? 'Articolo aggiornato con successo!' : 'Articolo e foto pubblicati nel Magazine!', 'success');
   };
 }
 
@@ -664,40 +868,158 @@ function openMagazineReaderModal(article) {
     .map(p => `<p style="margin-bottom: 1rem; line-height: 1.75; color: #e2e8f0; font-size: 1rem;">${p}</p>`)
     .join('');
 
+  const ytEmbed = extractYouTubeEmbedUrl(article.youtubeUrl || '');
+  const youtubeHtml = ytEmbed
+    ? `
+      <div style="margin: 1.4rem 0; border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,0.12); background: #000;">
+        <div style="position: relative; padding-bottom: 56.25%; height: 0;">
+          <iframe src="${ytEmbed}" loading="lazy" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;" allowfullscreen></iframe>
+        </div>
+      </div>
+    `
+    : '';
+
   const galleryHtml = Array.isArray(article.gallery) && article.gallery.length > 0
     ? `
       <div style="margin-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.2rem;">
-        <h4 style="color: white; font-size: 1rem; margin-bottom: 0.8rem;"><i class="fas fa-images" style="color: var(--prime-blue);"></i> Galleria Fotografica dell'Articolo</h4>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;">
-          ${article.gallery.map(img => `<img src="${assetHelper(img)}" alt="Foto Articolo" style="width: 100%; height: 140px; object-fit: cover; border-radius: 8px; border: 1px solid rgba(255,255,255,0.12);">`).join('')}
+        <h4 style="color: white; font-size: 1rem; margin-bottom: 0.8rem;"><i class="fas fa-images" style="color: var(--prime-blue);"></i> Galleria Fotografica dell'Articolo (clicca per ingrandire)</h4>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); gap: 10px;">
+          ${article.gallery.map(img => `<img src="${assetHelper(img)}" class="mag-zoomable-photo" alt="Foto Articolo" style="width: 100%; height: 140px; object-fit: cover; border-radius: 8px; border: 1px solid rgba(255,255,255,0.14); cursor: zoom-in;">`).join('')}
+        </div>
+      </div>
+    `
+    : '';
+
+  const ctaHtml = (article.linkedGameTitle || article.linkedDev)
+    ? `
+      <div style="margin-top: 1.5rem; background: rgba(0, 168, 225, 0.08); border: 1px solid rgba(0, 168, 225, 0.35); border-radius: 12px; padding: 1.1rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
+        <div>
+          <strong style="color: white; font-size: 0.95rem; display: block;">Esplora su IndiePlay-X</strong>
+          <span style="font-size: 0.8rem; color: var(--text-gray);">Scopri il gioco o visita la vetrina social dello sviluppatore citato nell'articolo.</span>
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          ${article.linkedGameTitle ? `
+            <button type="button" id="mag-reader-go-game" class="btn btn-prime" style="padding: 0.55rem 1rem; font-size: 0.82rem; font-weight: 800;">
+              <i class="fas fa-gamepad"></i> Vai a ${article.linkedGameTitle}
+            </button>
+          ` : ''}
+          ${article.linkedDev ? `
+            <a href="showcase.html?dev=${encodeURIComponent(article.linkedDev)}" class="btn btn-prime-outline" style="padding: 0.55rem 1rem; font-size: 0.82rem; font-weight: 700; text-decoration: none;">
+              <i class="fas fa-user-astronaut"></i> Profilo ${article.linkedDev}
+            </a>
+          ` : ''}
         </div>
       </div>
     `
     : '';
 
   body.innerHTML = `
-    <div style="height: 240px; background: url('${assetHelper(article.coverImg)}') no-repeat center center; background-size: cover; border-radius: 10px; margin-bottom: 1.4rem; position: relative;">
+    <div class="mag-zoomable-photo" data-src="${assetHelper(article.coverImg)}" style="height: 245px; background: url('${assetHelper(article.coverImg)}') no-repeat center center; background-size: cover; border-radius: 10px; margin-bottom: 1.4rem; position: relative; cursor: zoom-in;">
       <span style="position: absolute; top: 12px; left: 12px; background: var(--prime-blue); color: white; padding: 4px 12px; border-radius: 4px; font-size: 0.75rem; font-weight: 800;">${article.category}</span>
+      <span style="position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.72); color: white; padding: 3px 9px; border-radius: 4px; font-size: 0.72rem;"><i class="fas fa-search-plus"></i> Ingrandisci</span>
     </div>
-    <div style="font-size: 0.85rem; color: var(--prime-blue); font-weight: 700; margin-bottom: 6px;">${article.issue} • ${article.date} • ${article.author}</div>
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 6px;">
+      <div style="font-size: 0.85rem; color: var(--prime-blue); font-weight: 700;">${article.issue} • ${article.date} • ${article.author}</div>
+      <button type="button" id="mag-reader-share-btn" class="btn btn-prime-outline" style="padding: 4px 10px; font-size: 0.76rem; font-weight: 700;">
+        <i class="fas fa-share-alt"></i> Condividi Articolo
+      </button>
+    </div>
     <h2 style="font-size: 1.65rem; font-weight: 900; color: white; margin-bottom: 1.2rem; line-height: 1.3;">${article.title}</h2>
     <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.2rem;">
       ${paragraphs}
     </div>
+    ${youtubeHtml}
     ${galleryHtml}
+    ${ctaHtml}
   `;
+
+  // Wire zoomable photos
+  body.querySelectorAll('.mag-zoomable-photo').forEach(el => {
+    el.onclick = () => {
+      const lb = document.getElementById('magazine-photo-lightbox');
+      const lbImg = document.getElementById('magazine-photo-lightbox-img');
+      const src = el.getAttribute('src') || el.getAttribute('data-src');
+      if (lb && lbImg && src) {
+        lbImg.src = src;
+        lb.style.display = 'flex';
+      }
+    };
+  });
+
+  // Wire Share button in reader
+  const shareBtn = document.getElementById('mag-reader-share-btn');
+  if (shareBtn) {
+    shareBtn.onclick = () => {
+      const shareUrl = `${window.location.origin}${window.location.pathname}?article=${encodeURIComponent(article.id)}`;
+      if (navigator.clipboard) navigator.clipboard.writeText(shareUrl).catch(() => {});
+      if (window.showToast) window.showToast('Link diretto dell\'articolo copiato negli appunti!', 'success');
+    };
+  }
+
+  // Wire Go to Game CTA
+  const goGameBtn = document.getElementById('mag-reader-go-game');
+  if (goGameBtn && article.linkedGameTitle) {
+    goGameBtn.onclick = () => {
+      try {
+        const cached = JSON.parse(localStorage.getItem('indieplay_fast_games_v3') || '[]');
+        const target = article.linkedGameTitle.toLowerCase();
+        const found = cached.find(g => g.title && g.title.toLowerCase().includes(target));
+        if (found) {
+          window.location.href = `game.html?id=${encodeURIComponent(found.id)}`;
+          return;
+        }
+      } catch (e) {}
+      window.location.href = `index.html?search=${encodeURIComponent(article.linkedGameTitle)}`;
+    };
+  }
+
   readerModal.style.display = 'flex';
 }
 
-function openMagazineCmsModal() {
-  pendingCoverDataUrl = '';
-  pendingGalleryDataUrls = [];
+function openMagazineCmsModal(articleToEdit = null) {
+  editingMagazineArticleId = articleToEdit ? articleToEdit.id : null;
+  pendingCoverDataUrl = articleToEdit ? (articleToEdit.coverImg || '') : '';
+  pendingGalleryDataUrls = articleToEdit && Array.isArray(articleToEdit.gallery) ? [...articleToEdit.gallery] : [];
+
+  const heading = document.getElementById('cms-mag-modal-heading');
+  const submitBtn = document.getElementById('cms-mag-submit-btn');
+  if (heading) {
+    heading.innerHTML = articleToEdit
+      ? '<i class="fas fa-edit" style="color: #fbbf24;"></i> Modifica Articolo Magazine'
+      : '<i class="fas fa-feather-alt" style="color: var(--prime-blue);"></i> Carica Nuovo Articolo & Foto nel Magazine';
+  }
+  if (submitBtn) {
+    submitBtn.innerHTML = articleToEdit
+      ? '<i class="fas fa-save"></i> Salva Modifiche Articolo'
+      : '<i class="fas fa-paper-plane"></i> Pubblica Articolo e Foto nel Magazine';
+  }
+
+  document.getElementById('cms-mag-issue').value = articleToEdit ? (articleToEdit.issue || '') : 'Numero #1 — Speciale';
+  document.getElementById('cms-mag-cat').value = articleToEdit ? (articleToEdit.category || 'EDITORIALE') : 'EDITORIALE';
+  document.getElementById('cms-mag-title').value = articleToEdit ? (articleToEdit.title || '') : '';
+  document.getElementById('cms-mag-author').value = articleToEdit ? (articleToEdit.author || '') : 'Redazione IndiePlay-X';
+  document.getElementById('cms-mag-readtime').value = articleToEdit ? (articleToEdit.readTime || '5 min') : '5 min';
+  document.getElementById('cms-mag-img').value = articleToEdit && !String(articleToEdit.coverImg || '').startsWith('data:') ? (articleToEdit.coverImg || '') : '/images/merch_neon_samurai_poster.png';
+  document.getElementById('cms-mag-summary').value = articleToEdit ? (articleToEdit.summary || '') : '';
+  document.getElementById('cms-mag-content').value = articleToEdit ? (articleToEdit.content || '') : '';
+  document.getElementById('cms-mag-yt').value = articleToEdit ? (articleToEdit.youtubeUrl || '') : '';
+  document.getElementById('cms-mag-game').value = articleToEdit ? (articleToEdit.linkedGameTitle || '') : '';
+  document.getElementById('cms-mag-dev').value = articleToEdit ? (articleToEdit.linkedDev || '') : '';
+
   const coverStatus = document.getElementById('cms-cover-status');
   const galleryStatus = document.getElementById('cms-gallery-status');
   const galleryPreview = document.getElementById('cms-gallery-preview');
-  if (coverStatus) coverStatus.textContent = 'Oppure usa URL qui sotto';
-  if (galleryStatus) galleryStatus.textContent = 'Puoi selezionare più foto insieme';
-  if (galleryPreview) galleryPreview.innerHTML = '';
+  if (coverStatus) coverStatus.textContent = articleToEdit ? 'Copertina attuale mantenuta (puoi caricarne una nuova)' : 'Oppure usa URL qui sotto';
+  if (galleryStatus) galleryStatus.textContent = pendingGalleryDataUrls.length > 0 ? `${pendingGalleryDataUrls.length} foto già presenti` : 'Puoi selezionare più foto insieme';
+  if (galleryPreview) {
+    galleryPreview.innerHTML = '';
+    pendingGalleryDataUrls.forEach(src => {
+      const thumb = document.createElement('img');
+      thumb.src = src;
+      thumb.style.cssText = 'width:46px; height:34px; object-fit:cover; border-radius:4px; border:1px solid rgba(255,255,255,0.2);';
+      galleryPreview.appendChild(thumb);
+    });
+  }
   const cmsModal = document.getElementById('magazine-cms-modal');
   if (cmsModal) cmsModal.style.display = 'flex';
 }

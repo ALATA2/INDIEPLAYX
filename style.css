@@ -1235,6 +1235,22 @@ input:focus {
   #magazine-section h2 {
     font-size: 1.3rem !important;
   }
+  .magazine-articles-grid {
+    display: flex !important;
+    overflow-x: auto !important;
+    scroll-snap-type: x mandatory;
+    gap: 14px !important;
+    padding-bottom: 10px;
+    scrollbar-width: none;
+  }
+  .magazine-articles-grid::-webkit-scrollbar {
+    display: none;
+  }
+  .magazine-articles-grid .mag-article-card {
+    flex: 0 0 85vw !important;
+    max-width: 340px;
+    scroll-snap-align: start;
+  }
   #backend-console-modal .modal-content,
   #magazine-cms-modal .modal-content,
   #magazine-reader-modal .modal-content {
