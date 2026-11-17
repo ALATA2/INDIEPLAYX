@@ -289,22 +289,38 @@ export function isMagazineAdminUnlocked() {
   return sessionStorage.getItem(STORAGE_KEY_MAGAZINE_UNLOCKED) === 'true';
 }
 
+function sanitizeMagazineImg(url) {
+  if (!url || typeof url !== 'string') return '/images/merch_hoodie_samurai_1777198641485.png';
+  return url
+    .replace('/images/merch_neon_samurai_poster.png', '/images/merch_hoodie_samurai_1777198641485.png')
+    .replace('/images/merch_tshirt_mockup_1787498735596.png', '/images/merch_tshirt_samurai_1777201074364.png');
+}
+
+function sanitizeMagazineArticles(list) {
+  return (list || []).map(art => ({
+    ...art,
+    coverImg: sanitizeMagazineImg(art.coverImg),
+    gallery: Array.isArray(art.gallery) ? art.gallery.map(sanitizeMagazineImg) : []
+  }));
+}
+
 export function getMagazineArticles() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY_MAGAZINE_ARTICLES);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed) && parsed.length > 0) return sanitizeMagazineArticles(parsed);
     }
   } catch (e) {}
-  return DEFAULT_MAGAZINE_ARTICLES;
+  return sanitizeMagazineArticles(DEFAULT_MAGAZINE_ARTICLES);
 }
 
 export async function saveMagazineArticles(articles) {
-  localStorage.setItem(STORAGE_KEY_MAGAZINE_ARTICLES, JSON.stringify(articles));
+  const clean = sanitizeMagazineArticles(articles);
+  localStorage.setItem(STORAGE_KEY_MAGAZINE_ARTICLES, JSON.stringify(clean));
   try {
     await setDoc(doc(db, 'platform_config', 'magazine'), {
-      articles,
+      articles: clean,
       updatedAt: new Date().toISOString()
     }, { merge: true });
   } catch (e) {}
@@ -314,7 +330,8 @@ export async function syncMagazineFromCloud() {
   try {
     const snap = await getDoc(doc(db, 'platform_config', 'magazine'));
     if (snap.exists() && Array.isArray(snap.data().articles) && snap.data().articles.length > 0) {
-      localStorage.setItem(STORAGE_KEY_MAGAZINE_ARTICLES, JSON.stringify(snap.data().articles));
+      const clean = sanitizeMagazineArticles(snap.data().articles);
+      localStorage.setItem(STORAGE_KEY_MAGAZINE_ARTICLES, JSON.stringify(clean));
       renderMagazineSection();
     }
   } catch (e) {}
