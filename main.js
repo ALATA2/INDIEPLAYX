@@ -869,7 +869,7 @@ initCategoryFilters();
 initSearchFilter();
 initModals();
 
-// Initialize Version Badge, Editorial Magazine (Numero11!!!) & Payments Backend (Money68030??)
+// Initialize Version Badge, Editorial Magazine & Payments Backend
 renderVersionBadge();
 initMagazineSystem();
 initBackendSystem();

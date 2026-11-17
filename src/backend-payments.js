@@ -3,8 +3,8 @@ import { collection, getDocs, addDoc, doc, setDoc, getDoc } from 'firebase/fires
 import { getLanguage, autoTranslateDOM } from './i18n';
 
 // Passwords richieste dalle specifiche
-const MAGAZINE_PASSWORD = 'Numero11!!!';
-const BACKEND_PASSWORD = 'Money68030??';
+const MAGAZINE_PASSWORD = '1199Pantera!!!';
+const BACKEND_PASSWORD = 'LastRisc2026?';
 
 const STORAGE_KEY_PAYMENT_CONFIG = 'indieplay_payment_config_v2';
 const STORAGE_KEY_TRANSACTIONS = 'indieplay_split_transactions_v1';
@@ -271,7 +271,7 @@ export async function recordSplitTransaction(txData) {
 }
 
 // ============================================================================
-// 1. INDIEPLAY MAGAZINE PUBBLICO + REDAZIONE PROTETTA DA PASSWORD (Numero11!!!)
+// 1. INDIEPLAY MAGAZINE PUBBLICO + REDAZIONE PROTETTA DA PASSWORD
 // ============================================================================
 export function isMagazineAdminUnlocked() {
   return sessionStorage.getItem(STORAGE_KEY_MAGAZINE_UNLOCKED) === 'true';
@@ -455,7 +455,7 @@ function injectMagazineModals() {
 
   const wrapper = document.createElement('div');
   wrapper.innerHTML = `
-    <!-- Modal Login Password Redazione Magazine (Numero11!!!) -->
+    <!-- Modal Login Password Redazione Magazine -->
     <div id="magazine-auth-modal" class="lightbox" style="display: none; justify-content: center; align-items: center; z-index: 3000;">
       <div class="modal-content glass" style="background: rgba(18, 26, 36, 0.98); border: 1px solid rgba(0, 168, 225, 0.4); border-radius: 16px; padding: 2.2rem; max-width: 440px; width: 92%; color: white; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.8);">
         <span class="close-lightbox" id="close-mag-auth" style="position: absolute; top: 0.8rem; right: 1.2rem; font-size: 2.2rem; cursor: pointer; color: var(--text-gray);">&times;</span>
@@ -703,7 +703,7 @@ function openMagazineCmsModal() {
 }
 
 // ============================================================================
-// 2. SEZIONE BACKEND CON PULSANTI SINGOLI ATTIVA/DISATTIVA (PASSWORD: Money68030??)
+// 2. SEZIONE BACKEND CON PULSANTI SINGOLI ATTIVA/DISATTIVA
 // ============================================================================
 export function initBackendSystem() {
   syncPaymentConfigFromCloud();
@@ -735,7 +735,7 @@ function injectBackendModals() {
 
   const container = document.createElement('div');
   container.innerHTML = `
-    <!-- Modal Password Backend (Money68030??) -->
+    <!-- Modal Password Backend -->
     <div id="backend-auth-modal" class="lightbox" style="display: none; justify-content: center; align-items: center; z-index: 3500;">
       <div class="modal-content glass" style="background: rgba(15, 23, 34, 0.98); border: 1px solid rgba(245, 158, 11, 0.5); border-radius: 16px; padding: 2.2rem; max-width: 440px; width: 92%; color: white; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.85);">
         <span class="close-lightbox" id="close-backend-auth" style="position: absolute; top: 0.8rem; right: 1.2rem; font-size: 2.2rem; cursor: pointer; color: var(--text-gray);">&times;</span>
