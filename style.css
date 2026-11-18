@@ -1272,6 +1272,18 @@ input:focus {
   color: #fbbf24;
 }
 
+.bitbonk-3d-card {
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.28s ease;
+}
+
+.bitbonk-3d-card:hover {
+  transform: perspective(700px) rotateY(-6deg) translateY(-6px) scale(1.03);
+}
+
+.open-meme-view-trigger:hover {
+  transform: translateY(-4px);
+}
+
 #open-mag-title-trigger:hover {
   color: #38bdf8 !important;
 }

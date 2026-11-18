@@ -22,6 +22,8 @@ const DEFAULT_PAYMENT_CONFIG = {
   reviewsEnabled: true,             // 6. Invio Nuove Recensioni Utenti (Default: ATTIVO)
   sellerRegistrationEnabled: true,  // 7. Registrazione Venditori & Pubblicazione Giochi (Default: ATTIVO)
   donationsEnabled: true,           // 8. Sistema Donazioni Profili Social (Privati & Professionisti) (Default: ATTIVO)
+  bitbonkVisible: true,             // 9. Sezione BITBONK — Carte Brainrot & Sticker Album Series 01 (Default: ATTIVO)
+  memeConsoleVisible: true,         // 10. Sezione MEME CONSOLE — Progetto Hardware Model MC-01 (Default: ATTIVO)
 
   // Parametri economici e chiavi Gateway
   platformFeePercent: 15, // 15% piattaforma, 85% sviluppatore in automatico
@@ -175,6 +177,26 @@ export function applyBackendFeatureFlags(cfg = getPaymentConfig()) {
   if (sellerToggleBox) {
     sellerToggleBox.style.display = cfg.sellerRegistrationEnabled === false ? 'none' : '';
   }
+
+  // Visibility of BitBonk section
+  const bitbonkSec = document.getElementById('bitbonk-section');
+  if (bitbonkSec) {
+    bitbonkSec.style.display = cfg.bitbonkVisible === false ? 'none' : '';
+  }
+  document.querySelectorAll('a[href*="bitbonk-section"]').forEach(link => {
+    const li = link.closest('li') || link;
+    li.style.display = cfg.bitbonkVisible === false ? 'none' : '';
+  });
+
+  // Visibility of Meme Console section
+  const memeSec = document.getElementById('meme-console-section');
+  if (memeSec) {
+    memeSec.style.display = cfg.memeConsoleVisible === false ? 'none' : '';
+  }
+  document.querySelectorAll('a[href*="meme-console-section"]').forEach(link => {
+    const li = link.closest('li') || link;
+    li.style.display = cfg.memeConsoleVisible === false ? 'none' : '';
+  });
 }
 
 // Compress uploaded image via Canvas to keep base64 fast and lightweight (<200KB)
@@ -1320,6 +1342,7 @@ export function initBackendSystem() {
   syncPaymentConfigFromCloud();
   injectBackendModals();
   initExpress1ClickSystem();
+  initSpecialProjectsSections();
 
   document.querySelectorAll('.open-backend-link').forEach(btn => {
     btn.onclick = (e) => {
@@ -1471,6 +1494,20 @@ function openBackendConsole() {
       title: '8. Sistema Donazioni Profili Social (Privati & Professionisti)',
       desc: 'Abilita o disabilita la possibilità per utenti privati e studi professionali di ricevere donazioni sul proprio profilo social.',
       active: cfg.donationsEnabled !== false
+    },
+    {
+      key: 'bitbonkVisible',
+      icon: 'fa-clone',
+      title: '9. Sezione BITBONK™ (Carte da Gioco Brainrot & Sticker Album Series 01)',
+      desc: 'Mostra o nasconde la sezione dedicata al progetto di carte collezionabili e sticker album BITBONK in Homepage.',
+      active: cfg.bitbonkVisible !== false
+    },
+    {
+      key: 'memeConsoleVisible',
+      icon: 'fa-microchip',
+      title: '10. Sezione MEME CONSOLE™ (Progetto Hardware Model MC-01)',
+      desc: 'Mostra o nasconde la vetrina tecnologica della futura MEME CONSOLE in Homepage.',
+      active: cfg.memeConsoleVisible !== false
     }
   ];
 
@@ -2313,4 +2350,457 @@ export function openQuickBuyModal(itemOrItems, isCartBatch = false) {
   renderCheckoutStep();
   modal.style.display = 'flex';
 }
+
+// ============================================================================
+// 4. PROGETTI SPECIALI INDIEPLAY-X: BITBONK™ (FASE 1) & MEME CONSOLE™ (FASE 2)
+// ============================================================================
+const STORAGE_KEY_WAITLISTS = 'indieplay_special_waitlists_v1';
+
+function getWaitlists() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_WAITLISTS);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return { bitbonk: false, memeConsole: false, email: '' };
+}
+
+function saveWaitlistFlag(projectKey, email = '') {
+  const curr = getWaitlists();
+  curr[projectKey] = true;
+  if (email) curr.email = email;
+  try {
+    localStorage.setItem(STORAGE_KEY_WAITLISTS, JSON.stringify(curr));
+  } catch (e) {}
+  return curr;
+}
+
+export function initSpecialProjectsSections() {
+  injectSpecialProjectsModals();
+  renderBitBonkSection();
+  renderMemeConsoleSection();
+  applyBackendFeatureFlags(getPaymentConfig());
+}
+
+function renderBitBonkSection() {
+  const sec = document.getElementById('bitbonk-section');
+  if (!sec) return;
+  const assetHelper = window.getAssetUrl || ((p) => p);
+  const wl = getWaitlists();
+
+  sec.innerHTML = `
+    <div class="section-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.2rem;">
+      <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <span style="background: linear-gradient(135deg, #ec4899, #eab308); color: #0f172a; padding: 5px 12px; border-radius: 6px; font-weight: 900; font-size: 0.76rem; letter-spacing: 0.8px;">
+          <i class="fas fa-bolt"></i> FASE 1 • PROSSIMO LANCIO
+        </span>
+        <h2 style="margin: 0; font-size: 1.55rem; font-weight: 900; color: white;">
+          BITBONK™ <span style="color: #f472b6; font-weight: 700; font-size: 1.05rem;">— Carte da Gioco Brainrot & Sticker Album (Series 01)</span>
+        </h2>
+      </div>
+      <div style="display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap;">
+        <button type="button" id="open-bitbonk-preview-btn" class="btn btn-prime" style="background: linear-gradient(135deg, #ec4899, #8b5cf6); border: none; padding: 0.6rem 1.15rem; font-size: 0.84rem; font-weight: 800; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 16px rgba(236, 72, 153, 0.35);">
+          <i class="fas fa-clone"></i> Esplora Carte & Album Series 01
+        </button>
+        <button type="button" id="join-bitbonk-waitlist-btn" class="btn btn-prime-outline" style="padding: 0.58rem 1rem; font-size: 0.82rem; font-weight: 800; border-color: ${wl.bitbonk ? '#34d399' : 'rgba(244, 114, 182, 0.5)'}; color: ${wl.bitbonk ? '#34d399' : '#f472b6'}; display: inline-flex; align-items: center; gap: 6px;">
+          <i class="fas ${wl.bitbonk ? 'fa-check-circle' : 'fa-bell'}"></i> ${wl.bitbonk ? 'Iscritto al Drop Series 01' : 'Avvisami al Lancio'}
+        </button>
+      </div>
+    </div>
+
+    <div class="special-project-card bitbonk-showcase-banner" style="background: linear-gradient(135deg, rgba(30, 14, 46, 0.92) 0%, rgba(12, 19, 31, 0.96) 100%); border: 1px solid rgba(236, 72, 153, 0.32); border-radius: 16px; padding: 1.8rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; align-items: center; box-shadow: 0 18px 45px rgba(0, 0, 0, 0.55); position: relative; overflow: hidden;">
+      <!-- Colonna Sinistra: Concept, Lore & Roadmap Fase 1 -->
+      <div style="z-index: 2;">
+        <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(236, 72, 153, 0.14); border: 1px solid rgba(236, 72, 153, 0.35); color: #f472b6; padding: 4px 12px; border-radius: 999px; font-size: 0.74rem; font-weight: 800; margin-bottom: 0.9rem;">
+          <i class="fas fa-fire"></i> ARCADE CHAOS • TRADING CARDS & STICKER ALBUM
+        </div>
+        <h3 style="font-size: clamp(1.35rem, 2.4vw, 1.9rem); font-weight: 900; color: white; line-height: 1.2; margin: 0 0 0.8rem;">
+          L'Universo Collezionabile <span style="color: #facc15;">Brainrot</span> & <span style="color: #f472b6;">Arcade Chaos</span> targato IndiePlay-X
+        </h3>
+        <p style="color: #cbd5e1; font-size: 0.94rem; line-height: 1.65; margin: 0 0 1.2rem;">
+          <strong>BITBONK™ Series 01</strong> porta su IndiePlay-X una collezione esplosiva di <strong>carte da gioco in stile Brainrot</strong> e uno <strong>Sticker Album interattivo</strong> dedicato ai personaggi più iconici e folli della scena arcade indipendente — a partire dal leggendario <em>"Peperito Saltellito"</em>.
+        </p>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem; margin-bottom: 1.3rem;">
+          <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 0.75rem 0.9rem;">
+            <div style="color: #facc15; font-weight: 800; font-size: 0.82rem; margin-bottom: 3px;"><i class="fas fa-star"></i> Carte Foil & Rarità</div>
+            <div style="color: #94a3b8; font-size: 0.76rem; line-height: 1.4;">Creature Brainrot, eroi Pixel-Art e boss Arcade numerati per rarità.</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 0.75rem 0.9rem;">
+            <div style="color: #f472b6; font-weight: 800; font-size: 0.82rem; margin-bottom: 3px;"><i class="fas fa-book-open"></i> Sticker Album Series 01</div>
+            <div style="color: #94a3b8; font-size: 0.76rem; line-height: 1.4;">Completa l'album ufficiale, sblocca ricompense e scambia con la community.</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 0.75rem 0.9rem;">
+            <div style="color: #38bdf8; font-weight: 800; font-size: 0.82rem; margin-bottom: 3px;"><i class="fas fa-gamepad"></i> Deck & Sfide Rapide</div>
+            <div style="color: #94a3b8; font-size: 0.76rem; line-height: 1.4;">Usa le tue carte in duelli rapidi da browser e colleziona edizioni fisiche.</div>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+          <button type="button" class="open-bitbonk-card-trigger btn btn-prime" style="background: linear-gradient(135deg, #facc15, #f97316); color: #0f172a; border: none; padding: 0.75rem 1.3rem; font-weight: 900; font-size: 0.86rem;">
+            <i class="fas fa-search-plus"></i> Ispeziona "Peperito Saltellito" & Album
+          </button>
+          <span style="font-size: 0.78rem; color: #94a3b8;"><i class="fas fa-calendar-check" style="color: #f472b6;"></i> Priorità Sviluppo: <strong>Prima di Meme Console</strong></span>
+        </div>
+      </div>
+
+      <!-- Colonna Destra: Visual Showcase 3D delle 2 Immagini BitBonk -->
+      <div style="display: flex; align-items: center; justify-content: center; gap: 1.2rem; flex-wrap: wrap; z-index: 2;">
+        <!-- Copertina Album BITBONK Series 01 -->
+        <div class="bitbonk-3d-card open-bitbonk-card-trigger" data-focus="album" title="Clicca per ingrandire lo Sticker Album Series 01" style="width: 215px; border-radius: 14px; overflow: hidden; border: 2px solid rgba(236, 72, 153, 0.55); box-shadow: 0 14px 32px rgba(236, 72, 153, 0.28); cursor: pointer; position: relative; background: #090d16;">
+          <img src="${safeUrl(assetHelper('/images/bitbonk_album_series01.jpg'))}" alt="BIT BONK Arcade Chaos Sticker Album Series 01" loading="lazy" style="width: 100%; height: 285px; object-fit: cover; display: block;">
+          <div style="padding: 8px 10px; background: rgba(15, 23, 34, 0.95); display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 0.74rem; font-weight: 900; color: #f472b6;">ALBUM SERIES 01</span>
+            <span style="font-size: 0.68rem; background: #facc15; color: #0f172a; padding: 2px 6px; border-radius: 4px; font-weight: 900;">UFFICIALE</span>
+          </div>
+        </div>
+
+        <!-- Carta "Peperito Saltellito" Brainrot Edition -->
+        <div class="bitbonk-3d-card open-bitbonk-card-trigger" data-focus="card" title="Clicca per ispezionare la carta Peperito Saltellito" style="width: 205px; border-radius: 14px; overflow: hidden; border: 2px solid rgba(250, 204, 21, 0.65); box-shadow: 0 14px 32px rgba(250, 204, 21, 0.25); cursor: pointer; position: relative; background: #090d16;">
+          <img src="${safeUrl(assetHelper('/images/bitbonk_peperito_card.jpg'))}" alt="Carta BitBonk Peperito Saltellito" loading="lazy" style="width: 100%; height: 285px; object-fit: cover; display: block;">
+          <div style="padding: 8px 10px; background: rgba(15, 23, 34, 0.95); display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 0.74rem; font-weight: 900; color: #facc15;">#001 PEPERITO</span>
+            <span style="font-size: 0.68rem; background: rgba(236, 72, 153, 0.25); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.5); padding: 2px 6px; border-radius: 4px; font-weight: 800;">BRAINROT FOIL</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const previewBtn = document.getElementById('open-bitbonk-preview-btn');
+  if (previewBtn) previewBtn.onclick = () => openBitBonkModal('album');
+
+  sec.querySelectorAll('.open-bitbonk-card-trigger').forEach(el => {
+    el.onclick = () => openBitBonkModal(el.getAttribute('data-focus') || 'album');
+  });
+
+  const wlBtn = document.getElementById('join-bitbonk-waitlist-btn');
+  if (wlBtn) {
+    wlBtn.onclick = () => {
+      saveWaitlistFlag('bitbonk');
+      renderBitBonkSection();
+      if (window.showToast) window.showToast('🃏 Sei iscritto alla lista prioritaria di BITBONK™ Series 01!', 'success');
+    };
+  }
+}
+
+function renderMemeConsoleSection() {
+  const sec = document.getElementById('meme-console-section');
+  if (!sec) return;
+  const assetHelper = window.getAssetUrl || ((p) => p);
+  const wl = getWaitlists();
+
+  sec.innerHTML = `
+    <div class="section-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.2rem;">
+      <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <span style="background: rgba(168, 85, 247, 0.2); border: 1px solid #a855f7; color: #d8b4fe; padding: 5px 12px; border-radius: 6px; font-weight: 900; font-size: 0.76rem; letter-spacing: 0.8px;">
+          <i class="fas fa-microchip"></i> FASE 2 • HARDWARE LAB IN SVILUPPO
+        </span>
+        <h2 style="margin: 0; font-size: 1.55rem; font-weight: 900; color: white;">
+          MEME CONSOLE™ <span style="color: #c084fc; font-weight: 700; font-size: 1.05rem;">— Progetto Hardware Indie & Arcade (Model MC-01)</span>
+        </h2>
+      </div>
+      <div style="display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap;">
+        <button type="button" id="open-meme-console-lab-btn" class="btn btn-prime" style="background: linear-gradient(135deg, #9333ea, #3b82f6); border: none; padding: 0.6rem 1.15rem; font-size: 0.84rem; font-weight: 800; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 16px rgba(147, 51, 234, 0.35);">
+          <i class="fas fa-cubes"></i> Blueprint & Scheda Tecnica MC-01
+        </button>
+        <button type="button" id="join-meme-waitlist-btn" class="btn btn-prime-outline" style="padding: 0.58rem 1rem; font-size: 0.82rem; font-weight: 800; border-color: ${wl.memeConsole ? '#34d399' : 'rgba(192, 132, 252, 0.5)'}; color: ${wl.memeConsole ? '#34d399' : '#c084fc'}; display: inline-flex; align-items: center; gap: 6px;">
+          <i class="fas ${wl.memeConsole ? 'fa-check-circle' : 'fa-satellite-dish'}"></i> ${wl.memeConsole ? 'Insider Hardware Attivo' : 'Segui lo Sviluppo'}
+        </button>
+      </div>
+    </div>
+
+    <div class="special-project-card meme-console-banner" style="background: linear-gradient(135deg, rgba(16, 20, 34, 0.96) 0%, rgba(24, 14, 42, 0.94) 100%); border: 1px solid rgba(168, 85, 247, 0.32); border-radius: 16px; padding: 1.8rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; align-items: center; box-shadow: 0 18px 45px rgba(0, 0, 0, 0.55);">
+      <!-- Colonna Sinistra: Render Hardware Ritagliati & Blueprint Esploso -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem;">
+        <div class="open-meme-view-trigger" data-view="front" title="Clicca per ingrandire il Design Frontale MC-01" style="background: #0b101b; border: 1px solid rgba(168, 85, 247, 0.4); border-radius: 12px; overflow: hidden; cursor: pointer; transition: transform 0.2s ease;">
+          <img src="${safeUrl(assetHelper('/images/meme_console_front.jpg'))}" alt="Meme Console Model MC-01 Front LED View" loading="lazy" style="width: 100%; height: 185px; object-fit: cover; display: block;">
+          <div style="padding: 8px 10px; display: flex; justify-content: space-between; align-items: center; background: rgba(15, 23, 34, 0.95);">
+            <span style="font-size: 0.74rem; font-weight: 800; color: #e2e8f0;">Scocca & LED Viola</span>
+            <span style="font-size: 0.68rem; color: #c084fc; font-weight: 800;"><i class="fas fa-expand"></i> 3D</span>
+          </div>
+        </div>
+
+        <div class="open-meme-view-trigger" data-view="exploded" title="Clicca per ispezionare l'Esploso Tecnico & Porte I/O" style="background: #0b101b; border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 12px; overflow: hidden; cursor: pointer; transition: transform 0.2s ease;">
+          <img src="${safeUrl(assetHelper('/images/meme_console_exploded.jpg'))}" alt="Meme Console Exploded Hardware View" loading="lazy" style="width: 100%; height: 185px; object-fit: cover; display: block;">
+          <div style="padding: 8px 10px; display: flex; justify-content: space-between; align-items: center; background: rgba(15, 23, 34, 0.95);">
+            <span style="font-size: 0.74rem; font-weight: 800; color: #e2e8f0;">Esploso & I/O</span>
+            <span style="font-size: 0.68rem; color: #38bdf8; font-weight: 800;"><i class="fas fa-project-diagram"></i> CAD</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Colonna Destra: Specifiche Concept MC-01 -->
+      <div>
+        <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(168, 85, 247, 0.14); border: 1px solid rgba(168, 85, 247, 0.35); color: #c084fc; padding: 4px 12px; border-radius: 999px; font-size: 0.74rem; font-weight: 800; margin-bottom: 0.85rem;">
+          <i class="fas fa-flask"></i> INDIEPLAY-X HARDWARE DIVISION • MODEL MC-01
+        </div>
+        <h3 style="font-size: clamp(1.3rem, 2.2vw, 1.75rem); font-weight: 900; color: white; line-height: 1.22; margin: 0 0 0.75rem;">
+          Il Cubo Compatto per Portare il Catalogo IndiePlay-X in Salotto
+        </h3>
+        <p style="color: #cbd5e1; font-size: 0.92rem; line-height: 1.62; margin: 0 0 1.1rem;">
+          <strong>MEME CONSOLE™ (Model MC-01)</strong> è la micro-console proprietaria attualmente in fase di ingegnerizzazione nei laboratori IndiePlay-X: scocca unibody minimalista con anello LED viola, pulsante frontale Pixel-Smile illuminato e accesso nativo immediato a tutti i titoli indie e alle carte <em>BitBonk</em>.
+        </p>
+
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1.2rem;">
+          <span style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); padding: 5px 10px; border-radius: 6px; font-size: 0.75rem; color: #e2e8f0; font-weight: 700;"><i class="fas fa-tv" style="color:#c084fc;"></i> Dual HDMI Out</span>
+          <span style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); padding: 5px 10px; border-radius: 6px; font-size: 0.75rem; color: #e2e8f0; font-weight: 700;"><i class="fab fa-usb" style="color:#38bdf8;"></i> Dual USB 3.0 + LAN</span>
+          <span style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); padding: 5px 10px; border-radius: 6px; font-size: 0.75rem; color: #e2e8f0; font-weight: 700;"><i class="fas fa-bolt" style="color:#fbbf24;"></i> Power 19V ⎓ 3.42A</span>
+          <span style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); padding: 5px 10px; border-radius: 6px; font-size: 0.75rem; color: #e2e8f0; font-weight: 700;"><i class="fas fa-wind" style="color:#34d399;"></i> Flusso Aria Inferiore Silenzioso</span>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+          <button type="button" class="open-meme-view-trigger btn btn-prime-outline" data-view="bottom" style="padding: 0.65rem 1.15rem; font-size: 0.82rem; font-weight: 800; border-color: rgba(168, 85, 247, 0.55); color: #d8b4fe;">
+            <i class="fas fa-layer-group"></i> Vedi Tutte le 3 Viste Hardware (Fronte • Esploso • Base)
+          </button>
+          <span style="font-size: 0.76rem; color: #94a3b8;">Sviluppo previsto dopo il lancio di <strong>BitBonk™</strong></span>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const labBtn = document.getElementById('open-meme-console-lab-btn');
+  if (labBtn) labBtn.onclick = () => openMemeConsoleModal('front');
+
+  sec.querySelectorAll('.open-meme-view-trigger').forEach(el => {
+    el.onclick = () => openMemeConsoleModal(el.getAttribute('data-view') || 'front');
+  });
+
+  const wlBtn = document.getElementById('join-meme-waitlist-btn');
+  if (wlBtn) {
+    wlBtn.onclick = () => {
+      saveWaitlistFlag('memeConsole');
+      renderMemeConsoleSection();
+      if (window.showToast) window.showToast('🚀 Ti sei registrato agli aggiornamenti R&D di MEME CONSOLE (Model MC-01)!', 'success');
+    };
+  }
+}
+
+function injectSpecialProjectsModals() {
+  if (document.getElementById('bitbonk-lab-modal')) return;
+
+  const wrapper = document.createElement('div');
+  wrapper.innerHTML = `
+    <!-- Modal Interattivo BITBONK Series 01 -->
+    <div id="bitbonk-lab-modal" class="lightbox" style="display: none; justify-content: center; align-items: center; z-index: 3850;">
+      <div class="modal-content glass" style="background: rgba(14, 18, 29, 0.99); border: 1px solid rgba(236, 72, 153, 0.55); border-radius: 18px; padding: 1.8rem; max-width: 820px; width: 95%; max-height: 92vh; overflow-y: auto; color: white; position: relative; box-shadow: 0 25px 70px rgba(0,0,0,0.92);">
+        <span class="close-lightbox" id="close-bitbonk-modal" style="position: absolute; top: 0.7rem; right: 1.1rem; font-size: 2.2rem; cursor: pointer; color: var(--text-gray);">&times;</span>
+        <div id="bitbonk-lab-body"></div>
+      </div>
+    </div>
+
+    <!-- Modal Interattivo MEME CONSOLE Blueprint & 3D Lab -->
+    <div id="meme-console-lab-modal" class="lightbox" style="display: none; justify-content: center; align-items: center; z-index: 3850;">
+      <div class="modal-content glass" style="background: rgba(13, 17, 28, 0.99); border: 1px solid rgba(168, 85, 247, 0.55); border-radius: 18px; padding: 1.8rem; max-width: 820px; width: 95%; max-height: 92vh; overflow-y: auto; color: white; position: relative; box-shadow: 0 25px 70px rgba(0,0,0,0.92);">
+        <span class="close-lightbox" id="close-meme-console-modal" style="position: absolute; top: 0.7rem; right: 1.1rem; font-size: 2.2rem; cursor: pointer; color: var(--text-gray);">&times;</span>
+        <div id="meme-console-lab-body"></div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(wrapper);
+
+  const bModal = document.getElementById('bitbonk-lab-modal');
+  const mModal = document.getElementById('meme-console-lab-modal');
+  document.getElementById('close-bitbonk-modal').onclick = () => (bModal.style.display = 'none');
+  document.getElementById('close-meme-console-modal').onclick = () => (mModal.style.display = 'none');
+  bModal.onclick = (e) => { if (e.target === bModal) bModal.style.display = 'none'; };
+  mModal.onclick = (e) => { if (e.target === mModal) mModal.style.display = 'none'; };
+}
+
+export function openBitBonkModal(initialFocus = 'album') {
+  injectSpecialProjectsModals();
+  const modal = document.getElementById('bitbonk-lab-modal');
+  const body = document.getElementById('bitbonk-lab-body');
+  const assetHelper = window.getAssetUrl || ((p) => p);
+  let activeTab = initialFocus;
+
+  const render = () => {
+    const wl = getWaitlists();
+    const isAlbum = activeTab === 'album';
+    const currentImg = isAlbum ? '/images/bitbonk_album_series01.jpg' : '/images/bitbonk_peperito_card.jpg';
+
+    body.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.8rem; flex-wrap: wrap;">
+        <span style="background: linear-gradient(135deg, #ec4899, #eab308); color: #0f172a; padding: 4px 10px; border-radius: 6px; font-size: 0.74rem; font-weight: 900;">
+          BITBONK™ • SERIES 01
+        </span>
+        <h3 style="margin: 0; font-size: 1.3rem; font-weight: 900;">Anteprima Ufficiale Carte Brainrot & Sticker Album</h3>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(275px, 1fr)); gap: 1.5rem; align-items: center;">
+        <div style="text-align: center;">
+          <img src="${safeUrl(assetHelper(currentImg))}" alt="BitBonk Preview" style="max-height: 410px; width: auto; max-width: 100%; border-radius: 14px; border: 2px solid ${isAlbum ? '#ec4899' : '#facc15'}; box-shadow: 0 18px 40px rgba(0,0,0,0.75);">
+          <div style="display: flex; justify-content: center; gap: 8px; margin-top: 12px;">
+            <button type="button" class="bb-switch-tab btn ${isAlbum ? 'btn-prime' : 'btn-prime-outline'}" data-tab="album" style="padding: 6px 14px; font-size: 0.8rem; font-weight: 800;">
+              <i class="fas fa-book"></i> Sticker Album Series 01
+            </button>
+            <button type="button" class="bb-switch-tab btn ${!isAlbum ? 'btn-prime' : 'btn-prime-outline'}" data-tab="card" style="padding: 6px 14px; font-size: 0.8rem; font-weight: 800;">
+              <i class="fas fa-id-badge"></i> Carta #001 Peperito Saltellito
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <h4 style="font-size: 1.25rem; font-weight: 900; color: ${isAlbum ? '#f472b6' : '#facc15'}; margin: 0 0 0.6rem;">
+            ${isAlbum ? 'Sticker Album "Arcade Chaos — Series 01"' : 'Carta #001: "Peperito Saltellito" (Brainrot Foil)'}
+          </h4>
+          <p style="font-size: 0.9rem; color: #cbd5e1; line-height: 1.6; margin: 0 0 1rem;">
+            ${isAlbum
+              ? 'Il primo raccoglitore ufficiale targato IndiePlay-X: un mix esplosivo di estetica Arcade anni \'90, sticker olografici e personaggi Brainrot nati dalla community indipendente.'
+              : 'Il peperoncino messicano più piccante del multiverso platform! Dotato di sombrero corazzato e doppio salto infuocato, Peperito Saltellito inaugura il set base di BITBONK Series 01.'}
+          </p>
+
+          <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.09); border-radius: 10px; padding: 0.9rem; margin-bottom: 1.1rem; font-size: 0.82rem; color: #e2e8f0;">
+            <div style="font-weight: 800; color: white; margin-bottom: 6px;"><i class="fas fa-layer-group" style="color:#f472b6;"></i> Tabella di Marcia Sviluppo BitBonk:</div>
+            <div style="margin-bottom: 4px;">• <strong>Step 1 (In preparazione):</strong> Apertura bustine digitali e collezione Album su IndiePlay-X.</div>
+            <div style="margin-bottom: 4px;">• <strong>Step 2:</strong> Mercatino scambi rapido 1-Click e classifiche collezionisti.</div>
+            <div>• <strong>Step 3:</strong> Stampa fisica limitata Series 01 nel reparto Merchandising.</div>
+          </div>
+
+          <div style="background: rgba(236, 72, 153, 0.08); border: 1px solid rgba(236, 72, 153, 0.3); border-radius: 10px; padding: 0.95rem;">
+            <label style="font-size: 0.76rem; font-weight: 800; color: #f472b6; display: block; margin-bottom: 6px;">
+              RICEVI UN PACCHETTO OMAGGIO AL LANCIO DI BITBONK:
+            </label>
+            <div style="display: flex; gap: 8px;">
+              <input type="email" id="bb-waitlist-email" placeholder="La tua email..." value="${escapeHTML(wl.email || '')}" style="flex: 1; padding: 9px 11px; background: #090d16; border: 1px solid rgba(255,255,255,0.18); border-radius: 8px; color: white; font-size: 0.85rem;">
+              <button type="button" id="bb-waitlist-submit" class="btn btn-prime" style="background: #ec4899; border: none; padding: 0 14px; font-weight: 800; font-size: 0.82rem;">
+                ${wl.bitbonk ? '✓ Registrato' : 'Prenota'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    body.querySelectorAll('.bb-switch-tab').forEach(btn => {
+      btn.onclick = () => {
+        activeTab = btn.getAttribute('data-tab');
+        render();
+      };
+    });
+
+    const sub = document.getElementById('bb-waitlist-submit');
+    if (sub) {
+      sub.onclick = () => {
+        const em = document.getElementById('bb-waitlist-email')?.value.trim() || '';
+        saveWaitlistFlag('bitbonk', em);
+        renderBitBonkSection();
+        render();
+        if (window.showToast) window.showToast('🃏 Prenotazione registrata per il lancio di BITBONK Series 01!', 'success');
+      };
+    }
+  };
+
+  render();
+  modal.style.display = 'flex';
+}
+
+export function openMemeConsoleModal(initialView = 'front') {
+  injectSpecialProjectsModals();
+  const modal = document.getElementById('meme-console-lab-modal');
+  const body = document.getElementById('meme-console-lab-body');
+  const assetHelper = window.getAssetUrl || ((p) => p);
+  let activeView = initialView;
+
+  const views = {
+    front: {
+      img: '/images/meme_console_front.jpg',
+      title: 'Vista Superiore & Frontale — Anello LED Viola & Tasto Pixel-Smile',
+      desc: 'Scocca monoblocco bianca satinata con angoli arrotondati, logo frontale inciso MEME CONSOLE, tasto capacitivo retroilluminato con icona Pixel-Smile e barra perimetrale LED RGB/Viola.'
+    },
+    exploded: {
+      img: '/images/meme_console_exploded.jpg',
+      title: 'Esploso Ingegneristico & Dotazione Porte I/O Posteriori',
+      desc: 'Architettura modulare ispezionabile: scheda logica custom fissata su 4 torrette anti-vibrazione, griglie di dissipazione laterali, doppia uscita HDMI, doppia porta USB 3.0 High-Speed, porta Gigabit Ethernet e ingresso alimentazione DC.'
+    },
+    bottom: {
+      img: '/images/meme_console_bottom.jpg',
+      title: 'Scocca Inferiore Antiscivolo & Targhetta Specifiche Model MC-01',
+      desc: 'Base in polimero dark-matte con 4 piedini smorzanti in gomma ad alta aderenza, matrice di ventilazione a 144 micro-fori e targhetta tecnica ufficiale: Model MC-01 • Input 19V ⎓ 3.42A • Certificazioni CE, FC, RoHS.'
+    },
+    pov: {
+      img: '/images/meme_console_pov.jpg',
+      title: 'Tavola Comparativa Completa (Vista Superiore + Vista Inferiore)',
+      desc: 'Confronto diretto tra il profilo superiore bianco con LED viola acceso e la base inferiore ventilata del prototipo MC-01.'
+    }
+  };
+
+  const render = () => {
+    const wl = getWaitlists();
+    const cur = views[activeView] || views.front;
+
+    body.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.8rem; flex-wrap: wrap;">
+        <span style="background: rgba(168, 85, 247, 0.25); border: 1px solid #a855f7; color: #e9d5ff; padding: 4px 10px; border-radius: 6px; font-size: 0.74rem; font-weight: 900;">
+          HARDWARE R&D • MODEL MC-01
+        </span>
+        <h3 style="margin: 0; font-size: 1.3rem; font-weight: 900;">MEME CONSOLE™ — Laboratorio Progettazione & Specifiche</h3>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 1.5rem; align-items: center;">
+        <div>
+          <div style="background: #080c14; border: 1px solid rgba(168, 85, 247, 0.45); border-radius: 14px; overflow: hidden; margin-bottom: 10px;">
+            <img src="${safeUrl(assetHelper(cur.img))}" alt="${escapeHTML(cur.title)}" style="width: 100%; max-height: 340px; object-fit: contain; display: block; background: #e5e7eb;">
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;">
+            <button type="button" class="mc-view-tab btn ${activeView === 'front' ? 'btn-prime' : 'btn-prime-outline'}" data-view="front" style="padding: 6px; font-size: 0.74rem; font-weight: 800; justify-content: center;">Fronte 3D</button>
+            <button type="button" class="mc-view-tab btn ${activeView === 'exploded' ? 'btn-prime' : 'btn-prime-outline'}" data-view="exploded" style="padding: 6px; font-size: 0.74rem; font-weight: 800; justify-content: center;">Esploso CAD</button>
+            <button type="button" class="mc-view-tab btn ${activeView === 'bottom' ? 'btn-prime' : 'btn-prime-outline'}" data-view="bottom" style="padding: 6px; font-size: 0.74rem; font-weight: 800; justify-content: center;">Base MC-01</button>
+            <button type="button" class="mc-view-tab btn ${activeView === 'pov' ? 'btn-prime' : 'btn-prime-outline'}" data-view="pov" style="padding: 6px; font-size: 0.74rem; font-weight: 800; justify-content: center;">Dual POV</button>
+          </div>
+        </div>
+
+        <div>
+          <h4 style="font-size: 1.2rem; font-weight: 900; color: #c084fc; margin: 0 0 0.55rem;">
+            ${escapeHTML(cur.title)}
+          </h4>
+          <p style="font-size: 0.88rem; color: #cbd5e1; line-height: 1.6; margin: 0 0 1rem;">
+            ${escapeHTML(cur.desc)}
+          </p>
+
+          <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 0.85rem; margin-bottom: 1rem; font-size: 0.8rem;">
+            <div style="font-weight: 800; color: white; margin-bottom: 6px;"><i class="fas fa-sliders-h" style="color:#c084fc;"></i> Specifiche Tecniche Preliminari (Model MC-01):</div>
+            <div style="display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.05);"><span style="color:#94a3b8;">Modello Hardware:</span><strong>MC-01 (Meme Console Rev.1)</strong></div>
+            <div style="display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.05);"><span style="color:#94a3b8;">Alimentazione:</span><strong>19V ⎓ 3.42A (65W High-Efficiency)</strong></div>
+            <div style="display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.05);"><span style="color:#94a3b8;">Connettività Video & Dati:</span><strong>2× HDMI • 2× USB 3.0 • RJ45 LAN</strong></div>
+            <div style="display: flex; justify-content: space-between; padding: 3px 0;"><span style="color:#94a3b8;">Sistema Operativo:</span><strong>IndiePlay-X OS (Cloud + Local ZIP)</strong></div>
+          </div>
+
+          <div style="background: rgba(168, 85, 247, 0.09); border: 1px solid rgba(168, 85, 247, 0.35); border-radius: 10px; padding: 0.9rem;">
+            <label style="font-size: 0.75rem; font-weight: 800; color: #d8b4fe; display: block; margin-bottom: 6px;">
+               ENTRA NELLA LISTA INSIDER HARDWARE (SVILUPPO FASE 2):
+            </label>
+            <div style="display: flex; gap: 8px;">
+              <input type="email" id="mc-waitlist-email" placeholder="La tua email per i devlog hardware..." value="${escapeHTML(wl.email || '')}" style="flex: 1; padding: 9px 11px; background: #090d16; border: 1px solid rgba(255,255,255,0.18); border-radius: 8px; color: white; font-size: 0.85rem;">
+              <button type="button" id="mc-waitlist-submit" class="btn btn-prime" style="background: #9333ea; border: none; padding: 0 14px; font-weight: 800; font-size: 0.82rem;">
+                ${wl.memeConsole ? '✓ Iscritto' : 'Segui'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    body.querySelectorAll('.mc-view-tab').forEach(btn => {
+      btn.onclick = () => {
+        activeView = btn.getAttribute('data-view');
+        render();
+      };
+    });
+
+    const sub = document.getElementById('mc-waitlist-submit');
+    if (sub) {
+      sub.onclick = () => {
+        const em = document.getElementById('mc-waitlist-email')?.value.trim() || '';
+        saveWaitlistFlag('memeConsole', em);
+        renderMemeConsoleSection();
+        render();
+        if (window.showToast) window.showToast('🚀 Iscrizione confermata ai Devlog Hardware di MEME CONSOLE!', 'success');
+      };
+    }
+  };
+
+  render();
+  modal.style.display = 'flex';
+}
+
 
