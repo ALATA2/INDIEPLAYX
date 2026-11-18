@@ -22,7 +22,7 @@ const DEFAULT_PAYMENT_CONFIG = {
   reviewsEnabled: true,             // 6. Invio Nuove Recensioni Utenti (Default: ATTIVO)
   sellerRegistrationEnabled: true,  // 7. Registrazione Venditori & Pubblicazione Giochi (Default: ATTIVO)
   donationsEnabled: true,           // 8. Sistema Donazioni Profili Social (Privati & Professionisti) (Default: ATTIVO)
-  bitbonkVisible: true,             // 9. Sezione BITBONK — Carte Brainrot & Sticker Album Series 01 (Default: ATTIVO)
+  bitbonkVisible: true,             // 9. Sezione BITBONK — Carte da Gioco & Sticker Album Series 01 (Default: ATTIVO)
   memeConsoleVisible: true,         // 10. Sezione MEME CONSOLE — Progetto Hardware Model MC-01 (Default: ATTIVO)
 
   // Parametri economici e chiavi Gateway
@@ -1498,7 +1498,7 @@ function openBackendConsole() {
     {
       key: 'bitbonkVisible',
       icon: 'fa-clone',
-      title: '9. Sezione BITBONK™ (Carte da Gioco Brainrot & Sticker Album Series 01)',
+      title: '9. Sezione BITBONK™ (Carte da Gioco Collezionabili & Sticker Album Series 01)',
       desc: 'Mostra o nasconde la sezione dedicata al progetto di carte collezionabili e sticker album BITBONK in Homepage.',
       active: cfg.bitbonkVisible !== false
     },
@@ -2394,7 +2394,7 @@ function renderBitBonkSection() {
           <i class="fas fa-bolt"></i> FASE 1 • PROSSIMO LANCIO
         </span>
         <h2 style="margin: 0; font-size: 1.55rem; font-weight: 900; color: white;">
-          BITBONK™ <span style="color: #f472b6; font-weight: 700; font-size: 1.05rem;">— Carte da Gioco Brainrot & Sticker Album (Series 01)</span>
+          BITBONK™ <span style="color: #f472b6; font-weight: 700; font-size: 1.05rem;">— Carte da Gioco Collezionabili & Sticker Album (Series 01)</span>
         </h2>
       </div>
       <div style="display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap;">
@@ -2414,16 +2414,16 @@ function renderBitBonkSection() {
           <i class="fas fa-fire"></i> ARCADE CHAOS • TRADING CARDS & STICKER ALBUM
         </div>
         <h3 style="font-size: clamp(1.35rem, 2.4vw, 1.9rem); font-weight: 900; color: white; line-height: 1.2; margin: 0 0 0.8rem;">
-          L'Universo Collezionabile <span style="color: #facc15;">Brainrot</span> & <span style="color: #f472b6;">Arcade Chaos</span> targato IndiePlay-X
+          L'Universo Collezionabile <span style="color: #facc15;">Arcade Chaos</span> & <span style="color: #f472b6;">Sticker Series</span> targato IndiePlay-X
         </h3>
         <p style="color: #cbd5e1; font-size: 0.94rem; line-height: 1.65; margin: 0 0 1.2rem;">
-          <strong>BITBONK™ Series 01</strong> porta su IndiePlay-X una collezione esplosiva di <strong>carte da gioco in stile Brainrot</strong> e uno <strong>Sticker Album interattivo</strong> dedicato ai personaggi più iconici e folli della scena arcade indipendente — a partire dal leggendario <em>"Peperito Saltellito"</em>.
+          <strong>BITBONK™ Series 01</strong> porta su IndiePlay-X una collezione esplosiva di <strong>carte da gioco collezionabili</strong> e uno <strong>Sticker Album interattivo</strong> dedicato ai personaggi più iconici e folli della scena arcade indipendente — a partire dal leggendario <em>"Peperito Saltellito"</em>.
         </p>
 
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem; margin-bottom: 1.3rem;">
           <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 0.75rem 0.9rem;">
             <div style="color: #facc15; font-weight: 800; font-size: 0.82rem; margin-bottom: 3px;"><i class="fas fa-star"></i> Carte Foil & Rarità</div>
-            <div style="color: #94a3b8; font-size: 0.76rem; line-height: 1.4;">Creature Brainrot, eroi Pixel-Art e boss Arcade numerati per rarità.</div>
+            <div style="color: #94a3b8; font-size: 0.76rem; line-height: 1.4;">Personaggi iconici, eroi Pixel-Art e boss Arcade numerati per rarità.</div>
           </div>
           <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 0.75rem 0.9rem;">
             <div style="color: #f472b6; font-weight: 800; font-size: 0.82rem; margin-bottom: 3px;"><i class="fas fa-book-open"></i> Sticker Album Series 01</div>
@@ -2454,12 +2454,12 @@ function renderBitBonkSection() {
           </div>
         </div>
 
-        <!-- Carta "Peperito Saltellito" Brainrot Edition -->
+        <!-- Carta "Peperito Saltellito" Special Foil Edition -->
         <div class="bitbonk-3d-card open-bitbonk-card-trigger" data-focus="card" title="Clicca per ispezionare la carta Peperito Saltellito" style="width: 205px; border-radius: 14px; overflow: hidden; border: 2px solid rgba(250, 204, 21, 0.65); box-shadow: 0 14px 32px rgba(250, 204, 21, 0.25); cursor: pointer; position: relative; background: #090d16;">
           <img src="${safeUrl(assetHelper('/images/bitbonk_peperito_card.jpg'))}" alt="Carta BitBonk Peperito Saltellito" loading="lazy" style="width: 100%; height: 285px; object-fit: cover; display: block;">
           <div style="padding: 8px 10px; background: rgba(15, 23, 34, 0.95); display: flex; justify-content: space-between; align-items: center;">
             <span style="font-size: 0.74rem; font-weight: 900; color: #facc15;">#001 PEPERITO</span>
-            <span style="font-size: 0.68rem; background: rgba(236, 72, 153, 0.25); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.5); padding: 2px 6px; border-radius: 4px; font-weight: 800;">BRAINROT FOIL</span>
+            <span style="font-size: 0.68rem; background: rgba(236, 72, 153, 0.25); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.5); padding: 2px 6px; border-radius: 4px; font-weight: 800;">SPECIAL FOIL</span>
           </div>
         </div>
       </div>
@@ -2623,7 +2623,7 @@ export function openBitBonkModal(initialFocus = 'album') {
         <span style="background: linear-gradient(135deg, #ec4899, #eab308); color: #0f172a; padding: 4px 10px; border-radius: 6px; font-size: 0.74rem; font-weight: 900;">
           BITBONK™ • SERIES 01
         </span>
-        <h3 style="margin: 0; font-size: 1.3rem; font-weight: 900;">Anteprima Ufficiale Carte Brainrot & Sticker Album</h3>
+        <h3 style="margin: 0; font-size: 1.3rem; font-weight: 900;">Anteprima Ufficiale Carte Collezionabili & Sticker Album</h3>
       </div>
 
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(275px, 1fr)); gap: 1.5rem; align-items: center;">
@@ -2641,11 +2641,11 @@ export function openBitBonkModal(initialFocus = 'album') {
 
         <div>
           <h4 style="font-size: 1.25rem; font-weight: 900; color: ${isAlbum ? '#f472b6' : '#facc15'}; margin: 0 0 0.6rem;">
-            ${isAlbum ? 'Sticker Album "Arcade Chaos — Series 01"' : 'Carta #001: "Peperito Saltellito" (Brainrot Foil)'}
+            ${isAlbum ? 'Sticker Album "Arcade Chaos — Series 01"' : 'Carta #001: "Peperito Saltellito" (Special Foil)'}
           </h4>
           <p style="font-size: 0.9rem; color: #cbd5e1; line-height: 1.6; margin: 0 0 1rem;">
             ${isAlbum
-              ? 'Il primo raccoglitore ufficiale targato IndiePlay-X: un mix esplosivo di estetica Arcade anni \'90, sticker olografici e personaggi Brainrot nati dalla community indipendente.'
+              ? 'Il primo raccoglitore ufficiale targato IndiePlay-X: un mix esplosivo di estetica Arcade anni \'90, sticker olografici e personaggi originali nati dalla community indipendente.'
               : 'Il peperoncino messicano più piccante del multiverso platform! Dotato di sombrero corazzato e doppio salto infuocato, Peperito Saltellito inaugura il set base di BITBONK Series 01.'}
           </p>
 
