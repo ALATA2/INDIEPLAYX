@@ -24,6 +24,9 @@ const DEFAULT_PAYMENT_CONFIG = {
   donationsEnabled: true,           // 8. Sistema Donazioni Profili Social (Privati & Professionisti) (Default: ATTIVO)
   bitbonkVisible: true,             // 9. Sezione BITBONK — Carte da Gioco & Sticker Album Series 01 (Default: ATTIVO)
   memeConsoleVisible: true,         // 10. Sezione MEME CONSOLE — Progetto Hardware Model MC-01 (Default: ATTIVO)
+  maintenanceMode: false,           // 11. Modalità Sito Down / Manutenzione Temporanea (Default: DISATTIVATO)
+  maintenanceTitle: 'WE ARE UPGRADING THE ARCADE!',
+  maintenanceMessage: 'INDIE PLAY X is temporarily offline for scheduled maintenance and system upgrades. Hold tight — our team is tuning the servers and we will be back online shortly!',
 
   // Parametri economici e chiavi Gateway
   platformFeePercent: 15, // 15% piattaforma, 85% sviluppatore in automatico
@@ -197,6 +200,70 @@ export function applyBackendFeatureFlags(cfg = getPaymentConfig()) {
     const li = link.closest('li') || link;
     li.style.display = cfg.memeConsoleVisible === false ? 'none' : '';
   });
+
+  // Full-screen Maintenance / Site Down overlay (never blocks /bitmeme admin hub)
+  applyMaintenanceOverlay(cfg);
+}
+
+function applyMaintenanceOverlay(cfg = getPaymentConfig()) {
+  const isBitmemeAdminPage = Boolean(
+    document.getElementById('bitmeme-hub-root') ||
+    (typeof window !== 'undefined' && window.location.pathname.toLowerCase().includes('bitmeme'))
+  );
+  const existing = document.getElementById('ipx-maintenance-overlay');
+
+  if (!cfg.maintenanceMode || isBitmemeAdminPage) {
+    if (existing) existing.remove();
+    if (document.body && document.body.dataset.maintLocked === 'true') {
+      document.body.style.overflow = '';
+      delete document.body.dataset.maintLocked;
+    }
+    return;
+  }
+
+  const assetHelper = window.getAssetUrl || ((p) => p);
+  const titleText = cfg.maintenanceTitle || 'WE ARE UPGRADING THE ARCADE!';
+  const msgText = cfg.maintenanceMessage || 'INDIE PLAY X is temporarily offline for scheduled maintenance and system upgrades. Hold tight — our team is tuning the servers and we will be back online shortly!';
+
+  const overlay = existing || document.createElement('div');
+  overlay.id = 'ipx-maintenance-overlay';
+  overlay.style.cssText = 'position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 999999; background: radial-gradient(circle at 50% 38%, #112236 0%, #050b14 58%, #00050d 100%); color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1.5rem; text-align: center; overflow-y: auto;';
+  overlay.innerHTML = `
+    <div style="max-width: 640px; width: 100%; display: flex; flex-direction: column; align-items: center;">
+      <img src="${safeUrl(assetHelper('/images/indieplayx_logo.svg'))}" alt="INDIE PLAY X" style="height: 46px; width: auto; object-fit: contain; margin-bottom: 1rem; filter: drop-shadow(0 4px 16px rgba(0, 168, 225, 0.35));">
+
+      <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(245, 158, 11, 0.16); border: 1px solid rgba(245, 158, 11, 0.5); color: #fbbf24; padding: 5px 14px; border-radius: 999px; font-size: 0.75rem; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 1rem;">
+        <span style="width: 8px; height: 8px; border-radius: 50%; background: #f59e0b; display: inline-block; box-shadow: 0 0 10px #f59e0b;"></span>
+        SCHEDULED MAINTENANCE • TEMPORARILY OFFLINE
+      </div>
+
+      <div style="position: relative; margin: 0.2rem 0 1.1rem; display: flex; align-items: center; justify-content: center;">
+        <div style="position: absolute; width: 240px; height: 240px; border-radius: 50%; background: radial-gradient(circle, rgba(20, 184, 166, 0.28) 0%, rgba(250, 204, 21, 0.12) 48%, transparent 72%); filter: blur(18px); pointer-events: none;"></div>
+        <img src="${safeUrl(assetHelper('/images/maintenance_retro_hero.png'))}" alt="IndiePlay-X Maintenance" style="height: clamp(230px, 38vh, 330px); width: auto; object-fit: contain; position: relative; z-index: 2; filter: drop-shadow(0 18px 35px rgba(0,0,0,0.85));">
+      </div>
+
+      <h1 style="font-size: clamp(1.55rem, 3.5vw, 2.35rem); font-weight: 900; color: #ffffff; margin: 0 0 0.7rem; letter-spacing: 0.5px; line-height: 1.2; text-shadow: 0 4px 20px rgba(0,0,0,0.7);">
+        ${escapeHTML(titleText)}
+      </h1>
+
+      <p style="font-size: clamp(0.92rem, 1.6vw, 1.05rem); color: #cbd5e1; line-height: 1.65; margin: 0 0 1.4rem; max-width: 540px;">
+        ${escapeHTML(msgText)}
+      </p>
+
+      <div style="display: inline-flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 0.7rem 1.2rem; font-size: 0.8rem; color: #94a3b8;">
+        <i class="fas fa-tools" style="color: #38bdf8;"></i>
+        <span>We'll be back online very soon • Thank you for your patience!</span>
+      </div>
+    </div>
+  `;
+
+  if (!existing && document.body) {
+    document.body.appendChild(overlay);
+  }
+  if (document.body) {
+    document.body.style.overflow = 'hidden';
+    document.body.dataset.maintLocked = 'true';
+  }
 }
 
 // Compress uploaded image via Canvas to keep base64 fast and lightweight (<200KB)
@@ -1337,7 +1404,9 @@ function openMagazineCmsModal(articleToEdit = null) {
 // ============================================================================
 export function initBackendSystem() {
   syncPaymentConfigFromCloud();
+  syncPortalNewsFromCloud();
   injectBackendModals();
+  injectPortalNewsModals();
   initExpress1ClickSystem();
   initSpecialProjectsSections();
 
@@ -2801,9 +2870,229 @@ export function openMemeConsoleModal(initialView = 'front') {
 }
 
 // ============================================================================
-// 5. PAGINA RISERVATA /BITMEME — LOGIN UNIFICATO BACKEND & REDAZIONE MAGAZINE
+// 5. GESTIONE DINAMICA "ULTIME NOVITÀ" + PAGINA RISERVATA /BITMEME
 // ============================================================================
 const STORAGE_KEY_BACKEND_UNLOCKED = 'indieplay_backend_unlocked_v1';
+const STORAGE_KEY_PORTAL_NEWS = 'indieplay_portal_news_v1';
+
+const DEFAULT_PORTAL_NEWS = [
+  {
+    id: 'news-1',
+    title: 'Rilascio Feature: Le Vetrine Sviluppatore!',
+    desc: 'Ora i venditori possono personalizzare la propria pagina social con descrizione, prodotti e accessori di merchandising ufficiale.',
+    date: 'Novembre 2026',
+    badge: 'NUOVA FEATURE',
+    img: '/images/merch_hoodie_samurai_1777198641485.png'
+  },
+  {
+    id: 'news-2',
+    title: 'Accordo Strategico con NeonLabs',
+    desc: 'NeonLabs pubblicherà in esclusiva temporale i suoi prossimi titoli arcade e picchiaduro retrò su IndiePlay-X.',
+    date: 'Novembre 2026',
+    badge: 'PARTNERSHIP',
+    img: '/images/neon_samurai_screenshot_1_1777200476248.png'
+  },
+  {
+    id: 'news-3',
+    title: 'Sicurezza dei Pagamenti e Acquisto 1-Click',
+    desc: 'Abbiamo integrato il nuovo sistema di acquisto istantaneo 1-Click e nuovi protocolli di cifratura per proteggere le transazioni.',
+    date: 'Novembre 2026',
+    badge: 'SICUREZZA',
+    img: '/images/merch_tshirt_samurai_1777201074364.png'
+  }
+];
+
+export function getPortalNews() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_PORTAL_NEWS);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (e) {}
+  return [...DEFAULT_PORTAL_NEWS];
+}
+
+export async function savePortalNews(newsList) {
+  const clean = Array.isArray(newsList) ? newsList : [];
+  try {
+    localStorage.setItem(STORAGE_KEY_PORTAL_NEWS, JSON.stringify(clean));
+  } catch (e) {}
+  try {
+    await setDoc(doc(db, 'settings', 'portal_news'), {
+      items: clean,
+      updatedAt: new Date().toISOString()
+    });
+  } catch (e) {}
+  window.dispatchEvent(new CustomEvent('indieplay:portalnewschange', { detail: clean }));
+  return clean;
+}
+
+export async function syncPortalNewsFromCloud() {
+  try {
+    const snap = await getDoc(doc(db, 'settings', 'portal_news'));
+    if (snap.exists() && Array.isArray(snap.data().items) && snap.data().items.length > 0) {
+      localStorage.setItem(STORAGE_KEY_PORTAL_NEWS, JSON.stringify(snap.data().items));
+      window.dispatchEvent(new CustomEvent('indieplay:portalnewschange', { detail: snap.data().items }));
+      return snap.data().items;
+    }
+  } catch (e) {}
+  return getPortalNews();
+}
+
+let editingNewsId = null;
+let pendingNewsImgDataUrl = '';
+
+function injectPortalNewsModals() {
+  if (document.getElementById('portal-news-cms-modal')) return;
+
+  const wrapper = document.createElement('div');
+  wrapper.innerHTML = `
+    <!-- Modal Lettura Notizia ("Ultime novità") -->
+    <div id="portal-news-reader-modal" class="lightbox" style="display: none; justify-content: center; align-items: center; z-index: 3820;">
+      <div class="modal-content glass" style="background: rgba(14, 21, 31, 0.99); border: 1px solid rgba(0, 168, 225, 0.45); border-radius: 16px; padding: 1.8rem; max-width: 620px; width: 93%; max-height: 90vh; overflow-y: auto; color: white; position: relative; box-shadow: 0 25px 60px rgba(0,0,0,0.9);">
+        <span class="close-lightbox" id="close-portal-news-reader" style="position: absolute; top: 0.7rem; right: 1.1rem; font-size: 2.2rem; cursor: pointer; color: var(--text-gray);">&times;</span>
+        <div id="portal-news-reader-body"></div>
+      </div>
+    </div>
+
+    <!-- Modal CMS Creazione / Modifica "Ultime novità" -->
+    <div id="portal-news-cms-modal" class="lightbox" style="display: none; justify-content: center; align-items: center; z-index: 3860;">
+      <div class="modal-content glass" style="background: rgba(14, 21, 31, 0.99); border: 1px solid rgba(56, 189, 248, 0.5); border-radius: 16px; padding: 1.8rem; max-width: 580px; width: 94%; max-height: 92vh; overflow-y: auto; color: white; position: relative; box-shadow: 0 25px 65px rgba(0,0,0,0.92);">
+        <span class="close-lightbox" id="close-portal-news-cms" style="position: absolute; top: 0.7rem; right: 1.1rem; font-size: 2.2rem; cursor: pointer; color: var(--text-gray);">&times;</span>
+        <h3 id="portal-news-cms-heading" style="margin: 0 0 1rem; font-size: 1.3rem; font-weight: 900; color: white;">
+          <i class="fas fa-bullhorn" style="color: #38bdf8;"></i> Pubblica in "Ultime novità"
+        </h3>
+        <form id="portal-news-cms-form" style="display: flex; flex-direction: column; gap: 0.85rem;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem;">
+            <div>
+              <label style="font-size: 0.76rem; color: var(--text-gray); font-weight: 700;">Badge / Etichetta</label>
+              <input type="text" id="cms-news-badge" required placeholder="Es. NUOVA FEATURE, EVENTO" value="NOVITÀ" style="width: 100%; padding: 9px; background: #0f1722; border: 1px solid rgba(255,255,255,0.18); border-radius: 6px; color: white;">
+            </div>
+            <div>
+              <label style="font-size: 0.76rem; color: var(--text-gray); font-weight: 700;">Data</label>
+              <input type="text" id="cms-news-date" required placeholder="Es. 18 Novembre 2026" style="width: 100%; padding: 9px; background: #0f1722; border: 1px solid rgba(255,255,255,0.18); border-radius: 6px; color: white;">
+            </div>
+          </div>
+          <div>
+            <label style="font-size: 0.76rem; color: var(--text-gray); font-weight: 700;">Titolo della Notizia</label>
+            <input type="text" id="cms-news-title" required placeholder="Inserisci il titolo dell'annuncio..." style="width: 100%; padding: 10px; background: #0f1722; border: 1px solid rgba(255,255,255,0.18); border-radius: 6px; color: white; font-weight: 700;">
+          </div>
+          <div style="background: rgba(255,255,255,0.03); border: 1px dashed rgba(56, 189, 248, 0.45); border-radius: 10px; padding: 0.85rem;">
+            <label style="font-size: 0.78rem; color: white; font-weight: 800; display: block; margin-bottom: 6px;">
+              <i class="fas fa-camera" style="color: #38bdf8;"></i> Foto della Notizia (Dal PC o URL)
+            </label>
+            <label for="cms-news-file" class="btn btn-prime-outline" style="display: inline-flex; padding: 6px 12px; font-size: 0.78rem; cursor: pointer; margin-bottom: 6px;">
+              <i class="fas fa-upload"></i> Carica Foto dal PC
+            </label>
+            <input type="file" id="cms-news-file" accept="image/*" hidden>
+            <span id="cms-news-file-status" style="font-size: 0.75rem; color: var(--text-gray); margin-left: 8px;">Oppure indica URL qui sotto</span>
+            <input type="text" id="cms-news-img" placeholder="/images/merch_hoodie_samurai_1777198641485.png" style="width: 100%; padding: 8px; background: #0f1722; border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: white; font-size: 0.82rem;">
+          </div>
+          <div>
+            <label style="font-size: 0.76rem; color: var(--text-gray); font-weight: 700;">Testo / Descrizione della Notizia</label>
+            <textarea id="cms-news-desc" rows="4" required placeholder="Scrivi il contenuto della notizia..." style="width: 100%; padding: 10px; background: #0f1722; border: 1px solid rgba(255,255,255,0.18); border-radius: 6px; color: white;"></textarea>
+          </div>
+          <button type="submit" class="btn btn-prime" style="padding: 0.9rem; font-weight: 900; justify-content: center;">
+            <i class="fas fa-paper-plane"></i> Salva e Pubblica in "Ultime novità"
+          </button>
+        </form>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(wrapper);
+
+  const readerModal = document.getElementById('portal-news-reader-modal');
+  const cmsModal = document.getElementById('portal-news-cms-modal');
+  document.getElementById('close-portal-news-reader').onclick = () => (readerModal.style.display = 'none');
+  document.getElementById('close-portal-news-cms').onclick = () => (cmsModal.style.display = 'none');
+  readerModal.onclick = (e) => { if (e.target === readerModal) readerModal.style.display = 'none'; };
+  cmsModal.onclick = (e) => { if (e.target === cmsModal) cmsModal.style.display = 'none'; };
+
+  const fileInp = document.getElementById('cms-news-file');
+  const statusEl = document.getElementById('cms-news-file-status');
+  if (fileInp) {
+    fileInp.onchange = async (e) => {
+      const f = e.target.files?.[0];
+      if (!f) return;
+      statusEl.textContent = 'Compressione foto...';
+      try {
+        pendingNewsImgDataUrl = await compressImageToDataUrl(f, 900, 0.82);
+        statusEl.innerHTML = `<span style="color:#34d399; font-weight:700;">✓ Foto pronta: ${escapeHTML(f.name)}</span>`;
+      } catch (err) {
+        statusEl.textContent = 'Errore caricamento foto';
+      }
+    };
+  }
+
+  document.getElementById('portal-news-cms-form').onsubmit = async (e) => {
+    e.preventDefault();
+    const list = getPortalNews();
+    const imgVal = pendingNewsImgDataUrl || document.getElementById('cms-news-img').value.trim() || '/images/merch_hoodie_samurai_1777198641485.png';
+    const payload = {
+      id: editingNewsId || ('news-' + Date.now()),
+      badge: document.getElementById('cms-news-badge').value.trim().toUpperCase() || 'NOVITÀ',
+      date: document.getElementById('cms-news-date').value.trim() || new Date().toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' }),
+      title: document.getElementById('cms-news-title').value.trim(),
+      desc: document.getElementById('cms-news-desc').value.trim(),
+      img: imgVal
+    };
+    const next = editingNewsId
+      ? list.map(n => (n.id === editingNewsId ? payload : n))
+      : [payload, ...list];
+    await savePortalNews(next);
+    editingNewsId = null;
+    pendingNewsImgDataUrl = '';
+    cmsModal.style.display = 'none';
+    if (window.showToast) window.showToast('Notizia pubblicata in "Ultime novità"!', 'success');
+  };
+}
+
+export function openPortalNewsCmsModal(newsToEdit = null) {
+  injectPortalNewsModals();
+  editingNewsId = newsToEdit ? newsToEdit.id : null;
+  pendingNewsImgDataUrl = newsToEdit && String(newsToEdit.img || '').startsWith('data:') ? newsToEdit.img : '';
+
+  const heading = document.getElementById('portal-news-cms-heading');
+  if (heading) {
+    heading.innerHTML = newsToEdit
+      ? '<i class="fas fa-edit" style="color: #fbbf24;"></i> Modifica Notizia ("Ultime novità")'
+      : '<i class="fas fa-bullhorn" style="color: #38bdf8;"></i> Pubblica Nuova Notizia ("Ultime novità")';
+  }
+  document.getElementById('cms-news-badge').value = newsToEdit ? (newsToEdit.badge || 'NOVITÀ') : 'NUOVA FEATURE';
+  document.getElementById('cms-news-date').value = newsToEdit ? (newsToEdit.date || '') : new Date().toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' });
+  document.getElementById('cms-news-title').value = newsToEdit ? (newsToEdit.title || '') : '';
+  document.getElementById('cms-news-desc').value = newsToEdit ? (newsToEdit.desc || '') : '';
+  document.getElementById('cms-news-img').value = newsToEdit && !String(newsToEdit.img || '').startsWith('data:') ? (newsToEdit.img || '') : '/images/merch_hoodie_samurai_1777198641485.png';
+  const statusEl = document.getElementById('cms-news-file-status');
+  if (statusEl) statusEl.textContent = newsToEdit ? 'Immagine attuale mantenuta (o caricane una nuova)' : 'Oppure indica URL qui sotto';
+
+  document.getElementById('portal-news-cms-modal').style.display = 'flex';
+}
+
+export function openPortalNewsReaderModal(newsItem) {
+  if (!newsItem) return;
+  injectPortalNewsModals();
+  const modal = document.getElementById('portal-news-reader-modal');
+  const body = document.getElementById('portal-news-reader-body');
+  const assetHelper = window.getAssetUrl || ((p) => p);
+
+  body.innerHTML = `
+    <div style="height: 225px; background: url('${safeUrl(assetHelper(newsItem.img))}') no-repeat center center; background-size: cover; border-radius: 10px; margin-bottom: 1.2rem; position: relative;">
+      <span style="position: absolute; top: 12px; left: 12px; background: var(--prime-blue); color: white; padding: 4px 12px; border-radius: 4px; font-size: 0.75rem; font-weight: 800;">${escapeHTML(newsItem.badge || 'NOVITÀ')}</span>
+    </div>
+    <div style="font-size: 0.82rem; color: #38bdf8; font-weight: 700; margin-bottom: 6px;">
+      <i class="far fa-calendar-alt"></i> ${escapeHTML(newsItem.date || '')}
+    </div>
+    <h2 style="font-size: 1.45rem; font-weight: 900; color: white; margin: 0 0 1rem; line-height: 1.3;">
+      ${escapeHTML(newsItem.title)}
+    </h2>
+    <p style="font-size: 0.96rem; color: #e2e8f0; line-height: 1.7; margin: 0; white-space: pre-line;">
+      ${escapeHTML(newsItem.desc)}
+    </p>
+  `;
+  modal.style.display = 'flex';
+}
 
 export async function initBitmemeAdminHub() {
   const root = document.getElementById('bitmeme-hub-root');
@@ -2811,17 +3100,20 @@ export async function initBitmemeAdminHub() {
 
   injectMagazineModals();
   injectBackendModals();
-  await Promise.all([syncPaymentConfigFromCloud(), syncMagazineFromCloud()]);
+  injectPortalNewsModals();
+  await Promise.all([syncPaymentConfigFromCloud(), syncMagazineFromCloud(), syncPortalNewsFromCloud()]);
 
   const renderHub = () => {
     const isMagUnlocked = sessionStorage.getItem(STORAGE_KEY_MAGAZINE_UNLOCKED) === 'true';
     const isBeUnlocked = sessionStorage.getItem(STORAGE_KEY_BACKEND_UNLOCKED) === 'true';
     const articles = getMagazineArticles();
+    const portalNews = getPortalNews();
     const cfg = getPaymentConfig();
+    const isDown = Boolean(cfg.maintenanceMode);
 
     root.innerHTML = `
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 2rem; align-items: start;">
-        <!-- CARD 1: REDAZIONE INDIEPLAY MAGAZINE -->
+        <!-- CARD 1: REDAZIONE INDIEPLAY MAGAZINE & ULTIME NOVITÀ -->
         <div style="background: rgba(15, 23, 34, 0.96); border: 1px solid ${isMagUnlocked ? 'rgba(16, 185, 129, 0.5)' : 'rgba(0, 168, 225, 0.45)'}; border-radius: 18px; padding: 2rem; box-shadow: 0 20px 50px rgba(0,0,0,0.65);">
           <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 1.3rem; flex-wrap: wrap;">
             <div style="display: flex; align-items: center; gap: 12px;">
@@ -2829,8 +3121,8 @@ export async function initBitmemeAdminHub() {
                 <i class="fas fa-newspaper" style="color: var(--prime-blue); font-size: 1.35rem;"></i>
               </div>
               <div>
-                <span style="font-size: 0.72rem; font-weight: 900; color: var(--prime-blue); letter-spacing: 0.8px;">ACCESSO 1 • CMS EDITORIALE</span>
-                <h2 style="margin: 2px 0 0; font-size: 1.35rem; font-weight: 900; color: white;">Redazione IndiePlay Magazine</h2>
+                <span style="font-size: 0.72rem; font-weight: 900; color: var(--prime-blue); letter-spacing: 0.8px;">ACCESSO 1 • CMS EDITORIALE & NEWS</span>
+                <h2 style="margin: 2px 0 0; font-size: 1.3rem; font-weight: 900; color: white;">Magazine & Ultime Novità</h2>
               </div>
             </div>
             <span style="padding: 4px 10px; border-radius: 999px; font-size: 0.72rem; font-weight: 800; background: ${isMagUnlocked ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255,255,255,0.06)'}; color: ${isMagUnlocked ? '#34d399' : '#94a3b8'};">
@@ -2840,49 +3132,72 @@ export async function initBitmemeAdminHub() {
 
           ${!isMagUnlocked ? `
             <p style="font-size: 0.88rem; color: var(--text-gray); line-height: 1.55; margin: 0 0 1.2rem;">
-              Inserisci la password Redazione per caricare nuovi articoli, gallerie fotografiche e video YouTube o modificare i numeri pubblicati su <strong>IndiePlay Magazine</strong>.
+              Inserisci la password Redazione per gestire sia gli articoli completi di <strong>IndiePlay Magazine</strong> sia gli annunci rapidi della sezione <strong>"Ultime novità"</strong> in Homepage.
             </p>
             <form id="bm-mag-login-form" style="display: flex; flex-direction: column; gap: 0.9rem;">
               <div>
-                <label style="font-size: 0.78rem; color: var(--text-gray); font-weight: 800; display: block; margin-bottom: 6px;">PASSWORD REDAZIONE MAGAZINE</label>
+                <label style="font-size: 0.78rem; color: var(--text-gray); font-weight: 800; display: block; margin-bottom: 6px;">PASSWORD REDAZIONE MAGAZINE & NEWS</label>
                 <input type="password" id="bm-mag-pwd" required placeholder="Inserisci password Redazione..." style="width: 100%; padding: 12px; background: #090e16; border: 1px solid rgba(255,255,255,0.18); border-radius: 8px; color: white; font-size: 0.98rem;">
               </div>
               <button type="submit" class="btn btn-prime" style="width: 100%; padding: 0.95rem; font-weight: 900; justify-content: center; font-size: 0.95rem;">
-                <i class="fas fa-unlock-alt"></i> Entra in Redazione Magazine
+                <i class="fas fa-unlock-alt"></i> Entra in Redazione & News
               </button>
             </form>
           ` : `
-            <div style="display: flex; flex-direction: column; gap: 0.85rem;">
-              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                <button type="button" id="bm-open-new-art-btn" class="btn btn-prime" style="flex: 1; padding: 0.9rem 1rem; font-weight: 900; justify-content: center;">
-                  <i class="fas fa-plus-circle"></i> + Carica Nuovo Articolo & Foto
-                </button>
-                <button type="button" id="bm-open-issue-viewer-btn" class="btn btn-prime-outline" style="padding: 0.9rem 1rem; font-weight: 800;">
-                  <i class="fas fa-book-open"></i> Sfogliabile
-                </button>
-                <button type="button" id="bm-lock-mag-btn" class="btn btn-prime-outline" title="Chiudi sessione Redazione" style="padding: 0.9rem 0.9rem; border-color: rgba(239,68,68,0.4); color: #f87171;">
-                  <i class="fas fa-sign-out-alt"></i>
-                </button>
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+              <!-- Gestione IndiePlay Magazine -->
+              <div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 0.7rem;">
+                  <button type="button" id="bm-open-new-art-btn" class="btn btn-prime" style="flex: 1; padding: 0.8rem 0.9rem; font-weight: 900; font-size: 0.84rem; justify-content: center;">
+                    <i class="fas fa-plus-circle"></i> + Nuovo Articolo Magazine
+                  </button>
+                  <button type="button" id="bm-open-issue-viewer-btn" class="btn btn-prime-outline" style="padding: 0.8rem 0.9rem; font-weight: 800; font-size: 0.82rem;">
+                    <i class="fas fa-book-open"></i> Rivista
+                  </button>
+                  <button type="button" id="bm-lock-mag-btn" class="btn btn-prime-outline" title="Chiudi sessione Redazione" style="padding: 0.8rem 0.85rem; border-color: rgba(239,68,68,0.4); color: #f87171;">
+                    <i class="fas fa-sign-out-alt"></i>
+                  </button>
+                </div>
+
+                <div style="font-size: 0.76rem; font-weight: 800; color: #38bdf8; margin-bottom: 0.5rem; text-transform: uppercase;">
+                  <i class="fas fa-book"></i> Articoli IndiePlay Magazine (${articles.length})
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 0.45rem; max-height: 195px; overflow-y: auto;">
+                  ${articles.map(art => `
+                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 9px; padding: 0.55rem 0.8rem; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                      <div style="min-width: 0;">
+                        <div style="font-size: 0.68rem; color: var(--prime-blue); font-weight: 800;">${escapeHTML(art.category || 'EDITORIALE')} • ${escapeHTML(art.issue || '')}</div>
+                        <div style="font-size: 0.84rem; font-weight: 800; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHTML(art.title)}</div>
+                      </div>
+                      <div style="display: flex; gap: 5px; flex-shrink: 0;">
+                        <button type="button" class="bm-edit-art-btn btn btn-prime-outline" data-id="${escapeHTML(art.id)}" style="padding: 4px 8px; font-size: 0.72rem; border-color: #fbbf24; color: #fbbf24;"><i class="fas fa-edit"></i></button>
+                        <button type="button" class="bm-del-art-btn btn btn-prime-outline" data-id="${escapeHTML(art.id)}" style="padding: 4px 8px; font-size: 0.72rem; border-color: #ef4444; color: #f87171;"><i class="fas fa-trash"></i></button>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
               </div>
 
-              <div style="margin-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 0.9rem;">
-                <div style="font-size: 0.8rem; font-weight: 800; color: #38bdf8; margin-bottom: 0.65rem; text-transform: uppercase;">
-                  Articoli Pubblicati nel Magazine (${articles.length})
+              <!-- Gestione Sezione "Ultime novità" (Homepage) -->
+              <div style="border-top: 1px solid rgba(255,255,255,0.12); padding-top: 0.95rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 0.6rem; flex-wrap: wrap;">
+                  <div style="font-size: 0.76rem; font-weight: 800; color: #34d399; text-transform: uppercase;">
+                    <i class="fas fa-bullhorn"></i> Sezione "Ultime novità" (${portalNews.length})
+                  </div>
+                  <button type="button" id="bm-open-new-news-btn" class="btn btn-prime" style="padding: 5px 11px; font-size: 0.76rem; font-weight: 800; background: #10b981; border: none;">
+                    <i class="fas fa-plus"></i> + Aggiungi Notizia
+                  </button>
                 </div>
-                <div style="display: flex; flex-direction: column; gap: 0.55rem; max-height: 310px; overflow-y: auto;">
-                  ${articles.map(art => `
-                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 0.7rem 0.9rem; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+                <div style="display: flex; flex-direction: column; gap: 0.45rem; max-height: 205px; overflow-y: auto;">
+                  ${portalNews.map(n => `
+                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 9px; padding: 0.55rem 0.8rem; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
                       <div style="min-width: 0;">
-                        <div style="font-size: 0.7rem; color: var(--prime-blue); font-weight: 800;">${escapeHTML(art.category || 'EDITORIALE')} • ${escapeHTML(art.issue || '')}</div>
-                        <div style="font-size: 0.88rem; font-weight: 800; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHTML(art.title)}</div>
+                        <div style="font-size: 0.68rem; color: #34d399; font-weight: 800;">${escapeHTML(n.badge || 'NOVITÀ')} • ${escapeHTML(n.date || '')}</div>
+                        <div style="font-size: 0.84rem; font-weight: 800; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHTML(n.title)}</div>
                       </div>
-                      <div style="display: flex; gap: 6px; flex-shrink: 0;">
-                        <button type="button" class="bm-edit-art-btn btn btn-prime-outline" data-id="${escapeHTML(art.id)}" title="Modifica Articolo" style="padding: 5px 10px; font-size: 0.75rem; border-color: #fbbf24; color: #fbbf24;">
-                          <i class="fas fa-edit"></i> Modifica
-                        </button>
-                        <button type="button" class="bm-del-art-btn btn btn-prime-outline" data-id="${escapeHTML(art.id)}" title="Elimina Articolo" style="padding: 5px 9px; font-size: 0.75rem; border-color: #ef4444; color: #f87171;">
-                          <i class="fas fa-trash"></i>
-                        </button>
+                      <div style="display: flex; gap: 5px; flex-shrink: 0;">
+                        <button type="button" class="bm-edit-news-btn btn btn-prime-outline" data-id="${escapeHTML(n.id)}" style="padding: 4px 8px; font-size: 0.72rem; border-color: #fbbf24; color: #fbbf24;"><i class="fas fa-edit"></i></button>
+                        <button type="button" class="bm-del-news-btn btn btn-prime-outline" data-id="${escapeHTML(n.id)}" style="padding: 4px 8px; font-size: 0.72rem; border-color: #ef4444; color: #f87171;"><i class="fas fa-trash"></i></button>
                       </div>
                     </div>
                   `).join('')}
@@ -2892,7 +3207,7 @@ export async function initBitmemeAdminHub() {
           `}
         </div>
 
-        <!-- CARD 2: CONSOLE AMMINISTRATORE BACKEND PAGAMENTI & MODULI -->
+        <!-- CARD 2: CONSOLE AMMINISTRATORE BACKEND & INTERRUTTORE SITO DOWN -->
         <div style="background: rgba(15, 23, 34, 0.96); border: 1px solid ${isBeUnlocked ? 'rgba(16, 185, 129, 0.5)' : 'rgba(245, 158, 11, 0.45)'}; border-radius: 18px; padding: 2rem; box-shadow: 0 20px 50px rgba(0,0,0,0.65);">
           <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 1.3rem; flex-wrap: wrap;">
             <div style="display: flex; align-items: center; gap: 12px;">
@@ -2901,7 +3216,7 @@ export async function initBitmemeAdminHub() {
               </div>
               <div>
                 <span style="font-size: 0.72rem; font-weight: 900; color: #fbbf24; letter-spacing: 0.8px;">ACCESSO 2 • CONTROLLO SISTEMA</span>
-                <h2 style="margin: 2px 0 0; font-size: 1.35rem; font-weight: 900; color: white;">Backend Pagamenti & Moduli</h2>
+                <h2 style="margin: 2px 0 0; font-size: 1.3rem; font-weight: 900; color: white;">Backend & Stato Sito</h2>
               </div>
             </div>
             <span style="padding: 4px 10px; border-radius: 999px; font-size: 0.72rem; font-weight: 800; background: ${isBeUnlocked ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255,255,255,0.06)'}; color: ${isBeUnlocked ? '#34d399' : '#94a3b8'};">
@@ -2911,7 +3226,7 @@ export async function initBitmemeAdminHub() {
 
           ${!isBeUnlocked ? `
             <p style="font-size: 0.88rem; color: var(--text-gray); line-height: 1.55; margin: 0 0 1.2rem;">
-              Inserisci la password Amministratore Backend per gestire Transazioni Reali, Split-Payment, Verifica IBAN, visibilità sezioni (Magazine, BitBonk, Meme Console) ed esportare il Backup Cloud.
+              Inserisci la password Amministratore Backend per gestire l'interruttore <strong>Sito Offline / Manutenzione</strong>, Transazioni Reali, Split-Payment, visibilità sezioni ed esportare il Backup Cloud.
             </p>
             <form id="bm-be-login-form" style="display: flex; flex-direction: column; gap: 0.9rem;">
               <div>
@@ -2923,18 +3238,43 @@ export async function initBitmemeAdminHub() {
               </button>
             </form>
           ` : `
-            <div style="display: flex; flex-direction: column; gap: 0.9rem;">
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+              <!-- BOX INTERRUTTORE SITO DOWN / MANUTENZIONE CON PERSONAGGIO RETRO -->
+              <div style="background: ${isDown ? 'rgba(239, 68, 68, 0.12)' : 'rgba(16, 185, 129, 0.08)'}; border: 1px solid ${isDown ? 'rgba(239, 68, 68, 0.5)' : 'rgba(16, 185, 129, 0.35)'}; border-radius: 12px; padding: 1rem;">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 0.7rem;">
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <img src="/images/maintenance_retro_hero.png" alt="Maintenance Hero" style="width: 44px; height: 56px; object-fit: contain; border-radius: 6px; background: rgba(0,0,0,0.35); padding: 2px;">
+                    <div>
+                      <div style="font-size: 0.72rem; font-weight: 900; color: ${isDown ? '#f87171' : '#34d399'}; letter-spacing: 0.5px;">
+                        ${isDown ? '🔴 SITO PUBBLICO IN MANUTENZIONE (DOWN)' : '🟢 SITO PUBBLICO ONLINE E RAGGIUNGIBILE'}
+                      </div>
+                      <div style="font-size: 0.84rem; font-weight: 800; color: white;">Modalità Manutenzione (Schermata in Inglese)</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 0.8rem;">
+                  <input type="text" id="bm-maint-title" value="${escapeHTML(cfg.maintenanceTitle || 'WE ARE UPGRADING THE ARCADE!')}" placeholder="Titolo in inglese..." style="width: 100%; padding: 7px 10px; background: #090e16; border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: white; font-size: 0.8rem; font-weight: 700;">
+                  <textarea id="bm-maint-msg" rows="2" placeholder="Messaggio in inglese..." style="width: 100%; padding: 7px 10px; background: #090e16; border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: #cbd5e1; font-size: 0.78rem;">${escapeHTML(cfg.maintenanceMessage || 'INDIE PLAY X is temporarily offline for scheduled maintenance and system upgrades. Hold tight — our team is tuning the servers and we will be back online shortly!')}</textarea>
+                </div>
+
+                <button type="button" id="bm-toggle-maintenance-btn" class="btn" style="width: 100%; padding: 0.85rem; font-weight: 900; font-size: 0.86rem; border-radius: 8px; border: none; cursor: pointer; justify-content: center; display: inline-flex; align-items: center; gap: 8px; background: ${isDown ? '#10b981' : '#ef4444'}; color: white; box-shadow: 0 6px 18px ${isDown ? 'rgba(16, 185, 129, 0.35)' : 'rgba(239, 68, 68, 0.35)'};">
+                  <i class="fas ${isDown ? 'fa-globe' : 'fa-power-off'}"></i>
+                  ${isDown ? 'RIMETTI SUBITO IL SITO ONLINE (DISATTIVA DOWN)' : 'METTI IL SITO IN MANUTENZIONE / DOWN TEMPORANEO'}
+                </button>
+              </div>
+
               <div style="display: flex; gap: 8px;">
-                <button type="button" id="bm-open-be-console-btn" class="btn btn-prime" style="flex: 1; padding: 0.95rem 1rem; font-weight: 900; background: #f59e0b; color: #0f172a; border: none; justify-content: center;">
+                <button type="button" id="bm-open-be-console-btn" class="btn btn-prime" style="flex: 1; padding: 0.9rem 1rem; font-weight: 900; background: #f59e0b; color: #0f172a; border: none; justify-content: center; font-size: 0.86rem;">
                   <i class="fas fa-sliders-h"></i> Apri Pannello Completo Backend (10 Voci & Pagamenti)
                 </button>
-                <button type="button" id="bm-lock-be-btn" class="btn btn-prime-outline" title="Chiudi sessione Backend" style="padding: 0.95rem 0.95rem; border-color: rgba(239,68,68,0.4); color: #f87171;">
+                <button type="button" id="bm-lock-be-btn" class="btn btn-prime-outline" title="Chiudi sessione Backend" style="padding: 0.9rem 0.9rem; border-color: rgba(239,68,68,0.4); color: #f87171;">
                   <i class="fas fa-sign-out-alt"></i>
                 </button>
               </div>
 
-              <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 0.9rem; font-size: 0.82rem;">
-                <div style="font-weight: 800; color: #fbbf24; margin-bottom: 6px;">Stato Rapido Moduli Attivi:</div>
+              <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 0.85rem; font-size: 0.8rem;">
+                <div style="font-weight: 800; color: #fbbf24; margin-bottom: 5px;">Stato Rapido Moduli Attivi:</div>
                 <div style="display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.05);"><span>Modalità Pagamenti:</span><strong style="color:${cfg.realPaymentsEnabled ? '#34d399' : '#fbbf24'};">${cfg.realPaymentsEnabled ? 'TRANSAZIONI REALI LIVE' : 'SIMULAZIONE TEST'}</strong></div>
                 <div style="display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.05);"><span>Split-Payment Sviluppatori:</span><strong style="color:${cfg.splitPaymentEnabled ? '#34d399' : '#94a3b8'};">${cfg.splitPaymentEnabled ? `ATTIVO (${100 - (Number(cfg.platformFeePercent) || 15)}% Dev)` : 'DISATTIVATO'}</strong></div>
                 <div style="display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.05);"><span>Sezione BITBONK™:</span><strong style="color:${cfg.bitbonkVisible !== false ? '#34d399' : '#f87171'};">${cfg.bitbonkVisible !== false ? 'VISIBILE' : 'NASCOSTA'}</strong></div>
@@ -2946,7 +3286,7 @@ export async function initBitmemeAdminHub() {
       </div>
     `;
 
-    // Wire Redazione Magazine login form
+    // Wire Redazione Magazine & News login form
     const magForm = document.getElementById('bm-mag-login-form');
     if (magForm) {
       magForm.onsubmit = async (e) => {
@@ -2962,8 +3302,7 @@ export async function initBitmemeAdminHub() {
           resetRateLimit('mag_auth');
           sessionStorage.setItem(STORAGE_KEY_MAGAZINE_UNLOCKED, 'true');
           renderHub();
-          openMagazineCmsModal();
-          if (window.showToast) window.showToast('Accesso Redazione Magazine autorizzato!', 'success');
+          if (window.showToast) window.showToast('Accesso Redazione & Ultime Novità autorizzato!', 'success');
         } else {
           if (window.showToast) window.showToast('Password Redazione errata!', 'error');
         }
@@ -3003,6 +3342,28 @@ export async function initBitmemeAdminHub() {
       };
     });
 
+    // Wire "Ultime novità" buttons
+    const newNewsBtn = document.getElementById('bm-open-new-news-btn');
+    if (newNewsBtn) newNewsBtn.onclick = () => openPortalNewsCmsModal();
+
+    root.querySelectorAll('.bm-edit-news-btn').forEach(btn => {
+      btn.onclick = () => {
+        const id = btn.getAttribute('data-id');
+        const found = getPortalNews().find(n => n.id === id);
+        if (found) openPortalNewsCmsModal(found);
+      };
+    });
+
+    root.querySelectorAll('.bm-del-news-btn').forEach(btn => {
+      btn.onclick = async () => {
+        const id = btn.getAttribute('data-id');
+        const updated = getPortalNews().filter(n => n.id !== id);
+        await savePortalNews(updated);
+        renderHub();
+        if (window.showToast) window.showToast('Notizia rimossa da "Ultime novità".', 'info');
+      };
+    });
+
     // Wire Backend login form
     const beForm = document.getElementById('bm-be-login-form');
     if (beForm) {
@@ -3019,10 +3380,34 @@ export async function initBitmemeAdminHub() {
           resetRateLimit('backend_auth');
           sessionStorage.setItem(STORAGE_KEY_BACKEND_UNLOCKED, 'true');
           renderHub();
-          openBackendConsole();
           if (window.showToast) window.showToast('Accesso Console Backend autorizzato!', 'success');
         } else {
           if (window.showToast) window.showToast('Password Backend errata! Accesso negato.', 'error');
+        }
+      };
+    }
+
+    // Wire Maintenance Mode 1-Click Toggle
+    const toggleMaintBtn = document.getElementById('bm-toggle-maintenance-btn');
+    if (toggleMaintBtn) {
+      toggleMaintBtn.onclick = async () => {
+        const nextState = !Boolean(getPaymentConfig().maintenanceMode);
+        const titleVal = document.getElementById('bm-maint-title')?.value.trim() || 'WE ARE UPGRADING THE ARCADE!';
+        const msgVal = document.getElementById('bm-maint-msg')?.value.trim() || 'INDIE PLAY X is temporarily offline for scheduled maintenance and system upgrades. Hold tight — our team is tuning the servers and we will be back online shortly!';
+        toggleMaintBtn.disabled = true;
+        await savePaymentConfig({
+          maintenanceMode: nextState,
+          maintenanceTitle: titleVal,
+          maintenanceMessage: msgVal
+        });
+        renderHub();
+        if (window.showToast) {
+          window.showToast(
+            nextState
+              ? '🔴 Sito messo in MANUTENZIONE (Offline temporaneo attivo per tutti i visitatori)!'
+              : '🟢 Sito rimesso ONLINE e accessibile a tutti!',
+            nextState ? 'info' : 'success'
+          );
         }
       };
     }
@@ -3043,6 +3428,7 @@ export async function initBitmemeAdminHub() {
   };
 
   window.addEventListener('indieplay:magazinearticleschange', renderHub);
+  window.addEventListener('indieplay:portalnewschange', renderHub);
   window.addEventListener('indieplay:paymentconfigchange', renderHub);
   renderHub();
 }

@@ -4,7 +4,7 @@ import { db, auth } from './src/firebase';
 import { doc, getDoc, collection, getDocs, query, orderBy, limit } from "firebase/firestore";
 import { initLanguageSelectors, translations, getLanguage, autoTranslateDOM } from './src/i18n';
 import { renderVersionBadge } from './src/version';
-import { initMagazineSystem, initBackendSystem, getPaymentConfig, openQuickBuyModal, addToQuickCart, isGameOwnedExpress } from './src/backend-payments';
+import { initMagazineSystem, initBackendSystem, getPaymentConfig, openQuickBuyModal, addToQuickCart, isGameOwnedExpress, getPortalNews, openPortalNewsReaderModal } from './src/backend-payments';
 
 // Initialize language selector and translate page
 initLanguageSelectors();
@@ -871,35 +871,17 @@ function initModals() {
 function loadNewsFeed() {
   if (!newsGrid) return;
   newsGrid.innerHTML = '';
-  
-  const news = [
-    {
-      title: "Rilascio Feature: Le Vetrine Sviluppatore!",
-      desc: "Ora i venditori possono personalizzare la propria pagina social con descrizione, prodotti e accessori di merchandising ufficiale.",
-      date: "31 Agosto 2026",
-      badge: "NUOVA FEATURE",
-      img: "/images/merch_hoodie_samurai_1777198641485.png"
-    },
-    {
-      title: "Accordo Strategico con NeonLabs",
-      desc: "NeonLabs pubblicherà in esclusiva temporale i suoi prossimi titoli arcade e picchiaduro retrò su IndiePlay-X.",
-      date: "28 Agosto 2026",
-      badge: "PARTNERSHIP",
-      img: "/images/neon_samurai_screenshot_1_1777200476248.png"
-    },
-    {
-      title: "Sicurezza dei Pagamenti e Transazioni",
-      desc: "Abbiamo integrato nuovi sistemi di cifratura end-to-end per proteggere gli acquisti e l'inserimento dei metodi di pagamento.",
-      date: "25 Agosto 2026",
-      badge: "SICUREZZA",
-      img: "/images/merch_tshirt_samurai_1777201074364.png"
-    }
-  ];
+
+  const news = getPortalNews();
 
   news.forEach(item => {
     const card = document.createElement('div');
     card.className = 'news-card';
-    
+    card.style.cursor = 'pointer';
+    card.onclick = () => {
+      openPortalNewsReaderModal(item);
+    };
+
     card.innerHTML = `
       <div style="height: 150px; background: url('${getAssetUrl(item.img)}') no-repeat center center; background-size: cover; position: relative;">
         <span style="position: absolute; top: 10px; left: 10px; background: var(--prime-blue); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700;">${item.badge}</span>
@@ -915,6 +897,10 @@ function loadNewsFeed() {
   initDragToScroll(newsGrid);
   autoTranslateDOM(getLanguage());
 }
+
+window.addEventListener('indieplay:portalnewschange', () => {
+  loadNewsFeed();
+});
 
 // Initialize all features
 initCategoryFilters();
