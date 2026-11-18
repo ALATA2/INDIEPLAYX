@@ -94,28 +94,6 @@ export function getActiveUser() {
   return auth.currentUser || getStoredVipSession();
 }
 
-// Ensure auth.currentUser falls back seamlessly when a VIP Seller session is active
-try {
-  const origDesc = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(auth), 'currentUser') ||
-                   Object.getOwnPropertyDescriptor(auth, 'currentUser');
-  if (!auth.__vipPatched) {
-    let internalFirebaseUser = auth.currentUser;
-    onAuthStateChanged(auth, (u) => {
-      internalFirebaseUser = u;
-    });
-    Object.defineProperty(auth, 'currentUser', {
-      configurable: true,
-      get() {
-        const fbUser = origDesc && origDesc.get ? origDesc.get.call(auth) : internalFirebaseUser;
-        return fbUser || getStoredVipSession();
-      }
-    });
-    auth.__vipPatched = true;
-  }
-} catch (e) {
-  // Fallback if property descriptor is non-configurable
-}
-
 // ============================================================================
 // DATABASE ISCRITTI & NOTIFICA EMAIL A devindieplay@gmail.com
 // ============================================================================

@@ -2,7 +2,7 @@ import { db, auth } from './firebase';
 import { collection, getDocs, addDoc, doc, setDoc, getDoc } from 'firebase/firestore';
 import { getLanguage, autoTranslateDOM } from './i18n';
 import { escapeHTML, safeUrl, sha256Hex, checkRateLimit, resetRateLimit } from './security';
-import { getSubscribersDatabase, syncSubscribersDatabaseFromCloud, exportSubscribersDatabaseCSV, checkAndSendDailySubscribersDigest, getDailySubscribersStats, ADMIN_NOTIFICATION_EMAIL } from './auth';
+import { getSubscribersDatabase, syncSubscribersDatabaseFromCloud, exportSubscribersDatabaseCSV, checkAndSendDailySubscribersDigest, getDailySubscribersStats, getActiveUser, ADMIN_NOTIFICATION_EMAIL } from './auth';
 
 // Hash SHA-256 verificati nativamente via Web Crypto API (zero password in chiaro nel bundle)
 const MAGAZINE_PASSWORD_HASH = 'f5cc70f88b12210cbd1758da2ba5e8de99787c31e70930538d0436be9756470a';
@@ -2184,7 +2184,7 @@ export function openQuickBuyModal(itemOrItems, isCartBatch = false) {
 
   const assetHelper = window.getAssetUrl || ((p) => p);
   const wallet = get1ClickWallet();
-  const user = auth?.currentUser || null;
+  const user = getActiveUser();
   const payCfg = getPaymentConfig();
 
   const totalAmount = items.reduce((sum, it) => {

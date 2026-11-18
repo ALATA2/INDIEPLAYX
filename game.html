@@ -761,7 +761,7 @@
         import { db, auth, storage } from './src/firebase';
         import { sendEmailVerification } from "firebase/auth";
         import { doc, getDoc, updateDoc, arrayUnion, collection, addDoc, query, where, getDocs } from "firebase/firestore";
-        import { subscribeToAuthChanges, logoutUser, isVipSellerEmail } from './src/auth';
+        import { subscribeToAuthChanges, logoutUser, isVipSellerEmail, getActiveUser } from './src/auth';
         import { initLanguageSelectors, translations, getLanguage, autoTranslateDOM } from './src/i18n';
         import { initBackendSystem, getPaymentConfig, calculateSplitPayment, validateCardLuhn, recordSplitTransaction, openQuickBuyModal, addToQuickCart, isGameOwnedExpress } from './src/backend-payments';
 
@@ -861,7 +861,7 @@
                     hero.style.backgroundSize = 'cover';
 
                     let isOwned = isGameOwnedExpress(gameId);
-                    const user = auth.currentUser;
+                    const user = getActiveUser();
                     if (user && !isOwned) {
                         const libRef = collection(db, 'users', user.uid, 'library');
                         const q = query(libRef, where('gameId', '==', gameId));
@@ -1450,7 +1450,7 @@
                     closeDisclaimerModal();
 
                     // Track downloaded state in user's library
-                    const user = auth.currentUser;
+                    const user = getActiveUser();
                     if (user) {
                         try {
                             const libRef = collection(db, 'users', user.uid, 'library');
@@ -1515,7 +1515,7 @@
         checkoutForm.onsubmit = async (e) => {
             e.preventDefault();
             
-            const user = auth.currentUser;
+            const user = getActiveUser();
             if (!user) return;
 
             const payCfg = getPaymentConfig();
