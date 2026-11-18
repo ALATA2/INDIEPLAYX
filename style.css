@@ -1221,6 +1221,57 @@ input:focus {
   overflow-y: auto;
 }
 
+.card-1click-btn {
+  background: linear-gradient(135deg, #f59e0b, #ea580c);
+  color: #0f172a;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 9px;
+  font-size: 0.72rem;
+  font-weight: 900;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 3px 10px rgba(245, 158, 11, 0.3);
+}
+
+.card-1click-btn:hover {
+  transform: translateY(-1px) scale(1.03);
+  box-shadow: 0 5px 14px rgba(245, 158, 11, 0.5);
+}
+
+.card-1click-btn.free {
+  background: linear-gradient(135deg, #00a8e1, #0284c7);
+  color: #ffffff;
+  box-shadow: 0 3px 10px rgba(0, 168, 225, 0.3);
+}
+
+.card-1click-btn.owned {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.45);
+  box-shadow: none;
+}
+
+.card-cart-btn {
+  background: rgba(255, 255, 255, 0.1);
+  color: #f8fafc;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  padding: 4px 7px;
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.card-cart-btn:hover {
+  background: rgba(245, 158, 11, 0.22);
+  border-color: #f59e0b;
+  color: #fbbf24;
+}
+
 #open-mag-title-trigger:hover {
   color: #38bdf8 !important;
 }

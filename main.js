@@ -4,7 +4,7 @@ import { db, auth } from './src/firebase';
 import { doc, getDoc, collection, getDocs, query, orderBy, limit } from "firebase/firestore";
 import { initLanguageSelectors, translations, getLanguage, autoTranslateDOM } from './src/i18n';
 import { renderVersionBadge } from './src/version';
-import { initMagazineSystem, initBackendSystem, getPaymentConfig } from './src/backend-payments';
+import { initMagazineSystem, initBackendSystem, getPaymentConfig, openQuickBuyModal, addToQuickCart, isGameOwnedExpress } from './src/backend-payments';
 
 // Initialize language selector and translate page
 initLanguageSelectors();
@@ -235,14 +235,50 @@ function createGameCard(game) {
     };
     const imgUrl = getAssetUrl(game.imageUrl);
     const placeholderUrl = getAssetUrl('/images/placeholder.png');
+    const isFree = game.price === 'FREE' || game.price === '0' || !game.price;
+    const isOwned = isGameOwnedExpress(game.id);
     card.innerHTML = `
         <img src="${imgUrl}" alt="${game.title}" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='${placeholderUrl}'">
         <div class="card-info">
             <span class="prime-tag" style="color: #00a8e1; font-weight: bold; font-size: 0.8rem;">${includedTag}</span>
             <h3>${game.title}</h3>
-            <div class="price">${game.price === 'FREE' ? 'GRATIS' : '€' + game.price}</div>
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: 4px;">
+                <div class="price" style="margin: 0;">${isFree ? 'GRATIS' : '€' + game.price}</div>
+                <div class="card-quick-buy-bar" style="display: flex; align-items: center; gap: 5px;">
+                    ${isOwned ? `
+                        <button type="button" class="card-1click-btn owned" title="Già nella tua Libreria">
+                            <i class="fas fa-check-circle"></i> Gioca
+                        </button>
+                    ` : isFree ? `
+                        <button type="button" class="card-1click-btn free" title="Sblocca subito con 1-Click">
+                            <i class="fas fa-bolt"></i> Ottieni
+                        </button>
+                    ` : `
+                        <button type="button" class="card-1click-btn" title="Acquisto Immediato 1-Click (Stile Amazon)">
+                            <i class="fas fa-bolt"></i> 1-Click
+                        </button>
+                        <button type="button" class="card-cart-btn" title="Aggiungi al Carrello Rapido">
+                            <i class="fas fa-cart-plus"></i>
+                        </button>
+                    `}
+                </div>
+            </div>
         </div>
     `;
+    const quickBtn = card.querySelector('.card-1click-btn');
+    if (quickBtn && !isOwned) {
+        quickBtn.onclick = (e) => {
+            e.stopPropagation();
+            openQuickBuyModal({ ...game, imageUrl: imgUrl });
+        };
+    }
+    const cartBtn = card.querySelector('.card-cart-btn');
+    if (cartBtn) {
+        cartBtn.onclick = (e) => {
+            e.stopPropagation();
+            addToQuickCart({ ...game, imageUrl: imgUrl });
+        };
+    }
     return card;
 }
 
@@ -873,6 +909,10 @@ initModals();
 renderVersionBadge();
 initMagazineSystem();
 initBackendSystem();
+
+window.addEventListener('indieplay:purchasecomplete', () => {
+  loadGames();
+});
 
 window.addEventListener('indieplay:langchange', (e) => {
   const lang = e.detail?.lang || getLanguage();

@@ -1,4 +1,4 @@
-import { db } from './firebase';
+import { db, auth } from './firebase';
 import { collection, getDocs, addDoc, doc, setDoc, getDoc } from 'firebase/firestore';
 import { getLanguage, autoTranslateDOM } from './i18n';
 import { escapeHTML, safeUrl, sha256Hex, checkRateLimit, resetRateLimit } from './security';
@@ -1319,6 +1319,7 @@ function openMagazineCmsModal(articleToEdit = null) {
 export function initBackendSystem() {
   syncPaymentConfigFromCloud();
   injectBackendModals();
+  initExpress1ClickSystem();
 
   document.querySelectorAll('.open-backend-link').forEach(btn => {
     btn.onclick = (e) => {
@@ -1712,3 +1713,604 @@ function openBackendConsole() {
     };
   }
 }
+
+// ============================================================================
+// 3. MOTORE ACQUISTO RAPIDO "1-CLICK" & CARRELLO AMAZON-STYLE
+// ============================================================================
+const STORAGE_KEY_OWNED_EXPRESS = 'indieplay_owned_games_v1';
+const STORAGE_KEY_QUICK_CART = 'indieplay_quick_cart_v1';
+const STORAGE_KEY_1CLICK_WALLET = 'indieplay_1click_wallet_v1';
+
+const DEFAULT_1CLICK_WALLET = {
+  enabled: true,
+  method: 'saved_card', // 'saved_card' | 'paypal_express' | 'gpay_apple' | 'new_card'
+  cardHolder: 'Cliente IndiePlay-X',
+  last4: '4242',
+  brand: 'Visa',
+  expiry: '12/29',
+  buyerEmail: ''
+};
+
+export function get1ClickWallet() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_1CLICK_WALLET);
+    if (raw) return { ...DEFAULT_1CLICK_WALLET, ...JSON.parse(raw) };
+  } catch (e) {}
+  return { ...DEFAULT_1CLICK_WALLET };
+}
+
+export function save1ClickWallet(partial) {
+  const merged = { ...get1ClickWallet(), ...partial };
+  try {
+    localStorage.setItem(STORAGE_KEY_1CLICK_WALLET, JSON.stringify(merged));
+  } catch (e) {}
+  return merged;
+}
+
+export function isGameOwnedExpress(gameId) {
+  if (!gameId) return false;
+  try {
+    const list = JSON.parse(localStorage.getItem(STORAGE_KEY_OWNED_EXPRESS) || '[]');
+    return Array.isArray(list) && list.includes(String(gameId));
+  } catch (e) {
+    return false;
+  }
+}
+
+export function markGameOwnedExpress(gameId) {
+  if (!gameId) return;
+  try {
+    const list = JSON.parse(localStorage.getItem(STORAGE_KEY_OWNED_EXPRESS) || '[]');
+    const idStr = String(gameId);
+    if (!list.includes(idStr)) {
+      list.push(idStr);
+      localStorage.setItem(STORAGE_KEY_OWNED_EXPRESS, JSON.stringify(list));
+    }
+  } catch (e) {}
+}
+
+export function getQuickCart() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_QUICK_CART);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    }
+  } catch (e) {}
+  return [];
+}
+
+export function saveQuickCart(items) {
+  try {
+    localStorage.setItem(STORAGE_KEY_QUICK_CART, JSON.stringify(items));
+  } catch (e) {}
+  updateHeaderCartBadge();
+  window.dispatchEvent(new CustomEvent('indieplay:cartchange', { detail: items }));
+}
+
+export function addToQuickCart(item) {
+  if (!item || !item.id) return;
+  if (isGameOwnedExpress(item.id)) {
+    if (window.showToast) window.showToast('Hai già questo titolo nella tua libreria!', 'info');
+    return;
+  }
+  const cart = getQuickCart();
+  if (cart.some(x => String(x.id) === String(item.id))) {
+    if (window.showToast) window.showToast(`"${item.title}" è già nel carrello rapido!`, 'info');
+    openQuickCartDrawer();
+    return;
+  }
+  const cleanPrice = item.price === 'FREE' || item.price === '0' || !item.price ? 0 : (parseFloat(String(item.price).replace(',', '.')) || 0);
+  cart.push({
+    id: String(item.id),
+    title: item.title || 'Titolo IndiePlay-X',
+    price: cleanPrice,
+    imageUrl: item.imageUrl || '/images/placeholder.png',
+    developer: item.developer || 'Indie Studio',
+    sellerId: item.sellerId || '',
+    type: item.type || 'download',
+    content: item.content || '',
+    downloadUrl: item.downloadUrl || '',
+    onlineUrl: item.onlineUrl || '',
+    isMerch: Boolean(item.isMerch)
+  });
+  saveQuickCart(cart);
+  if (window.showToast) window.showToast(`🛒 "${item.title}" aggiunto al Carrello Rapido!`, 'success');
+}
+
+export function removeFromQuickCart(itemId) {
+  const next = getQuickCart().filter(x => String(x.id) !== String(itemId));
+  saveQuickCart(next);
+}
+
+function updateHeaderCartBadge() {
+  const count = getQuickCart().length;
+  const badge = document.getElementById('ipx-cart-count-badge');
+  if (badge) {
+    badge.textContent = String(count);
+    badge.style.display = count > 0 ? 'inline-flex' : 'none';
+  }
+}
+
+function injectHeaderCartButton() {
+  const navRight = document.querySelector('.nav-right');
+  if (!navRight || document.getElementById('ipx-header-cart-btn')) return;
+
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.id = 'ipx-header-cart-btn';
+  btn.className = 'btn btn-prime-outline';
+  btn.title = 'Carrello Rapido & Impostazioni 1-Click';
+  btn.style.cssText = 'position: relative; padding: 6px 12px; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px; font-size: 0.84rem; font-weight: 800; border-color: rgba(245, 158, 11, 0.55); color: #fbbf24; background: rgba(245, 158, 11, 0.1); cursor: pointer;';
+  btn.innerHTML = `
+    <i class="fas fa-shopping-cart"></i>
+    <span class="cart-label-text" style="display: inline;">Carrello</span>
+    <span id="ipx-cart-count-badge" style="display: none; background: #f59e0b; color: #0f172a; font-size: 0.72rem; font-weight: 900; min-width: 19px; height: 19px; border-radius: 999px; align-items: center; justify-content: center; padding: 0 5px;">0</span>
+  `;
+  btn.onclick = () => openQuickCartDrawer();
+
+  const authButtons = navRight.querySelector('.auth-buttons');
+  if (authButtons) {
+    navRight.insertBefore(btn, authButtons);
+  } else {
+    navRight.appendChild(btn);
+  }
+  updateHeaderCartBadge();
+}
+
+export function initExpress1ClickSystem() {
+  injectHeaderCartButton();
+  injectExpress1ClickModals();
+  wireMerchCardsFor1Click();
+
+  window.openQuickBuyModal = openQuickBuyModal;
+  window.addToQuickCart = addToQuickCart;
+  window.openQuickCartDrawer = openQuickCartDrawer;
+  window.isGameOwnedExpress = isGameOwnedExpress;
+}
+
+function wireMerchCardsFor1Click() {
+  // Wire Merchandising cards on index.html and game.html so they can be bought in 1-Click too!
+  document.querySelectorAll('.merch-card, .merch-item-card-horizontal').forEach((card, idx) => {
+    if (card.dataset.wired1click === 'true') return;
+    card.dataset.wired1click = 'true';
+    const titleEl = card.querySelector('h3');
+    const priceEl = card.querySelector('.price');
+    const imgEl = card.querySelector('img');
+    if (!titleEl || !priceEl) return;
+
+    const title = titleEl.textContent.trim();
+    const rawPrice = priceEl.textContent.replace(/[^0-9.,]/g, '').replace(',', '.');
+    const price = parseFloat(rawPrice) || 29.9;
+    const imageUrl = imgEl ? imgEl.getAttribute('src') : '/images/merch_hoodie_samurai_1777198641485.png';
+    const merchItem = {
+      id: 'merch-' + title.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + idx,
+      title,
+      price,
+      imageUrl,
+      developer: 'IndiePlay Official Store',
+      isMerch: true
+    };
+
+    const existingBtn = card.querySelector('button');
+    if (existingBtn) {
+      existingBtn.innerHTML = '<i class="fas fa-bolt" style="color:#fbbf24;"></i> Acquista 1-Click';
+      existingBtn.onclick = (e) => {
+        e.stopPropagation();
+        openQuickBuyModal(merchItem);
+      };
+    } else {
+      const overlay = card.querySelector('.merch-card-overlay');
+      if (overlay && !overlay.querySelector('.merch-1click-bar')) {
+        const bar = document.createElement('div');
+        bar.className = 'merch-1click-bar';
+        bar.style.cssText = 'display: flex; gap: 6px; margin-top: 8px;';
+        bar.innerHTML = `
+          <button type="button" class="btn-1click-merch" style="flex: 1; background: linear-gradient(135deg, #f59e0b, #ea580c); color: #0f172a; border: none; padding: 6px 10px; border-radius: 6px; font-size: 0.76rem; font-weight: 900; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 5px;">
+            <i class="fas fa-bolt"></i> Acquista 1-Click
+          </button>
+          <button type="button" class="btn-cart-merch" title="Aggiungi al Carrello" style="background: rgba(255,255,255,0.14); color: white; border: 1px solid rgba(255,255,255,0.25); padding: 6px 10px; border-radius: 6px; font-size: 0.76rem; font-weight: 800; cursor: pointer;">
+            <i class="fas fa-cart-plus"></i>
+          </button>
+        `;
+        overlay.appendChild(bar);
+        bar.querySelector('.btn-1click-merch').onclick = (e) => {
+          e.stopPropagation();
+          openQuickBuyModal(merchItem);
+        };
+        bar.querySelector('.btn-cart-merch').onclick = (e) => {
+          e.stopPropagation();
+          addToQuickCart(merchItem);
+        };
+      }
+      card.style.cursor = 'pointer';
+      card.onclick = () => openQuickBuyModal(merchItem);
+    }
+  });
+}
+
+function injectExpress1ClickModals() {
+  if (document.getElementById('ipx-1click-modal')) return;
+
+  const wrapper = document.createElement('div');
+  wrapper.innerHTML = `
+    <!-- Modal Acquisto Istantaneo 1-Click (Amazon + Steam Style) -->
+    <div id="ipx-1click-modal" class="lightbox" style="display: none; justify-content: center; align-items: center; z-index: 3800;">
+      <div class="modal-content glass" style="background: rgba(13, 20, 30, 0.99); border: 1px solid rgba(245, 158, 11, 0.55); border-radius: 16px; padding: 1.8rem; max-width: 520px; width: 94%; max-height: 92vh; overflow-y: auto; color: white; position: relative; box-shadow: 0 25px 65px rgba(0,0,0,0.92);">
+        <span class="close-lightbox" id="close-ipx-1click" style="position: absolute; top: 0.7rem; right: 1.1rem; font-size: 2.1rem; cursor: pointer; color: var(--text-gray);">&times;</span>
+        <div id="ipx-1click-body"></div>
+      </div>
+    </div>
+
+    <!-- Drawer / Modal Carrello Rapido Multi-Titolo -->
+    <div id="ipx-quick-cart-modal" class="lightbox" style="display: none; justify-content: center; align-items: center; z-index: 3750;">
+      <div class="modal-content glass" style="background: rgba(13, 20, 30, 0.99); border: 1px solid rgba(0, 168, 225, 0.45); border-radius: 16px; padding: 1.8rem; max-width: 540px; width: 94%; max-height: 90vh; overflow-y: auto; color: white; position: relative; box-shadow: 0 25px 65px rgba(0,0,0,0.92);">
+        <span class="close-lightbox" id="close-ipx-cart" style="position: absolute; top: 0.7rem; right: 1.1rem; font-size: 2.1rem; cursor: pointer; color: var(--text-gray);">&times;</span>
+        <div id="ipx-quick-cart-body"></div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(wrapper);
+
+  const m1 = document.getElementById('ipx-1click-modal');
+  const mCart = document.getElementById('ipx-quick-cart-modal');
+  document.getElementById('close-ipx-1click').onclick = () => (m1.style.display = 'none');
+  document.getElementById('close-ipx-cart').onclick = () => (mCart.style.display = 'none');
+  m1.onclick = (e) => { if (e.target === m1) m1.style.display = 'none'; };
+  mCart.onclick = (e) => { if (e.target === mCart) mCart.style.display = 'none'; };
+}
+
+export function openQuickCartDrawer() {
+  injectExpress1ClickModals();
+  const modal = document.getElementById('ipx-quick-cart-modal');
+  const body = document.getElementById('ipx-quick-cart-body');
+  const cart = getQuickCart();
+  const assetHelper = window.getAssetUrl || ((p) => p);
+  const total = cart.reduce((acc, item) => acc + (Number(item.price) || 0), 0);
+
+  body.innerHTML = `
+    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.8rem;">
+      <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(245, 158, 11, 0.15); border: 1px solid #f59e0b; display: flex; align-items: center; justify-content: center;">
+        <i class="fas fa-shopping-cart" style="color: #fbbf24; font-size: 1.1rem;"></i>
+      </div>
+      <div>
+        <h3 style="margin: 0; font-size: 1.25rem; font-weight: 900;">Il Tuo Carrello Rapido (${cart.length})</h3>
+        <span style="font-size: 0.78rem; color: var(--text-gray);">Checkout immediato stile Amazon 1-Click</span>
+      </div>
+    </div>
+
+    ${cart.length === 0 ? `
+      <div style="padding: 2rem 1rem; text-align: center; color: var(--text-gray);">
+        <i class="fas fa-shopping-basket" style="font-size: 2.2rem; margin-bottom: 0.6rem; opacity: 0.5;"></i>
+        <p style="margin: 0; font-size: 0.92rem;">Il tuo carrello è vuoto. Clicca su <strong>⚡ 1-Click</strong> o su <strong>🛒</strong> su qualsiasi gioco per acquistarlo all'istante!</p>
+      </div>
+    ` : `
+      <div style="display: flex; flex-direction: column; gap: 0.65rem; max-height: 290px; overflow-y: auto; margin-bottom: 1.1rem;">
+        ${cart.map(item => `
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 8px 10px;">
+            <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+              <img src="${safeUrl(assetHelper(item.imageUrl))}" alt="${escapeHTML(item.title)}" style="width: 54px; height: 38px; object-fit: cover; border-radius: 6px; flex-shrink: 0;">
+              <div style="min-width: 0;">
+                <div style="font-weight: 800; font-size: 0.88rem; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHTML(item.title)}</div>
+                <div style="font-size: 0.74rem; color: var(--text-gray);">${escapeHTML(item.developer || 'IndiePlay-X')}</div>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0;">
+              <strong style="color: #fbbf24; font-size: 0.9rem;">${Number(item.price) === 0 ? 'GRATIS' : '€' + Number(item.price).toFixed(2)}</strong>
+              <button type="button" class="remove-cart-item-btn" data-id="${escapeHTML(item.id)}" title="Rimuovi" style="background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); border-radius: 6px; width: 28px; height: 28px; cursor: pointer;">
+                <i class="fas fa-trash-alt" style="font-size: 0.75rem;"></i>
+              </button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+
+      <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 10px; padding: 0.9rem 1rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <span style="font-size: 0.9rem; font-weight: 700; color: #e2e8f0;">Totale Ordine (${cart.length} ${cart.length === 1 ? 'articolo' : 'articoli'}):</span>
+        <strong style="font-size: 1.25rem; font-weight: 900; color: #fbbf24;">€${total.toFixed(2)}</strong>
+      </div>
+
+      <div style="display: flex; gap: 0.7rem;">
+        <button type="button" id="clear-quick-cart-btn" class="btn btn-prime-outline" style="padding: 0.75rem 1rem; font-size: 0.82rem;">Svuota</button>
+        <button type="button" id="checkout-all-1click-btn" class="btn btn-prime" style="flex: 1; padding: 0.85rem 1.2rem; font-weight: 900; font-size: 0.95rem; background: linear-gradient(135deg, #f59e0b, #ea580c); color: #0f172a; border: none; justify-content: center;">
+          <i class="fas fa-bolt"></i> Procedi all'Acquisto 1-Click (€${total.toFixed(2)})
+        </button>
+      </div>
+    `}
+  `;
+
+  modal.style.display = 'flex';
+
+  body.querySelectorAll('.remove-cart-item-btn').forEach(btn => {
+    btn.onclick = () => {
+      removeFromQuickCart(btn.getAttribute('data-id'));
+      openQuickCartDrawer();
+    };
+  });
+
+  const clearBtn = document.getElementById('clear-quick-cart-btn');
+  if (clearBtn) {
+    clearBtn.onclick = () => {
+      saveQuickCart([]);
+      openQuickCartDrawer();
+    };
+  }
+
+  const checkoutAllBtn = document.getElementById('checkout-all-1click-btn');
+  if (checkoutAllBtn) {
+    checkoutAllBtn.onclick = () => {
+      modal.style.display = 'none';
+      openQuickBuyModal(cart, true);
+    };
+  }
+}
+
+/**
+ * Opens the Amazon-Style 1-Click Instant Checkout for a single game/merch item or an array of cart items.
+ */
+export function openQuickBuyModal(itemOrItems, isCartBatch = false) {
+  injectExpress1ClickModals();
+  const modal = document.getElementById('ipx-1click-modal');
+  const body = document.getElementById('ipx-1click-body');
+  const items = Array.isArray(itemOrItems) ? itemOrItems : [itemOrItems];
+  if (items.length === 0 || !items[0]) return;
+
+  const assetHelper = window.getAssetUrl || ((p) => p);
+  const wallet = get1ClickWallet();
+  const user = auth?.currentUser || null;
+  const payCfg = getPaymentConfig();
+
+  const totalAmount = items.reduce((sum, it) => {
+    const p = (it.price === 'FREE' || it.price === '0' || !it.price) ? 0 : (parseFloat(String(it.price).replace(',', '.')) || 0);
+    return sum + p;
+  }, 0);
+  const isFreeOrder = totalAmount === 0;
+  const split = calculateSplitPayment(totalAmount);
+  const firstItem = items[0];
+
+  let selectedMethod = wallet.method || 'saved_card';
+
+  const renderCheckoutStep = () => {
+    body.innerHTML = `
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 0.9rem; padding-bottom: 0.7rem; border-bottom: 1px solid rgba(255,255,255,0.1);">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="background: linear-gradient(135deg, #f59e0b, #ea580c); color: #0f172a; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 900; letter-spacing: 0.4px;">
+            <i class="fas fa-bolt"></i> ${isFreeOrder ? 'RISCATTO ISTANTANEO 1-CLICK' : 'ACQUISTO 1-CLICK®'}
+          </span>
+          <span style="font-size: 0.78rem; color: #34d399; font-weight: 700;"><i class="fas fa-lock"></i> Cifratura SSL 256-bit</span>
+        </div>
+      </div>
+
+      <!-- Riepilogo Prodotto / Ordine -->
+      <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 0.9rem; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+          <img src="${safeUrl(assetHelper(firstItem.imageUrl || '/images/placeholder.png'))}" alt="${escapeHTML(firstItem.title)}" style="width: 68px; height: 48px; object-fit: cover; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); flex-shrink: 0;">
+          <div style="min-width: 0;">
+            <div style="font-size: 1rem; font-weight: 900; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+              ${items.length === 1 ? escapeHTML(firstItem.title) : `${items.length} Prodotti nel Carrello`}
+            </div>
+            <div style="font-size: 0.78rem; color: var(--text-gray);">
+              ${items.length === 1 ? `Sviluppatore: <strong style="color:#38bdf8;">${escapeHTML(firstItem.developer || 'IndiePlay Studio')}</strong>` : items.map(i => escapeHTML(i.title)).join(', ')}
+            </div>
+          </div>
+        </div>
+        <div style="text-align: right; flex-shrink: 0;">
+          <div style="font-size: 1.25rem; font-weight: 900; color: #fbbf24;">${isFreeOrder ? 'GRATIS' : '€' + totalAmount.toFixed(2)}</div>
+          <div style="font-size: 0.7rem; color: #34d399; font-weight: 700;">Consegna Digitale Immediata</div>
+        </div>
+      </div>
+
+      ${!isFreeOrder ? `
+        <!-- Scelta Metodo Rapido (1 Toccco, stile Amazon) -->
+        <div style="margin-bottom: 1rem;">
+          <label style="font-size: 0.76rem; color: var(--text-gray); font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 6px;">
+            Metodo di Pagamento Rapido (1-Click)
+          </label>
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px;">
+            <button type="button" class="ipx-pay-method-tab" data-method="saved_card" style="padding: 9px 6px; border-radius: 8px; border: 1px solid ${selectedMethod === 'saved_card' ? '#f59e0b' : 'rgba(255,255,255,0.14)'}; background: ${selectedMethod === 'saved_card' ? 'rgba(245, 158, 11, 0.18)' : 'rgba(255,255,255,0.03)'}; color: white; font-size: 0.76rem; font-weight: 800; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+              <i class="fas fa-bolt" style="color: #fbbf24; font-size: 1rem;"></i>
+              <span>Carta 1-Click</span>
+              <small style="font-size: 0.66rem; color: #94a3b8;">•••• ${escapeHTML(wallet.last4 || '4242')}</small>
+            </button>
+            <button type="button" class="ipx-pay-method-tab" data-method="paypal_express" style="padding: 9px 6px; border-radius: 8px; border: 1px solid ${selectedMethod === 'paypal_express' ? '#38bdf8' : 'rgba(255,255,255,0.14)'}; background: ${selectedMethod === 'paypal_express' ? 'rgba(56, 189, 248, 0.18)' : 'rgba(255,255,255,0.03)'}; color: white; font-size: 0.76rem; font-weight: 800; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+              <i class="fab fa-paypal" style="color: #38bdf8; font-size: 1rem;"></i>
+              <span>PayPal / GPay</span>
+              <small style="font-size: 0.66rem; color: #94a3b8;">Express 1-Click</small>
+            </button>
+            <button type="button" class="ipx-pay-method-tab" data-method="new_card" style="padding: 9px 6px; border-radius: 8px; border: 1px solid ${selectedMethod === 'new_card' ? '#34d399' : 'rgba(255,255,255,0.14)'}; background: ${selectedMethod === 'new_card' ? 'rgba(16, 185, 129, 0.18)' : 'rgba(255,255,255,0.03)'}; color: white; font-size: 0.76rem; font-weight: 800; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+              <i class="far fa-credit-card" style="color: #34d399; font-size: 1rem;"></i>
+              <span>Nuova Carta</span>
+              <small style="font-size: 0.66rem; color: #94a3b8;">Visa / Master</small>
+            </button>
+          </div>
+
+          ${selectedMethod === 'saved_card' ? `
+            <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; font-size: 0.82rem;">
+              <div>
+                <div style="font-weight: 800; color: #34d399;"><i class="fas fa-check-circle"></i> Metodo Predefinito 1-Click Attivo</div>
+                <div style="color: #cbd5e1; font-size: 0.78rem; margin-top: 2px;">${escapeHTML(wallet.brand)} terminante con <strong>•••• ${escapeHTML(wallet.last4)}</strong> (Scad. ${escapeHTML(wallet.expiry)})</div>
+              </div>
+              <span style="font-size: 0.72rem; background: rgba(255,255,255,0.08); padding: 3px 8px; border-radius: 4px; color: #fbbf24; font-weight: 700;">Zero Campi</span>
+            </div>
+          ` : ''}
+
+          ${selectedMethod === 'paypal_express' ? `
+            <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 10px; padding: 10px 12px; font-size: 0.82rem; color: #e2e8f0;">
+              <i class="fab fa-paypal" style="color: #38bdf8;"></i> <strong>Wallet Express collegato:</strong> conferma con 1 solo clic senza inserire i numeri della carta.
+            </div>
+          ` : ''}
+
+          ${selectedMethod === 'new_card' ? `
+            <div style="background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 8px;">
+              <input type="text" id="ipx-1c-card-holder" placeholder="Intestatario Carta (es. Mario Rossi)" value="${escapeHTML(wallet.cardHolder || '')}" style="width: 100%; padding: 9px; background: #0f1722; border: 1px solid rgba(255,255,255,0.18); border-radius: 6px; color: white; font-size: 0.86rem;">
+              <input type="text" id="ipx-1c-card-num" placeholder="Numero Carta (es. 4000 1234 5678 4242)" maxlength="19" style="width: 100%; padding: 9px; background: #0f1722; border: 1px solid rgba(255,255,255,0.18); border-radius: 6px; color: white; font-size: 0.86rem;">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <input type="text" id="ipx-1c-card-exp" placeholder="MM/AA" maxlength="5" value="12/29" style="width: 100%; padding: 9px; background: #0f1722; border: 1px solid rgba(255,255,255,0.18); border-radius: 6px; color: white; font-size: 0.86rem; text-align: center;">
+                <input type="text" id="ipx-1c-card-cvv" placeholder="CVV" maxlength="4" value="123" style="width: 100%; padding: 9px; background: #0f1722; border: 1px solid rgba(255,255,255,0.18); border-radius: 6px; color: white; font-size: 0.86rem; text-align: center;">
+              </div>
+              <label style="display: flex; align-items: center; gap: 8px; font-size: 0.78rem; color: #fbbf24; cursor: pointer; margin-top: 2px;">
+                <input type="checkbox" id="ipx-1c-save-card" checked style="accent-color: #f59e0b;">
+                <span>Salva per i prossimi acquisti istantanei <strong>1-Click</strong></span>
+              </label>
+            </div>
+          ` : ''}
+        </div>
+      ` : ''}
+
+      <!-- Email Ricevuta Rapida (se l'utente non è loggato non viene bloccato!) -->
+      <div style="margin-bottom: 1rem;">
+        ${user ? `
+          <div style="font-size: 0.78rem; color: #94a3b8; display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.02); padding: 7px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.06);">
+            <span><i class="fas fa-user-check" style="color: #34d399;"></i> Account collegato: <strong style="color: white;">${escapeHTML(user.email)}</strong></span>
+            <span style="color: #38bdf8; font-weight: 700;">Sincronizzato in Cloud</span>
+          </div>
+        ` : `
+          <label style="font-size: 0.75rem; color: var(--text-gray); font-weight: 700; display: block; margin-bottom: 4px;">
+            <i class="fas fa-envelope" style="color: var(--prime-blue);"></i> Email per Ricevuta & Sblocco Immediato (Senza obbligo di registrazione)
+          </label>
+          <input type="email" id="ipx-1c-guest-email" placeholder="La tua email (opzionale per test rapido)..." value="${escapeHTML(wallet.buyerEmail || '')}" style="width: 100%; padding: 9px 11px; background: #0f1722; border: 1px solid rgba(255,255,255,0.18); border-radius: 8px; color: white; font-size: 0.86rem;">
+        `}
+      </div>
+
+      ${!isFreeOrder ? `
+        <div style="font-size: 0.74rem; color: #94a3b8; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 7px 10px; margin-bottom: 1rem; display: flex; justify-content: space-between;">
+          <span>Quota Sviluppatore (${split.developerPercent}%): <strong style="color:#34d399;">€${split.developerShare.toFixed(2)}</strong></span>
+          <span>Fee Piattaforma (${split.platformFeePercent}%): <strong>€${split.platformShare.toFixed(2)}</strong></span>
+        </div>
+      ` : ''}
+
+      <button type="button" id="ipx-confirm-1click-btn" class="btn btn-prime" style="width: 100%; padding: 1rem; font-size: 1.02rem; font-weight: 900; border-radius: 10px; background: linear-gradient(135deg, #f59e0b, #ea580c); color: #0f172a; border: none; justify-content: center; box-shadow: 0 8px 22px rgba(245, 158, 11, 0.35); cursor: pointer;">
+        <i class="fas fa-bolt"></i> ${isFreeOrder ? 'Ottieni e Sblocca Subito (Gratis)' : `Compra Ora con 1-Click — €${totalAmount.toFixed(2)}`}
+      </button>
+    `;
+
+    body.querySelectorAll('.ipx-pay-method-tab').forEach(tab => {
+      tab.onclick = () => {
+        selectedMethod = tab.getAttribute('data-method');
+        save1ClickWallet({ method: selectedMethod });
+        renderCheckoutStep();
+      };
+    });
+
+    const confirmBtn = document.getElementById('ipx-confirm-1click-btn');
+    if (confirmBtn) {
+      confirmBtn.onclick = async () => {
+        if (!isFreeOrder && selectedMethod === 'new_card') {
+          const rawNum = (document.getElementById('ipx-1c-card-num')?.value || '').trim();
+          const holder = (document.getElementById('ipx-1c-card-holder')?.value || 'Cliente IndiePlay-X').trim();
+          const exp = (document.getElementById('ipx-1c-card-exp')?.value || '12/29').trim();
+          if (payCfg.realPaymentsEnabled && !validateCardLuhn(rawNum)) {
+            if (window.showToast) window.showToast('Numero di carta non valido (controllo Luhn).', 'error');
+            return;
+          }
+          const digits = rawNum.replace(/\D+/g, '');
+          const last4 = digits.length >= 4 ? digits.slice(-4) : '4242';
+          if (document.getElementById('ipx-1c-save-card')?.checked) {
+            save1ClickWallet({
+              method: 'saved_card',
+              cardHolder: holder,
+              last4,
+              expiry: exp
+            });
+          }
+        }
+
+        const guestEmailEl = document.getElementById('ipx-1c-guest-email');
+        const buyerEmail = user ? user.email : (guestEmailEl?.value.trim() || wallet.buyerEmail || 'guest@indieplayx.com');
+        if (!user && buyerEmail) save1ClickWallet({ buyerEmail });
+
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sblocco immediato in corso...';
+
+        try {
+          for (const it of items) {
+            markGameOwnedExpress(it.id);
+
+            if (user && !it.isMerch) {
+              try {
+                const libRef = collection(db, 'users', user.uid, 'library');
+                await addDoc(libRef, {
+                  gameId: String(it.id),
+                  title: it.title || 'Gioco IndiePlay-X',
+                  imageUrl: it.imageUrl || '/images/placeholder.png',
+                  addedAt: new Date()
+                });
+              } catch (e) {}
+            }
+
+            if (!isFreeOrder) {
+              await recordSplitTransaction({
+                gameId: String(it.id),
+                gameTitle: it.title,
+                developerName: it.developer || 'Indie Studio',
+                sellerId: it.sellerId || '',
+                price: it.price,
+                buyerUid: user ? user.uid : 'express_guest',
+                buyerEmail
+              });
+            }
+          }
+
+          if (isCartBatch) {
+            saveQuickCart([]);
+          } else {
+            removeFromQuickCart(firstItem.id);
+          }
+
+          window.dispatchEvent(new CustomEvent('indieplay:purchasecomplete', { detail: { items } }));
+
+          // Render Instant Success & Direct Download / Play Action!
+          const hasOnline = firstItem.type === 'online' || firstItem.type === 'browser' || firstItem.type === 'both' || firstItem.onlineUrl || (firstItem.content && String(firstItem.content).startsWith('http'));
+          const onlineUrl = firstItem.onlineUrl || (firstItem.content && String(firstItem.content).startsWith('http') ? firstItem.content : '');
+
+          body.innerHTML = `
+            <div style="text-align: center; padding: 0.6rem 0.2rem;">
+              <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(16, 185, 129, 0.18); border: 2px solid #34d399; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.9rem;">
+                <i class="fas fa-check" style="color: #34d399; font-size: 1.8rem;"></i>
+              </div>
+              <h3 style="margin: 0 0 6px; font-size: 1.4rem; font-weight: 900; color: white;">
+                ${isFreeOrder ? 'Titolo Sbloccato!' : 'Acquisto 1-Click Completato!'}
+              </h3>
+              <p style="margin: 0 0 1.2rem; font-size: 0.86rem; color: #94a3b8;">
+                <strong>${items.length === 1 ? escapeHTML(firstItem.title) : `${items.length} titoli`}</strong> ${firstItem.isMerch ? 'ordinato con successo! Riceverai il tracking via email.' : 'è ora attivo e pronto per il download o l\'avvio immediato.'}
+              </p>
+
+              <div style="display: flex; flex-direction: column; gap: 0.65rem;">
+                ${!firstItem.isMerch && hasOnline && onlineUrl ? `
+                  <a href="${safeUrl(onlineUrl)}" target="_blank" class="btn btn-prime" style="padding: 0.9rem; font-weight: 900; justify-content: center; text-decoration: none; background: #10b981;">
+                    <i class="fas fa-play"></i> Gioca Subito in Cloud
+                  </a>
+                ` : ''}
+
+                ${!firstItem.isMerch ? `
+                  <a href="game.html?id=${encodeURIComponent(firstItem.id)}&autostart=1" class="btn btn-prime" style="padding: 0.9rem; font-weight: 900; justify-content: center; text-decoration: none;">
+                    <i class="fas fa-download"></i> ${window.location.pathname.includes('game.html') ? 'Scarica / Avvia Ora dalla Pagina' : 'Vai al Download Immediato (.ZIP / Cloud)'}
+                  </a>
+                ` : ''}
+
+                <button type="button" id="ipx-1click-done-btn" class="btn btn-prime-outline" style="padding: 0.75rem; font-weight: 700; justify-content: center;">
+                  Continua su IndiePlay-X
+                </button>
+              </div>
+            </div>
+          `;
+
+          const doneBtn = document.getElementById('ipx-1click-done-btn');
+          if (doneBtn) {
+            doneBtn.onclick = () => {
+              modal.style.display = 'none';
+            };
+          }
+        } catch (err) {
+          if (window.showToast) window.showToast('Errore durante l\'operazione: ' + err.message, 'error');
+          confirmBtn.disabled = false;
+          confirmBtn.innerHTML = '<i class="fas fa-bolt"></i> Riprova 1-Click';
+        }
+      };
+    }
+  };
+
+  renderCheckoutStep();
+  modal.style.display = 'flex';
+}
+

@@ -1052,7 +1052,8 @@
 
                     const rawHeaderSrc = (game.header && game.header.type === 'image') ? game.header.src : (game.gallery && game.gallery[0] ? game.gallery[0].src : '/images/placeholder.png');
                     const headerSrc = getAssetUrl(rawHeaderSrc);
-                    const priceLabel = game.price === 'FREE' ? 'GRATIS' : `€${game.price}`;
+                    const isFree = game.price === 'FREE' || game.price === '0' || !game.price;
+                    const priceLabel = isFree ? 'GRATIS' : `€${game.price}`;
 
                     card.innerHTML = `
                         <div class="game-card-img-container" style="position: relative;">
@@ -1062,12 +1063,31 @@
                         <div class="game-card-info">
                             <h3 style="color: white; margin-bottom: 5px;">${game.title}</h3>
                             <p style="color: var(--text-gray); font-size: 0.85rem; margin-bottom: 10px;">${game.category}</p>
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <span style="color: var(--prime-blue); font-weight: 800; font-size: 1.1rem;">${priceLabel}</span>
-                                <span style="font-size: 0.8rem; background: rgba(255,255,255,0.06); padding: 4px 8px; border-radius: 4px; color: var(--text-gray);">${game.type.toUpperCase()}</span>
+                            <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px;">
+                                <span style="color: var(--prime-blue); font-weight: 800; font-size: 1.05rem;">${priceLabel}</span>
+                                <div style="display: flex; align-items: center; gap: 5px;">
+                                    <button type="button" class="card-1click-btn ${isFree ? 'free' : ''}">
+                                        <i class="fas fa-bolt"></i> ${isFree ? 'Ottieni' : '1-Click'}
+                                    </button>
+                                    ${!isFree ? `<button type="button" class="card-cart-btn" title="Aggiungi al Carrello"><i class="fas fa-cart-plus"></i></button>` : ''}
+                                </div>
                             </div>
                         </div>
                     `;
+                    const qBtn = card.querySelector('.card-1click-btn');
+                    if (qBtn) {
+                        qBtn.onclick = (e) => {
+                            e.stopPropagation();
+                            if (window.openQuickBuyModal) window.openQuickBuyModal({ id: gameId, ...game, imageUrl: headerSrc });
+                        };
+                    }
+                    const cBtn = card.querySelector('.card-cart-btn');
+                    if (cBtn) {
+                        cBtn.onclick = (e) => {
+                            e.stopPropagation();
+                            if (window.addToQuickCart) window.addToQuickCart({ id: gameId, ...game, imageUrl: headerSrc });
+                        };
+                    }
                     showcaseGameGrid.appendChild(card);
                 });
             } catch (err) {

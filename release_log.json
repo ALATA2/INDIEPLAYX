@@ -1,5 +1,25 @@
 [
   {
+    "version": "Version 1.11282",
+    "timestamp": "2026-11-18T06:41:06.110Z",
+    "message": "feat(Version 1.11282): implementato Acquisto 1-Click e Carrello Rapido stile Amazon su tutto il portale",
+    "targets": [
+      "Hard Disk (c:\\Users\\green\\Desktop\\INDIE-PLAY-X + /dist)",
+      "GitHub (https://github.com/ALATA2/INDIEPLAYX - main)",
+      "Cloudflare Pages & Vercel Hosting (Auto-Deploy su push main)"
+    ]
+  },
+  {
+    "version": "Version 1.11282",
+    "timestamp": "2026-11-18T06:24:36.558Z",
+    "message": "feat(Version 1.11282): implementato Acquisto 1-Click e Carrello Rapido stile Amazon su tutto il portale",
+    "targets": [
+      "Hard Disk (c:\\Users\\green\\Desktop\\INDIE-PLAY-X + /dist)",
+      "GitHub (https://github.com/ALATA2/INDIEPLAYX - main)",
+      "Cloudflare Pages & Vercel Hosting (Auto-Deploy su push main)"
+    ]
+  },
+  {
     "version": "Version 1.11281",
     "timestamp": "2026-11-18T06:08:22.212Z",
     "message": "feat(Version 1.11281): fix apertura Rivista (.lightbox) e blindatura Sicurezza (SHA-256, XSS, HTTP headers)",
