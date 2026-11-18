@@ -399,10 +399,17 @@
                                     <option value="Work in Progress">🎮 Work in Progress</option>
                                 </select>
                             </div>
-                            <textarea id="wall-post-body-input" rows="2" required placeholder="Scrivi un aggiornamento sul tuo progetto o proponi una collaborazione..." style="width: 100%; padding: 10px; background: #141e28; border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: white; resize: vertical;"></textarea>
-                            <div style="display: flex; justify-content: flex-end;">
+                            <textarea id="wall-post-body-input" rows="2" required placeholder="Scrivi un aggiornamento sul tuo progetto, mostra uno screenshot Work in Progress o proponi una collaborazione..." style="width: 100%; padding: 10px; background: #141e28; border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: white; resize: vertical;"></textarea>
+                            <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.8rem; flex-wrap: wrap;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <label for="wall-post-photo-input" class="btn btn-prime-outline" style="padding: 6px 12px; font-size: 0.78rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                                        <i class="fas fa-camera" style="color: #38bdf8;"></i> Allega Screenshot / Foto
+                                    </label>
+                                    <input type="file" id="wall-post-photo-input" accept="image/*" hidden>
+                                    <span id="wall-post-photo-status" style="font-size: 0.75rem; color: var(--text-gray);">Opzionale</span>
+                                </div>
                                 <button type="submit" class="btn btn-prime" style="padding: 0.6rem 1.3rem; font-size: 0.85rem; font-weight: 800;">
-                                    <i class="fas fa-paper-plane"></i> Pubblica sulla Bacheca
+                                    <i class="fas fa-paper-plane"></i> Pubblica sulla Bacheca Cloud
                                 </button>
                             </div>
                         </form>
@@ -516,14 +523,18 @@
             </div>
             <form id="developer-message-form" style="display: flex; flex-direction: column; gap: 1rem; text-align: left;">
                 <div class="form-group">
-                    <label style="color: white; font-weight: 700; margin-bottom: 5px; display: block;">Oggetto</label>
-                    <input type="text" id="msg-subject" required style="width: 100%; padding: 12px; background: #2a343f; border: 1px solid #3a444f; color: white; border-radius: 4px;" placeholder="Oggetto del messaggio">
+                    <label style="color: white; font-weight: 700; margin-bottom: 5px; display: block;">Il tuo Nome & Recapito (Discord, Nickname o Email per ricevere risposta)</label>
+                    <input type="text" id="msg-sender-contact" required style="width: 100%; padding: 12px; background: #2a343f; border: 1px solid #3a444f; color: white; border-radius: 4px;" placeholder="Es: Marco (Discord: marco#1234 oppure marco@email.it)">
                 </div>
                 <div class="form-group">
-                    <label style="color: white; font-weight: 700; margin-bottom: 5px; display: block;">Messaggio</label>
-                    <textarea id="msg-body" required rows="5" style="width: 100%; padding: 12px; background: #2a343f; border: 1px solid #3a444f; color: white; border-radius: 4px; resize: none;" placeholder="Scrivi qui il tuo messaggio per lo sviluppatore..."></textarea>
+                    <label style="color: white; font-weight: 700; margin-bottom: 5px; display: block;">Oggetto</label>
+                    <input type="text" id="msg-subject" required style="width: 100%; padding: 12px; background: #2a343f; border: 1px solid #3a444f; color: white; border-radius: 4px;" placeholder="Proposta di collaborazione / Domanda sul progetto">
                 </div>
-                <button type="submit" class="btn btn-prime" style="width: 100%; padding: 12px; font-weight: 700; margin-top: 1rem;">Invia Messaggio</button>
+                <div class="form-group">
+                    <label style="color: white; font-weight: 700; margin-bottom: 5px; display: block;">Messaggio Privato</label>
+                    <textarea id="msg-body" required rows="4" style="width: 100%; padding: 12px; background: #2a343f; border: 1px solid #3a444f; color: white; border-radius: 4px; resize: none;" placeholder="Scrivi qui il tuo messaggio privato (verrà recapitato nella casella Messaggi dell'utente)..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-prime" style="width: 100%; padding: 12px; font-weight: 700; margin-top: 0.5rem;"><i class="fas fa-paper-plane"></i> Invia nella Casella Privata dell'Utente</button>
             </form>
         </div>
     </div>
@@ -597,7 +608,8 @@
 
     <script type="module">
         import { db, auth } from './src/firebase';
-        import { collection, query, where, getDocs, doc, getDoc, addDoc } from 'firebase/firestore';
+        import { collection, query, where, getDocs, doc, getDoc, setDoc, addDoc } from 'firebase/firestore';
+        import { subscribeToAuthChanges } from './src/auth';
         import { initLanguageSelectors, translations, getLanguage, autoTranslateDOM } from './src/i18n';
         import { initBackendSystem, getPaymentConfig, recordSplitTransaction } from './src/backend-payments';
 
@@ -765,6 +777,11 @@
                     if (userData.photoURL) {
                         devAvatarContainer.innerHTML = `<img src="${userData.photoURL}" alt="Avatar">`;
                     }
+                    if (userData.bannerURL && showcaseBanner) {
+                        showcaseBanner.style.background = `url('${getAssetUrl(userData.bannerURL)}') no-repeat center center`;
+                        showcaseBanner.style.backgroundSize = 'cover';
+                        showcaseBanner.style.opacity = '0.26';
+                    }
                 } else {
                     // Custom branding presets fallback
                     const bioData = {
@@ -800,8 +817,15 @@
         };
         loadDeveloperProfile();
 
+        let isCurrentProfileOwner = false;
+        const wallDocKey = ((uidParam || devName || 'default').toLowerCase().replace(/[^a-z0-9_-]/g, '_'));
+        const wallStorageKey = `indieplay_wall_posts_${wallDocKey}`;
+        const followStorageKey = `indieplay_followed_${wallDocKey}`;
+        let cloudWallPosts = [];
+        let cloudFollowersCount = 124;
+
         // Listen to Auth Changes to show customization link for owner (Private OR Seller)
-        auth.onAuthStateChanged(async (user) => {
+        subscribeToAuthChanges(async (user) => {
             if (user) {
                 try {
                     const userDoc = await getDoc(doc(db, "users", user.uid));
@@ -811,7 +835,12 @@
                         const isOwner = (uidParam && uidParam === user.uid) ||
                                         (userData.sellerBrand && userData.sellerBrand === devName) ||
                                         (fullName && fullName.toLowerCase() === devName.toLowerCase());
+                        isCurrentProfileOwner = Boolean(isOwner);
                         if (isOwner) {
+                            const authorInp = document.getElementById('wall-post-author-input');
+                            if (authorInp && !authorInp.value) {
+                                authorInp.value = userData.sellerBrand || fullName || devName;
+                            }
                             const actionsContainer = document.querySelector('.dev-actions');
                             if (actionsContainer && !document.getElementById('edit-showcase-btn')) {
                                 const editBtn = document.createElement('a');
@@ -819,9 +848,10 @@
                                 editBtn.href = 'account.html?tab=profile';
                                 editBtn.className = 'btn btn-prime-outline';
                                 editBtn.style.textDecoration = 'none';
-                                editBtn.innerHTML = '<i class="fas fa-cog"></i> Modifica Bio, Collaborazioni & Donazioni';
+                                editBtn.innerHTML = '<i class="fas fa-cog"></i> Modifica Bio, Banner, Messaggi & Donazioni';
                                 actionsContainer.appendChild(editBtn);
                             }
+                            renderCloudWallFeed();
                         }
                     }
                 } catch (e) {
@@ -839,24 +869,39 @@
             showcaseBanner.style.backgroundSize = 'cover';
         }
 
-        // Set post authors
-        document.getElementById('post-author-name').innerText = devName;
-        document.getElementById('post-author-name-2').innerText = devName;
-
-        // Follow Button Toggle
+        // Follow Button Toggle (Cloud-Synced Followers)
         const followBtn = document.getElementById('follow-btn');
-        let isFollowing = false;
-        followBtn.onclick = () => {
-            isFollowing = !isFollowing;
-            if (isFollowing) {
-                followBtn.className = 'btn btn-prime-outline';
-                followBtn.innerHTML = '<i class="fas fa-check"></i> Seguito';
-                showToast(`Ora segui lo studio ${devName}!`, 'success');
-            } else {
-                followBtn.className = 'btn btn-prime';
-                followBtn.innerHTML = '<i class="fas fa-plus"></i> Segui';
-                showToast(`Non segui più lo studio ${devName}.`, 'info');
+        const followersCountEl = document.getElementById('dev-followers-count');
+        let isFollowing = localStorage.getItem(followStorageKey) === 'true';
+
+        const updateFollowersUI = () => {
+            if (followersCountEl) {
+                followersCountEl.innerHTML = `<i class="fas fa-users"></i> ${cloudFollowersCount} Followers`;
             }
+            if (followBtn) {
+                if (isFollowing) {
+                    followBtn.className = 'btn btn-prime-outline';
+                    followBtn.innerHTML = '<i class="fas fa-check"></i> Seguito';
+                } else {
+                    followBtn.className = 'btn btn-prime';
+                    followBtn.innerHTML = '<i class="fas fa-plus"></i> Segui';
+                }
+            }
+        };
+        updateFollowersUI();
+
+        followBtn.onclick = async () => {
+            isFollowing = !isFollowing;
+            localStorage.setItem(followStorageKey, isFollowing ? 'true' : 'false');
+            cloudFollowersCount = Math.max(0, cloudFollowersCount + (isFollowing ? 1 : -1));
+            updateFollowersUI();
+            showToast(isFollowing ? `Ora segui ${devName}!` : `Non segui più ${devName}.`, isFollowing ? 'success' : 'info');
+            try {
+                await setDoc(doc(db, 'social_walls', wallDocKey), {
+                    followersCount: cloudFollowersCount,
+                    updatedAt: new Date().toISOString()
+                }, { merge: true });
+            } catch (e) {}
         };
 
         // Share showcase button
@@ -865,13 +910,13 @@
             showToast('Link della vetrina copiato negli appunti!', 'success');
         };
 
-        // Message Modal
+        // Message Modal (Delivers Private Messages to Cloud Firestore & Local Inbox)
         const messageModal = document.getElementById('message-modal');
         const closeMessageModal = document.getElementById('close-message-modal');
         const messageBtn = document.getElementById('message-btn');
         const messageForm = document.getElementById('developer-message-form');
 
-        document.getElementById('message-modal-subtitle').innerText = `Contatta lo sviluppatore ${devName}`;
+        document.getElementById('message-modal-subtitle').innerText = `Invia un messaggio privato a ${devName}`;
 
         if (messageBtn) {
             messageBtn.onclick = () => {
@@ -884,9 +929,34 @@
             };
         }
         if (messageForm) {
-            messageForm.onsubmit = (e) => {
+            messageForm.onsubmit = async (e) => {
                 e.preventDefault();
-                showToast('Messaggio inviato con successo!', 'success');
+                const senderContact = document.getElementById('msg-sender-contact')?.value.trim() || 'Utente IndiePlay-X';
+                const subject = document.getElementById('msg-subject')?.value.trim() || 'Proposta di Collaborazione';
+                const body = document.getElementById('msg-body')?.value.trim() || '';
+                if (!body) return;
+
+                const msgPayload = {
+                    id: 'msg-' + Date.now(),
+                    recipientUid: (loadedProfileData && loadedProfileData.uid) || uidParam || '',
+                    recipientName: (devTitle.innerText || devName || '').trim(),
+                    senderContact,
+                    subject,
+                    body,
+                    createdAt: new Date().toISOString()
+                };
+
+                try {
+                    const localMsgs = JSON.parse(localStorage.getItem('indieplay_private_messages_v1') || '[]');
+                    localMsgs.unshift(msgPayload);
+                    localStorage.setItem('indieplay_private_messages_v1', JSON.stringify(localMsgs.slice(0, 100)));
+                } catch (err) {}
+
+                try {
+                    await addDoc(collection(db, 'private_messages'), msgPayload);
+                } catch (err) {}
+
+                showToast(`Messaggio privato recapitato nella casella di ${devName}!`, 'success');
                 messageForm.reset();
                 messageModal.style.display = 'none';
             };
@@ -940,27 +1010,162 @@
         }
 
         const feedList = document.getElementById('social-feed-list');
-        const prependWallPost = (author, tag, contentHtml, timeText = 'Adesso') => {
+        let pendingWallPhotoDataUrl = '';
+
+        function compressWallPhoto(file, maxW = 850, quality = 0.8) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const scale = img.width > maxW ? maxW / img.width : 1;
+                        const canvas = document.createElement('canvas');
+                        canvas.width = Math.round(img.width * scale);
+                        canvas.height = Math.round(img.height * scale);
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        resolve(canvas.toDataURL('image/jpeg', quality));
+                    };
+                    img.onerror = reject;
+                    img.src = ev.target.result;
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        const photoInput = document.getElementById('wall-post-photo-input');
+        const photoStatus = document.getElementById('wall-post-photo-status');
+        if (photoInput) {
+            photoInput.onchange = async (e) => {
+                const f = e.target.files?.[0];
+                if (!f) return;
+                if (photoStatus) photoStatus.textContent = 'Compressione foto...';
+                try {
+                    pendingWallPhotoDataUrl = await compressWallPhoto(f, 850, 0.8);
+                    if (photoStatus) photoStatus.innerHTML = `<span style="color:#34d399; font-weight:700;">✓ Foto pronta (${f.name})</span>`;
+                } catch (err) {
+                    if (photoStatus) photoStatus.textContent = 'Errore foto';
+                }
+            };
+        }
+
+        const getDefaultWallSeed = () => [
+            {
+                id: 'seed-1',
+                author: devName,
+                tag: 'Work in Progress',
+                body: 'Siamo entusiasti di annunciare che stiamo lavorando su una nuova roadmap di aggiornamenti! 🚀 Nuovi livelli, correzione di bug e supporto migliorato per il controller in arrivo questo mese.',
+                photoUrl: '',
+                likes: 14,
+                date: 'Recente'
+            },
+            {
+                id: 'seed-2',
+                author: devName,
+                tag: 'Cerco Collaborazione',
+                body: 'Spazio social aperto a proposte di collaborazione, feedback sui progetti indie e scambio idee con programmatori, grafici 2D/3D e sound designer della community IndiePlay-X!',
+                photoUrl: '',
+                likes: 9,
+                date: '1 settimana fa'
+            }
+        ];
+
+        async function saveCloudWallFeed(postsArray) {
+            cloudWallPosts = postsArray.slice(0, 40);
+            try {
+                localStorage.setItem(wallStorageKey, JSON.stringify(cloudWallPosts));
+            } catch (e) {}
+            try {
+                await setDoc(doc(db, 'social_walls', wallDocKey), {
+                    posts: cloudWallPosts,
+                    followersCount: cloudFollowersCount,
+                    updatedAt: new Date().toISOString()
+                }, { merge: true });
+            } catch (e) {}
+            renderCloudWallFeed();
+        }
+
+        function renderCloudWallFeed() {
             if (!feedList) return;
-            const post = document.createElement('div');
-            post.className = 'feed-post';
-            post.innerHTML = `
-                <div class="post-header">
-                    <div class="dev-avatar" style="width: 40px; height: 40px; border-width: 1px; font-size: 1rem; border-color: rgba(255,255,255,0.2);">
-                        <i class="fas fa-user-astronaut"></i>
+            const list = cloudWallPosts.length > 0 ? cloudWallPosts : getDefaultWallSeed();
+            feedList.innerHTML = list.map((p) => `
+                <div class="feed-post" data-post-id="${p.id}">
+                    <div class="post-header" style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div class="dev-avatar" style="width: 40px; height: 40px; border-width: 1px; font-size: 1rem; border-color: rgba(255,255,255,0.2);">
+                                <i class="fas fa-user-astronaut"></i>
+                            </div>
+                            <div class="post-info">
+                                <span class="post-author">${p.author || devName} <span style="background: rgba(0,168,225,0.18); color: #38bdf8; padding: 2px 8px; border-radius: 999px; font-size: 0.7rem; margin-left: 6px;">${p.tag || 'Post'}</span></span>
+                                <span class="post-time">${p.date || 'Adesso'}</span>
+                            </div>
+                        </div>
+                        ${isCurrentProfileOwner ? `
+                            <button type="button" class="delete-wall-post-btn btn btn-prime-outline" data-post-id="${p.id}" title="Elimina questo post dalla tua bacheca" style="padding: 4px 9px; font-size: 0.74rem; border-color: rgba(239,68,68,0.45); color: #f87171;">
+                                <i class="fas fa-trash"></i> Elimina
+                            </button>
+                        ` : ''}
                     </div>
-                    <div class="post-info">
-                        <span class="post-author">${author} <span style="background: rgba(0,168,225,0.18); color: #38bdf8; padding: 2px 8px; border-radius: 999px; font-size: 0.7rem; margin-left: 6px;">${tag}</span></span>
-                        <span class="post-time">${timeText}</span>
+                    <div class="post-content" style="white-space: pre-line;">${p.body || ''}</div>
+                    ${p.photoUrl ? `
+                        <div style="margin: 0.8rem 0; border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,0.12); max-height: 360px; background: #090d14;">
+                            <img src="${p.photoUrl}" alt="Allegato Post" style="width: 100%; max-height: 360px; object-fit: contain; display: block;">
+                        </div>
+                    ` : ''}
+                    <div class="post-actions">
+                        <span class="post-action-btn wall-like-btn" data-post-id="${p.id}" style="cursor: pointer;"><i class="far fa-thumbs-up"></i> <span>${Number(p.likes || 1)}</span> Mi piace</span>
                     </div>
                 </div>
-                <div class="post-content">${contentHtml}</div>
-                <div class="post-actions">
-                    <span class="post-action-btn" onclick="togglePostLike(this)"><i class="far fa-thumbs-up"></i> 1 Mi piace</span>
-                </div>
-            `;
-            feedList.prepend(post);
-        };
+            `).join('');
+
+            feedList.querySelectorAll('.wall-like-btn').forEach(btn => {
+                btn.onclick = async () => {
+                    const pid = btn.getAttribute('data-post-id');
+                    const base = cloudWallPosts.length > 0 ? [...cloudWallPosts] : getDefaultWallSeed();
+                    const updated = base.map(item => item.id === pid ? { ...item, likes: (Number(item.likes) || 0) + 1 } : item);
+                    await saveCloudWallFeed(updated);
+                };
+            });
+
+            feedList.querySelectorAll('.delete-wall-post-btn').forEach(btn => {
+                btn.onclick = async () => {
+                    const pid = btn.getAttribute('data-post-id');
+                    const base = cloudWallPosts.length > 0 ? [...cloudWallPosts] : getDefaultWallSeed();
+                    const updated = base.filter(item => item.id !== pid);
+                    await saveCloudWallFeed(updated);
+                    showToast('Post rimosso dalla bacheca.', 'info');
+                };
+            });
+        }
+
+        async function loadCloudWallFeed() {
+            try {
+                const localRaw = localStorage.getItem(wallStorageKey);
+                if (localRaw) {
+                    const parsed = JSON.parse(localRaw);
+                    if (Array.isArray(parsed) && parsed.length > 0) cloudWallPosts = parsed;
+                }
+            } catch (e) {}
+            renderCloudWallFeed();
+
+            try {
+                const snap = await getDoc(doc(db, 'social_walls', wallDocKey));
+                if (snap.exists()) {
+                    const data = snap.data();
+                    if (typeof data.followersCount === 'number') {
+                        cloudFollowersCount = data.followersCount;
+                        updateFollowersUI();
+                    }
+                    if (Array.isArray(data.posts) && data.posts.length > 0) {
+                        cloudWallPosts = data.posts;
+                        localStorage.setItem(wallStorageKey, JSON.stringify(cloudWallPosts));
+                        renderCloudWallFeed();
+                    }
+                }
+            } catch (e) {}
+        }
+        loadCloudWallFeed();
 
         if (donationForm) {
             donationForm.onsubmit = async (e) => {
@@ -981,11 +1186,17 @@
                     price: amount
                 });
 
-                prependWallPost(
-                    donor,
-                    `❤️ Donazione €${amount.toFixed(2)}`,
-                    `Ha supportato <strong>${targetName}</strong> con una donazione di <strong>€${amount.toFixed(2)}</strong>!${msg ? `<br><em>"${msg}"</em>` : ''}`
-                );
+                const donationPost = {
+                    id: 'post-don-' + Date.now(),
+                    author: donor,
+                    tag: `❤️ Donazione €${amount.toFixed(2)}`,
+                    body: `Ha supportato ${targetName} con una donazione di €${amount.toFixed(2)}!${msg ? `\n"${msg}"` : ''}`,
+                    photoUrl: '',
+                    likes: 1,
+                    date: new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+                };
+                const base = cloudWallPosts.length > 0 ? [...cloudWallPosts] : getDefaultWallSeed();
+                await saveCloudWallFeed([donationPost, ...base]);
 
                 donationModal.style.display = 'none';
                 donationForm.reset();
@@ -996,12 +1207,6 @@
 
         // Social Wall Post Form Handler
         const wallPostForm = document.getElementById('social-wall-post-form');
-        const wallStorageKey = `indieplay_wall_posts_${(uidParam || devName).toLowerCase()}`;
-        try {
-            const savedPosts = JSON.parse(localStorage.getItem(wallStorageKey) || '[]');
-            savedPosts.forEach(p => prependWallPost(p.author, p.tag, p.body, p.date));
-        } catch (e) {}
-
         if (wallPostForm) {
             wallPostForm.onsubmit = async (e) => {
                 e.preventDefault();
@@ -1011,19 +1216,21 @@
                 if (!body) return;
 
                 const newPost = {
+                    id: 'post-' + Date.now(),
                     author,
                     tag,
                     body,
+                    photoUrl: pendingWallPhotoDataUrl || '',
+                    likes: 1,
                     date: new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
                 };
-                prependWallPost(newPost.author, newPost.tag, newPost.body, newPost.date);
-                try {
-                    const existing = JSON.parse(localStorage.getItem(wallStorageKey) || '[]');
-                    existing.push(newPost);
-                    localStorage.setItem(wallStorageKey, JSON.stringify(existing.slice(-30)));
-                } catch (err) {}
+                const base = cloudWallPosts.length > 0 ? [...cloudWallPosts] : getDefaultWallSeed();
+                await saveCloudWallFeed([newPost, ...base]);
+
+                pendingWallPhotoDataUrl = '';
+                if (photoStatus) photoStatus.textContent = 'Opzionale';
                 wallPostForm.reset();
-                showToast('Post pubblicato sulla Bacheca Social!', 'success');
+                showToast('Post pubblicato e sincronizzato sulla Bacheca Cloud!', 'success');
             };
         }
 
