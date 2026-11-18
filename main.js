@@ -1,4 +1,4 @@
-import { registerUser, loginUser, logoutUser, subscribeToAuthChanges, loginWithGoogle } from './src/auth';
+import { registerUser, loginUser, logoutUser, resetUserPassword, subscribeToAuthChanges, loginWithGoogle } from './src/auth';
 import { getGames, getGamesPaged, getCachedGamesSync } from './src/store';
 import { db, auth } from './src/firebase';
 import { doc, getDoc, collection, getDocs, query, orderBy, limit } from "firebase/firestore";
@@ -92,6 +92,22 @@ document.getElementById('login-form').onsubmit = async (e) => {
     window.showToast('Errore: ' + err.message, 'error');
   }
 };
+
+const forgotPasswordLink = document.getElementById('forgot-password-link');
+if (forgotPasswordLink) {
+  forgotPasswordLink.onclick = async (e) => {
+    e.preventDefault();
+    const emailInput = document.getElementById('login-email');
+    const email = (emailInput?.value || '').trim() || 'danielepmp@yahoo.it';
+    if (emailInput && !emailInput.value) emailInput.value = email;
+    try {
+      await resetUserPassword(email);
+      window.showToast(`Email di recupero password inviata a ${email}! Controlla la posta (anche Spam).`, 'success');
+    } catch (err) {
+      window.showToast('Errore invio recupero: ' + err.message, 'error');
+    }
+  };
+}
 
 const handleGoogleAuth = async () => {
   try {

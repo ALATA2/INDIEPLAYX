@@ -5,6 +5,7 @@ import {
   signOut, 
   onAuthStateChanged,
   sendEmailVerification,
+  sendPasswordResetEmail,
   signInWithPopup,
   GoogleAuthProvider
 } from "firebase/auth";
@@ -77,6 +78,12 @@ export const logoutUser = async () => {
   } catch (error) {
     throw error;
   }
+};
+
+export const resetUserPassword = async (email) => {
+  const cleanEmail = String(email || '').trim();
+  if (!cleanEmail) throw new Error('Inserisci prima il tuo indirizzo email nel campo Email.');
+  await sendPasswordResetEmail(auth, cleanEmail);
 };
 
 export const subscribeToAuthChanges = (callback) => {
