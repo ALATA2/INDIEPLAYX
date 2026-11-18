@@ -1,5 +1,25 @@
 [
   {
+    "version": "Version 1.11281",
+    "timestamp": "2026-11-18T06:08:22.212Z",
+    "message": "feat(Version 1.11281): fix apertura Rivista (.lightbox) e blindatura Sicurezza (SHA-256, XSS, HTTP headers)",
+    "targets": [
+      "Hard Disk (c:\\Users\\green\\Desktop\\INDIE-PLAY-X + /dist)",
+      "GitHub (https://github.com/ALATA2/INDIEPLAYX - main)",
+      "Cloudflare Pages & Vercel Hosting (Auto-Deploy su push main)"
+    ]
+  },
+  {
+    "version": "Version 1.11281",
+    "timestamp": "2026-11-18T06:06:56.570Z",
+    "message": "feat(Version 1.11281): fix apertura Rivista (.lightbox) e blindatura Sicurezza (SHA-256, XSS, HTTP headers)",
+    "targets": [
+      "Hard Disk (c:\\Users\\green\\Desktop\\INDIE-PLAY-X + /dist)",
+      "GitHub (https://github.com/ALATA2/INDIEPLAYX - main)",
+      "Cloudflare Pages & Vercel Hosting (Auto-Deploy su push main)"
+    ]
+  },
+  {
     "version": "Version 1.11280",
     "timestamp": "2026-11-17T21:28:39.482Z",
     "message": "feat(Version 1.11280): fix sintassi workflow GitHub Actions",

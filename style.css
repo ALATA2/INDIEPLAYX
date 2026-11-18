@@ -1208,6 +1208,19 @@ input:focus {
   border-color: rgba(0, 168, 225, 0.45) !important;
 }
 
+.lightbox {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 3000;
+  background: rgba(0, 5, 13, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  overflow-y: auto;
+}
+
 #open-mag-title-trigger:hover {
   color: #38bdf8 !important;
 }

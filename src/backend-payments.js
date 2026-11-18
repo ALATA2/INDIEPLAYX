@@ -1,10 +1,11 @@
 import { db } from './firebase';
 import { collection, getDocs, addDoc, doc, setDoc, getDoc } from 'firebase/firestore';
 import { getLanguage, autoTranslateDOM } from './i18n';
+import { escapeHTML, safeUrl, sha256Hex, checkRateLimit, resetRateLimit } from './security';
 
-// Passwords richieste dalle specifiche
-const MAGAZINE_PASSWORD = '1199Pantera!!!';
-const BACKEND_PASSWORD = 'LastRisc2026?';
+// Hash SHA-256 verificati nativamente via Web Crypto API (zero password in chiaro nel bundle)
+const MAGAZINE_PASSWORD_HASH = 'f5cc70f88b12210cbd1758da2ba5e8de99787c31e70930538d0436be9756470a';
+const BACKEND_PASSWORD_HASH = 'c94e1e094df381b87be436ce966fc5a4b20280dffdf0624e0d60b978499101a6';
 
 const STORAGE_KEY_PAYMENT_CONFIG = 'indieplay_payment_config_v2';
 const STORAGE_KEY_TRANSACTIONS = 'indieplay_split_transactions_v1';
@@ -512,13 +513,13 @@ function renderMagazineSection() {
               <span style="position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.75); color: #e2e8f0; padding: 2px 8px; border-radius: 4px; font-size: 0.72rem; font-weight: 600;"><i class="far fa-clock"></i> ${art.readTime || '5 min'}</span>
             </div>
             <div style="padding: 1.3rem;">
-              <div style="font-size: 0.78rem; color: var(--prime-blue); font-weight: 700; margin-bottom: 4px;">${art.issue || 'Numero #1'} • ${art.date || '2026'}</div>
-              <h3 style="color: white; font-size: 1.12rem; font-weight: 800; line-height: 1.35; margin-bottom: 10px; cursor: pointer;" class="read-mag-article-trigger" data-art-id="${art.id}">${art.title}</h3>
-              <p style="color: var(--text-gray); font-size: 0.88rem; line-height: 1.55; margin-bottom: 1rem;">${art.summary}</p>
+              <div style="font-size: 0.78rem; color: var(--prime-blue); font-weight: 700; margin-bottom: 4px;">${escapeHTML(art.issue || 'Numero #1')} • ${escapeHTML(art.date || '2026')}</div>
+              <h3 style="color: white; font-size: 1.12rem; font-weight: 800; line-height: 1.35; margin-bottom: 10px; cursor: pointer;" class="read-mag-article-trigger" data-art-id="${escapeHTML(art.id)}">${escapeHTML(art.title)}</h3>
+              <p style="color: var(--text-gray); font-size: 0.88rem; line-height: 1.55; margin-bottom: 1rem;">${escapeHTML(art.summary)}</p>
             </div>
           </div>
           <div style="padding: 0 1.3rem 1.3rem; display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
-            <span style="font-size: 0.78rem; color: var(--text-gray); font-weight: 600;"><i class="fas fa-pen-nib"></i> ${art.author || 'Redazione'}</span>
+            <span style="font-size: 0.78rem; color: var(--text-gray); font-weight: 600;"><i class="fas fa-pen-nib"></i> ${escapeHTML(art.author || 'Redazione')}</span>
             ${renderCardActions(art)}
           </div>
         </article>
@@ -868,10 +869,17 @@ function injectMagazineModals() {
     };
   }
 
-  document.getElementById('magazine-auth-form').onsubmit = (e) => {
+  document.getElementById('magazine-auth-form').onsubmit = async (e) => {
     e.preventDefault();
+    const rl = checkRateLimit('mag_auth', 5, 60000);
+    if (!rl.allowed) {
+      if (window.showToast) window.showToast(`Troppi tentativi falliti. Riprova tra ${rl.remainingSec}s.`, 'error');
+      return;
+    }
     const val = document.getElementById('magazine-password-input').value;
-    if (val === MAGAZINE_PASSWORD) {
+    const digest = await sha256Hex(val);
+    if (digest === MAGAZINE_PASSWORD_HASH) {
+      resetRateLimit('mag_auth');
       sessionStorage.setItem(STORAGE_KEY_MAGAZINE_UNLOCKED, 'true');
       authModal.style.display = 'none';
       renderMagazineSection();
@@ -928,7 +936,7 @@ function openMagazineReaderModal(article) {
 
   const paragraphs = (article.content || '')
     .split('\n\n')
-    .map(p => `<p style="margin-bottom: 1rem; line-height: 1.75; color: #e2e8f0; font-size: 1rem;">${p}</p>`)
+    .map(p => `<p style="margin-bottom: 1rem; line-height: 1.75; color: #e2e8f0; font-size: 1rem;">${escapeHTML(p)}</p>`)
     .join('');
 
   const ytEmbed = extractYouTubeEmbedUrl(article.youtubeUrl || '');
@@ -977,17 +985,17 @@ function openMagazineReaderModal(article) {
     : '';
 
   body.innerHTML = `
-    <div class="mag-zoomable-photo" data-src="${assetHelper(article.coverImg)}" style="height: 245px; background: url('${assetHelper(article.coverImg)}') no-repeat center center; background-size: cover; border-radius: 10px; margin-bottom: 1.4rem; position: relative; cursor: zoom-in;">
-      <span style="position: absolute; top: 12px; left: 12px; background: var(--prime-blue); color: white; padding: 4px 12px; border-radius: 4px; font-size: 0.75rem; font-weight: 800;">${article.category}</span>
+    <div class="mag-zoomable-photo" data-src="${safeUrl(assetHelper(article.coverImg))}" style="height: 245px; background: url('${safeUrl(assetHelper(article.coverImg))}') no-repeat center center; background-size: cover; border-radius: 10px; margin-bottom: 1.4rem; position: relative; cursor: zoom-in;">
+      <span style="position: absolute; top: 12px; left: 12px; background: var(--prime-blue); color: white; padding: 4px 12px; border-radius: 4px; font-size: 0.75rem; font-weight: 800;">${escapeHTML(article.category)}</span>
       <span style="position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.72); color: white; padding: 3px 9px; border-radius: 4px; font-size: 0.72rem;"><i class="fas fa-search-plus"></i> Ingrandisci</span>
     </div>
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 6px;">
-      <div style="font-size: 0.85rem; color: var(--prime-blue); font-weight: 700;">${article.issue} • ${article.date} • ${article.author}</div>
+      <div style="font-size: 0.85rem; color: var(--prime-blue); font-weight: 700;">${escapeHTML(article.issue)} • ${escapeHTML(article.date)} • ${escapeHTML(article.author)}</div>
       <button type="button" id="mag-reader-share-btn" class="btn btn-prime-outline" style="padding: 4px 10px; font-size: 0.76rem; font-weight: 700;">
         <i class="fas fa-share-alt"></i> Condividi Articolo
       </button>
     </div>
-    <h2 style="font-size: 1.65rem; font-weight: 900; color: white; margin-bottom: 1.2rem; line-height: 1.3;">${article.title}</h2>
+    <h2 style="font-size: 1.65rem; font-weight: 900; color: white; margin-bottom: 1.2rem; line-height: 1.3;">${escapeHTML(article.title)}</h2>
     <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.2rem;">
       ${paragraphs}
     </div>
@@ -1137,7 +1145,7 @@ function openMagazineIssueViewer(startPage = 0) {
     if (!art) return;
     const paragraphs = (art.content || '')
       .split('\n\n')
-      .map((p, idx) => `<p class="${idx === 0 ? 'mag-dropcap-p' : ''}" style="margin-bottom: 1rem; line-height: 1.75; color: #e2e8f0; font-size: 0.98rem;">${p}</p>`)
+      .map((p, idx) => `<p class="${idx === 0 ? 'mag-dropcap-p' : ''}" style="margin-bottom: 1rem; line-height: 1.75; color: #e2e8f0; font-size: 0.98rem;">${escapeHTML(p)}</p>`)
       .join('');
     const ytEmbed = extractYouTubeEmbedUrl(art.youtubeUrl || '');
 
@@ -1146,12 +1154,12 @@ function openMagazineIssueViewer(startPage = 0) {
         <!-- Colonna Sinistra: Testo Editoriale -->
         <div>
           <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 0.6rem;">
-            <span style="background: var(--prime-blue); color: white; padding: 3px 10px; border-radius: 4px; font-size: 0.72rem; font-weight: 800;">${art.category || 'EDITORIALE'}</span>
-            <span style="font-size: 0.8rem; color: #94a3b8; font-weight: 700;">${art.issue || ''} • ${art.date || ''} • ${art.readTime || '5 min'}</span>
+            <span style="background: var(--prime-blue); color: white; padding: 3px 10px; border-radius: 4px; font-size: 0.72rem; font-weight: 800;">${escapeHTML(art.category || 'EDITORIALE')}</span>
+            <span style="font-size: 0.8rem; color: #94a3b8; font-weight: 700;">${escapeHTML(art.issue || '')} • ${escapeHTML(art.date || '')} • ${escapeHTML(art.readTime || '5 min')}</span>
           </div>
-          <h2 style="font-size: clamp(1.4rem, 2.6vw, 1.95rem); font-weight: 900; color: white; line-height: 1.22; margin-bottom: 0.6rem;">${art.title}</h2>
+          <h2 style="font-size: clamp(1.4rem, 2.6vw, 1.95rem); font-weight: 900; color: white; line-height: 1.22; margin-bottom: 0.6rem;">${escapeHTML(art.title)}</h2>
           <div style="font-size: 0.82rem; color: #38bdf8; font-weight: 700; margin-bottom: 1.1rem; padding-bottom: 0.8rem; border-bottom: 1px solid rgba(255,255,255,0.1);">
-            <i class="fas fa-pen-nib"></i> Di ${art.author || 'Redazione IndiePlay-X'}
+            <i class="fas fa-pen-nib"></i> Di ${escapeHTML(art.author || 'Redazione IndiePlay-X')}
           </div>
           <div>${paragraphs}</div>
         </div>
@@ -1379,10 +1387,17 @@ function injectBackendModals() {
   document.getElementById('close-backend-auth').onclick = () => (authModal.style.display = 'none');
   document.getElementById('close-backend-console').onclick = () => (consoleModal.style.display = 'none');
 
-  document.getElementById('backend-auth-form').onsubmit = (e) => {
+  document.getElementById('backend-auth-form').onsubmit = async (e) => {
     e.preventDefault();
+    const rl = checkRateLimit('backend_auth', 5, 60000);
+    if (!rl.allowed) {
+      if (window.showToast) window.showToast(`Accesso temporaneamente bloccato per sicurezza. Riprova tra ${rl.remainingSec}s.`, 'error');
+      return;
+    }
     const pwd = document.getElementById('backend-password-input').value;
-    if (pwd === BACKEND_PASSWORD) {
+    const digest = await sha256Hex(pwd);
+    if (digest === BACKEND_PASSWORD_HASH) {
+      resetRateLimit('backend_auth');
       authModal.style.display = 'none';
       openBackendConsole();
       if (window.showToast) window.showToast('Accesso Backend autorizzato!', 'success');
