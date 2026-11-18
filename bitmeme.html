@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Area Riservata — INDIE PLAY X</title>
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <meta name="theme-color" content="#00050d">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="alternate icon" type="image/png" href="/images/logo_litte.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/style.css">
+    <script>
+        window.showToast = function(message, typeOrIcon = 'success', icon = null) {
+            let type = 'success';
+            if (String(typeOrIcon).startsWith('fa-')) {
+                icon = typeOrIcon;
+                type = (icon === 'fa-check-circle' || icon === 'fa-check') ? 'success' : 'info';
+            } else {
+                type = typeOrIcon;
+            }
+            if (!icon) {
+                if (type === 'success') icon = 'fa-check-circle';
+                else if (type === 'error') icon = 'fa-exclamation-triangle';
+                else icon = 'fa-info-circle';
+            }
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<i class="fas ${icon}"></i> <span>${message}</span>`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 80);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 400);
+            }, 3800);
+        };
+    </script>
+</head>
+<body style="min-height: 100vh; background: radial-gradient(circle at top, #0d1b2a 0%, #00050d 75%); color: white; display: flex; flex-direction: column;">
+    <header class="prime-header" style="position: sticky; top: 0; z-index: 1000;">
+        <nav style="display: flex; align-items: center; justify-content: space-between; padding: 0.8rem 5%;">
+            <a href="/" class="prime-logo" style="text-decoration: none; display: flex; align-items: center; gap: 10px;">
+                <img src="/images/indieplayx_logo.svg" alt="INDIE PLAY X" style="height: 38px; width: auto; object-fit: contain;">
+                <span style="background: rgba(245, 158, 11, 0.18); border: 1px solid rgba(245, 158, 11, 0.45); color: #fbbf24; padding: 3px 10px; border-radius: 6px; font-size: 0.72rem; font-weight: 900; letter-spacing: 0.6px;">
+                    <i class="fas fa-user-shield"></i> HUB RISERVATO /BITMEME
+                </span>
+            </a>
+            <a href="/" class="btn btn-prime-outline" style="text-decoration: none; padding: 0.55rem 1.1rem; font-size: 0.84rem; font-weight: 800; display: inline-flex; align-items: center; gap: 7px;">
+                <i class="fas fa-arrow-left"></i> Torna al Sito Pubblico
+            </a>
+        </nav>
+    </header>
+
+    <main style="flex: 1; max-width: 1120px; width: 92%; margin: 2.5rem auto 4rem;">
+        <div style="margin-bottom: 2rem; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 1.2rem;">
+            <span style="font-size: 0.75rem; color: #38bdf8; font-weight: 900; text-transform: uppercase; letter-spacing: 1px;">
+                <i class="fas fa-shield-alt"></i> ACCESSO AMMINISTRATIVO NASCOSTO (NO-INDEX)
+            </span>
+            <h1 style="font-size: clamp(1.6rem, 3vw, 2.25rem); font-weight: 900; margin: 6px 0 6px; color: white;">
+                Centro di Controllo Backend & Redazione Magazine
+            </h1>
+            <p style="margin: 0; font-size: 0.92rem; color: var(--text-gray);">
+                Questa pagina (<code>/bitmeme</code>) è invisibile ai visitatori e non ha alcun link nella Homepage pubblica.
+            </p>
+        </div>
+
+        <div id="bitmeme-hub-root">
+            <div class="loading">Inizializzazione moduli di sicurezza...</div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initBitmemeAdminHub } from '/src/backend-payments.js';
+        import { renderVersionBadge } from '/src/version.js';
+
+        window.getAssetUrl = (path) => {
+            if (!path) return '/images/placeholder.png';
+            if (path.startsWith('data:') || path.startsWith('http://') || path.startsWith('https://')) return path;
+            return path.startsWith('/') ? path : '/' + path;
+        };
+
+        renderVersionBadge();
+        initBitmemeAdminHub();
+    </script>
+</body>
+</html>

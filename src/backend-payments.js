@@ -457,11 +457,7 @@ function renderMagazineSection() {
         </button>
       </div>
       <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-        ${!isEditor ? `
-          <button id="open-mag-login-btn" class="btn btn-prime-outline" style="padding: 0.6rem 1.2rem; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; border-color: rgba(0,168,225,0.5);">
-            <i class="fas fa-lock" style="color: var(--prime-blue);"></i> <span>Redazione: Carica Articoli & Foto</span>
-          </button>
-        ` : `
+        ${!isEditor ? '' : `
           <button id="open-mag-cms-btn" class="btn btn-prime" style="padding: 0.65rem 1.2rem; font-weight: 800; display: inline-flex; align-items: center; gap: 8px;">
             <i class="fas fa-plus-circle"></i> <span>Carica Nuovo Articolo / Foto</span>
           </button>
@@ -946,6 +942,7 @@ function injectMagazineModals() {
     pendingGalleryDataUrls = [];
     cmsModal.style.display = 'none';
     renderMagazineSection();
+    window.dispatchEvent(new CustomEvent('indieplay:magazinearticleschange'));
     if (window.showToast) window.showToast(existingArt ? 'Articolo aggiornato con successo!' : 'Articolo e foto pubblicati nel Magazine!', 'success');
   };
 }
@@ -2802,5 +2799,253 @@ export function openMemeConsoleModal(initialView = 'front') {
   render();
   modal.style.display = 'flex';
 }
+
+// ============================================================================
+// 5. PAGINA RISERVATA /BITMEME — LOGIN UNIFICATO BACKEND & REDAZIONE MAGAZINE
+// ============================================================================
+const STORAGE_KEY_BACKEND_UNLOCKED = 'indieplay_backend_unlocked_v1';
+
+export async function initBitmemeAdminHub() {
+  const root = document.getElementById('bitmeme-hub-root');
+  if (!root) return;
+
+  injectMagazineModals();
+  injectBackendModals();
+  await Promise.all([syncPaymentConfigFromCloud(), syncMagazineFromCloud()]);
+
+  const renderHub = () => {
+    const isMagUnlocked = sessionStorage.getItem(STORAGE_KEY_MAGAZINE_UNLOCKED) === 'true';
+    const isBeUnlocked = sessionStorage.getItem(STORAGE_KEY_BACKEND_UNLOCKED) === 'true';
+    const articles = getMagazineArticles();
+    const cfg = getPaymentConfig();
+
+    root.innerHTML = `
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 2rem; align-items: start;">
+        <!-- CARD 1: REDAZIONE INDIEPLAY MAGAZINE -->
+        <div style="background: rgba(15, 23, 34, 0.96); border: 1px solid ${isMagUnlocked ? 'rgba(16, 185, 129, 0.5)' : 'rgba(0, 168, 225, 0.45)'}; border-radius: 18px; padding: 2rem; box-shadow: 0 20px 50px rgba(0,0,0,0.65);">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 1.3rem; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(0, 168, 225, 0.15); border: 1px solid var(--prime-blue); display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-newspaper" style="color: var(--prime-blue); font-size: 1.35rem;"></i>
+              </div>
+              <div>
+                <span style="font-size: 0.72rem; font-weight: 900; color: var(--prime-blue); letter-spacing: 0.8px;">ACCESSO 1 • CMS EDITORIALE</span>
+                <h2 style="margin: 2px 0 0; font-size: 1.35rem; font-weight: 900; color: white;">Redazione IndiePlay Magazine</h2>
+              </div>
+            </div>
+            <span style="padding: 4px 10px; border-radius: 999px; font-size: 0.72rem; font-weight: 800; background: ${isMagUnlocked ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255,255,255,0.06)'}; color: ${isMagUnlocked ? '#34d399' : '#94a3b8'};">
+              ${isMagUnlocked ? '● SBLOCCATO' : '🔒 PROTETTO'}
+            </span>
+          </div>
+
+          ${!isMagUnlocked ? `
+            <p style="font-size: 0.88rem; color: var(--text-gray); line-height: 1.55; margin: 0 0 1.2rem;">
+              Inserisci la password Redazione per caricare nuovi articoli, gallerie fotografiche e video YouTube o modificare i numeri pubblicati su <strong>IndiePlay Magazine</strong>.
+            </p>
+            <form id="bm-mag-login-form" style="display: flex; flex-direction: column; gap: 0.9rem;">
+              <div>
+                <label style="font-size: 0.78rem; color: var(--text-gray); font-weight: 800; display: block; margin-bottom: 6px;">PASSWORD REDAZIONE MAGAZINE</label>
+                <input type="password" id="bm-mag-pwd" required placeholder="Inserisci password Redazione..." style="width: 100%; padding: 12px; background: #090e16; border: 1px solid rgba(255,255,255,0.18); border-radius: 8px; color: white; font-size: 0.98rem;">
+              </div>
+              <button type="submit" class="btn btn-prime" style="width: 100%; padding: 0.95rem; font-weight: 900; justify-content: center; font-size: 0.95rem;">
+                <i class="fas fa-unlock-alt"></i> Entra in Redazione Magazine
+              </button>
+            </form>
+          ` : `
+            <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button type="button" id="bm-open-new-art-btn" class="btn btn-prime" style="flex: 1; padding: 0.9rem 1rem; font-weight: 900; justify-content: center;">
+                  <i class="fas fa-plus-circle"></i> + Carica Nuovo Articolo & Foto
+                </button>
+                <button type="button" id="bm-open-issue-viewer-btn" class="btn btn-prime-outline" style="padding: 0.9rem 1rem; font-weight: 800;">
+                  <i class="fas fa-book-open"></i> Sfogliabile
+                </button>
+                <button type="button" id="bm-lock-mag-btn" class="btn btn-prime-outline" title="Chiudi sessione Redazione" style="padding: 0.9rem 0.9rem; border-color: rgba(239,68,68,0.4); color: #f87171;">
+                  <i class="fas fa-sign-out-alt"></i>
+                </button>
+              </div>
+
+              <div style="margin-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 0.9rem;">
+                <div style="font-size: 0.8rem; font-weight: 800; color: #38bdf8; margin-bottom: 0.65rem; text-transform: uppercase;">
+                  Articoli Pubblicati nel Magazine (${articles.length})
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 0.55rem; max-height: 310px; overflow-y: auto;">
+                  ${articles.map(art => `
+                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 0.7rem 0.9rem; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+                      <div style="min-width: 0;">
+                        <div style="font-size: 0.7rem; color: var(--prime-blue); font-weight: 800;">${escapeHTML(art.category || 'EDITORIALE')} • ${escapeHTML(art.issue || '')}</div>
+                        <div style="font-size: 0.88rem; font-weight: 800; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHTML(art.title)}</div>
+                      </div>
+                      <div style="display: flex; gap: 6px; flex-shrink: 0;">
+                        <button type="button" class="bm-edit-art-btn btn btn-prime-outline" data-id="${escapeHTML(art.id)}" title="Modifica Articolo" style="padding: 5px 10px; font-size: 0.75rem; border-color: #fbbf24; color: #fbbf24;">
+                          <i class="fas fa-edit"></i> Modifica
+                        </button>
+                        <button type="button" class="bm-del-art-btn btn btn-prime-outline" data-id="${escapeHTML(art.id)}" title="Elimina Articolo" style="padding: 5px 9px; font-size: 0.75rem; border-color: #ef4444; color: #f87171;">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            </div>
+          `}
+        </div>
+
+        <!-- CARD 2: CONSOLE AMMINISTRATORE BACKEND PAGAMENTI & MODULI -->
+        <div style="background: rgba(15, 23, 34, 0.96); border: 1px solid ${isBeUnlocked ? 'rgba(16, 185, 129, 0.5)' : 'rgba(245, 158, 11, 0.45)'}; border-radius: 18px; padding: 2rem; box-shadow: 0 20px 50px rgba(0,0,0,0.65);">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 1.3rem; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(245, 158, 11, 0.15); border: 1px solid #f59e0b; display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-server" style="color: #fbbf24; font-size: 1.35rem;"></i>
+              </div>
+              <div>
+                <span style="font-size: 0.72rem; font-weight: 900; color: #fbbf24; letter-spacing: 0.8px;">ACCESSO 2 • CONTROLLO SISTEMA</span>
+                <h2 style="margin: 2px 0 0; font-size: 1.35rem; font-weight: 900; color: white;">Backend Pagamenti & Moduli</h2>
+              </div>
+            </div>
+            <span style="padding: 4px 10px; border-radius: 999px; font-size: 0.72rem; font-weight: 800; background: ${isBeUnlocked ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255,255,255,0.06)'}; color: ${isBeUnlocked ? '#34d399' : '#94a3b8'};">
+              ${isBeUnlocked ? '● SBLOCCATO' : '🔒 PROTETTO'}
+            </span>
+          </div>
+
+          ${!isBeUnlocked ? `
+            <p style="font-size: 0.88rem; color: var(--text-gray); line-height: 1.55; margin: 0 0 1.2rem;">
+              Inserisci la password Amministratore Backend per gestire Transazioni Reali, Split-Payment, Verifica IBAN, visibilità sezioni (Magazine, BitBonk, Meme Console) ed esportare il Backup Cloud.
+            </p>
+            <form id="bm-be-login-form" style="display: flex; flex-direction: column; gap: 0.9rem;">
+              <div>
+                <label style="font-size: 0.78rem; color: var(--text-gray); font-weight: 800; display: block; margin-bottom: 6px;">PASSWORD AMMINISTRATORE BACKEND</label>
+                <input type="password" id="bm-be-pwd" required placeholder="Inserisci password Backend..." style="width: 100%; padding: 12px; background: #090e16; border: 1px solid rgba(255,255,255,0.18); border-radius: 8px; color: white; font-size: 0.98rem;">
+              </div>
+              <button type="submit" class="btn btn-prime" style="width: 100%; padding: 0.95rem; font-weight: 900; background: #f59e0b; color: #0f172a; border: none; justify-content: center; font-size: 0.95rem;">
+                <i class="fas fa-key"></i> Apri Console Amministratore Backend
+              </button>
+            </form>
+          ` : `
+            <div style="display: flex; flex-direction: column; gap: 0.9rem;">
+              <div style="display: flex; gap: 8px;">
+                <button type="button" id="bm-open-be-console-btn" class="btn btn-prime" style="flex: 1; padding: 0.95rem 1rem; font-weight: 900; background: #f59e0b; color: #0f172a; border: none; justify-content: center;">
+                  <i class="fas fa-sliders-h"></i> Apri Pannello Completo Backend (10 Voci & Pagamenti)
+                </button>
+                <button type="button" id="bm-lock-be-btn" class="btn btn-prime-outline" title="Chiudi sessione Backend" style="padding: 0.95rem 0.95rem; border-color: rgba(239,68,68,0.4); color: #f87171;">
+                  <i class="fas fa-sign-out-alt"></i>
+                </button>
+              </div>
+
+              <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 0.9rem; font-size: 0.82rem;">
+                <div style="font-weight: 800; color: #fbbf24; margin-bottom: 6px;">Stato Rapido Moduli Attivi:</div>
+                <div style="display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.05);"><span>Modalità Pagamenti:</span><strong style="color:${cfg.realPaymentsEnabled ? '#34d399' : '#fbbf24'};">${cfg.realPaymentsEnabled ? 'TRANSAZIONI REALI LIVE' : 'SIMULAZIONE TEST'}</strong></div>
+                <div style="display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.05);"><span>Split-Payment Sviluppatori:</span><strong style="color:${cfg.splitPaymentEnabled ? '#34d399' : '#94a3b8'};">${cfg.splitPaymentEnabled ? `ATTIVO (${100 - (Number(cfg.platformFeePercent) || 15)}% Dev)` : 'DISATTIVATO'}</strong></div>
+                <div style="display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.05);"><span>Sezione BITBONK™:</span><strong style="color:${cfg.bitbonkVisible !== false ? '#34d399' : '#f87171'};">${cfg.bitbonkVisible !== false ? 'VISIBILE' : 'NASCOSTA'}</strong></div>
+                <div style="display: flex; justify-content: space-between; padding: 3px 0;"><span>Sezione MEME CONSOLE™:</span><strong style="color:${cfg.memeConsoleVisible !== false ? '#34d399' : '#f87171'};">${cfg.memeConsoleVisible !== false ? 'VISIBILE' : 'NASCOSTA'}</strong></div>
+              </div>
+            </div>
+          `}
+        </div>
+      </div>
+    `;
+
+    // Wire Redazione Magazine login form
+    const magForm = document.getElementById('bm-mag-login-form');
+    if (magForm) {
+      magForm.onsubmit = async (e) => {
+        e.preventDefault();
+        const rl = checkRateLimit('mag_auth', 5, 60000);
+        if (!rl.allowed) {
+          if (window.showToast) window.showToast(`Troppi tentativi falliti. Riprova tra ${rl.remainingSec}s.`, 'error');
+          return;
+        }
+        const val = document.getElementById('bm-mag-pwd').value;
+        const digest = await sha256Hex(val);
+        if (digest === MAGAZINE_PASSWORD_HASH) {
+          resetRateLimit('mag_auth');
+          sessionStorage.setItem(STORAGE_KEY_MAGAZINE_UNLOCKED, 'true');
+          renderHub();
+          openMagazineCmsModal();
+          if (window.showToast) window.showToast('Accesso Redazione Magazine autorizzato!', 'success');
+        } else {
+          if (window.showToast) window.showToast('Password Redazione errata!', 'error');
+        }
+      };
+    }
+
+    const newArtBtn = document.getElementById('bm-open-new-art-btn');
+    if (newArtBtn) newArtBtn.onclick = () => openMagazineCmsModal();
+
+    const viewerBtn = document.getElementById('bm-open-issue-viewer-btn');
+    if (viewerBtn) viewerBtn.onclick = () => openMagazineIssueViewer(0);
+
+    const lockMagBtn = document.getElementById('bm-lock-mag-btn');
+    if (lockMagBtn) {
+      lockMagBtn.onclick = () => {
+        sessionStorage.removeItem(STORAGE_KEY_MAGAZINE_UNLOCKED);
+        renderHub();
+        if (window.showToast) window.showToast('Sessione Redazione chiusa.', 'info');
+      };
+    }
+
+    root.querySelectorAll('.bm-edit-art-btn').forEach(btn => {
+      btn.onclick = () => {
+        const id = btn.getAttribute('data-id');
+        const found = getMagazineArticles().find(a => a.id === id);
+        if (found) openMagazineCmsModal(found);
+      };
+    });
+
+    root.querySelectorAll('.bm-del-art-btn').forEach(btn => {
+      btn.onclick = async () => {
+        const id = btn.getAttribute('data-id');
+        const updated = getMagazineArticles().filter(a => a.id !== id);
+        await saveMagazineArticles(updated);
+        renderHub();
+        if (window.showToast) window.showToast('Articolo rimosso dal Magazine.', 'info');
+      };
+    });
+
+    // Wire Backend login form
+    const beForm = document.getElementById('bm-be-login-form');
+    if (beForm) {
+      beForm.onsubmit = async (e) => {
+        e.preventDefault();
+        const rl = checkRateLimit('backend_auth', 5, 60000);
+        if (!rl.allowed) {
+          if (window.showToast) window.showToast(`Accesso temporaneamente bloccato. Riprova tra ${rl.remainingSec}s.`, 'error');
+          return;
+        }
+        const pwd = document.getElementById('bm-be-pwd').value;
+        const digest = await sha256Hex(pwd);
+        if (digest === BACKEND_PASSWORD_HASH) {
+          resetRateLimit('backend_auth');
+          sessionStorage.setItem(STORAGE_KEY_BACKEND_UNLOCKED, 'true');
+          renderHub();
+          openBackendConsole();
+          if (window.showToast) window.showToast('Accesso Console Backend autorizzato!', 'success');
+        } else {
+          if (window.showToast) window.showToast('Password Backend errata! Accesso negato.', 'error');
+        }
+      };
+    }
+
+    const openBeBtn = document.getElementById('bm-open-be-console-btn');
+    if (openBeBtn) openBeBtn.onclick = () => openBackendConsole();
+
+    const lockBeBtn = document.getElementById('bm-lock-be-btn');
+    if (lockBeBtn) {
+      lockBeBtn.onclick = () => {
+        sessionStorage.removeItem(STORAGE_KEY_BACKEND_UNLOCKED);
+        const cm = document.getElementById('backend-console-modal');
+        if (cm) cm.style.display = 'none';
+        renderHub();
+        if (window.showToast) window.showToast('Sessione Backend chiusa.', 'info');
+      };
+    }
+  };
+
+  window.addEventListener('indieplay:magazinearticleschange', renderHub);
+  window.addEventListener('indieplay:paymentconfigchange', renderHub);
+  renderHub();
+}
+
 
 

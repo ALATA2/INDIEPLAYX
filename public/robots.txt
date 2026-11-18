@@ -1,5 +1,7 @@
 User-agent: *
 Allow: /
 Disallow: /account.html
+Disallow: /bitmeme
+Disallow: /bitmeme.html
 
 Sitemap: https://indieplayx.com/sitemap.xml

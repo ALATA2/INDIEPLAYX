@@ -1,5 +1,25 @@
 [
   {
+    "version": "Version 1.11286",
+    "timestamp": "2026-11-18T20:52:40.941Z",
+    "message": "feat(Version 1.11286): creata pagina riservata /bitmeme per login Backend e Redazione Magazine e rimossi link pubblici",
+    "targets": [
+      "Hard Disk (c:\\Users\\green\\Desktop\\INDIE-PLAY-X + /dist)",
+      "GitHub (https://github.com/ALATA2/INDIEPLAYX - main)",
+      "Cloudflare Pages & Vercel Hosting (Auto-Deploy su push main)"
+    ]
+  },
+  {
+    "version": "Version 1.11286",
+    "timestamp": "2026-11-18T20:50:59.567Z",
+    "message": "feat(Version 1.11286): creata pagina riservata /bitmeme per login Backend e Redazione Magazine e rimossi link pubblici",
+    "targets": [
+      "Hard Disk (c:\\Users\\green\\Desktop\\INDIE-PLAY-X + /dist)",
+      "GitHub (https://github.com/ALATA2/INDIEPLAYX - main)",
+      "Cloudflare Pages & Vercel Hosting (Auto-Deploy su push main)"
+    ]
+  },
+  {
     "version": "Version 1.11285",
     "timestamp": "2026-11-18T19:36:46.791Z",
     "message": "feat(Version 1.11285): aggiunto link recupero password via email nel login per danielepmp@yahoo.it",
