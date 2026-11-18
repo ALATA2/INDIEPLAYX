@@ -1,4 +1,4 @@
-import { registerUser, loginUser, logoutUser, resetUserPassword, subscribeToAuthChanges, loginWithGoogle } from './src/auth';
+import { registerUser, loginUser, logoutUser, resetUserPassword, subscribeToAuthChanges, loginWithGoogle, isVipSellerEmail, hasValidPartitaIva } from './src/auth';
 import { getGames, getGamesPaged, getCachedGamesSync } from './src/store';
 import { db, auth } from './src/firebase';
 import { doc, getDoc, collection, getDocs, query, orderBy, limit } from "firebase/firestore";
@@ -182,38 +182,48 @@ document.getElementById('register-form').onsubmit = async (e) => {
   const surname = document.getElementById('register-surname').value;
   const age = document.getElementById('register-age').value;
   const isSeller = isSellerCheckbox.checked;
-  const piva = document.getElementById('register-piva').value;
-  const iban = document.getElementById('register-iban').value;
+  const piva = document.getElementById('register-piva').value.trim();
+  const iban = document.getElementById('register-iban').value.trim();
+  const disclaimerChecked = document.getElementById('register-accept-disclaimer')?.checked;
+
+  if (!disclaimerChecked) {
+    window.showToast('Devi accettare lo Scarico di Responsabilità, la Privacy e l\'Informativa Cookie per iscriverti!', 'error');
+    return;
+  }
 
   if (pass !== confirmPass) {
     window.showToast('Le password inserite non coincidono!', 'error');
     return;
   }
 
-  if (getPaymentConfig().strictIbanValidation && String(email || '').trim().toLowerCase() !== 'danielepmp@yahoo.it' && isSeller) {
-    if (!piva || !validateCForPIVA(piva)) {
-      window.showToast('Codice Fiscale o Partita IVA non valido! Inserisci un Codice Fiscale di 16 caratteri o una P.IVA di 11 cifre.', 'error');
+  const isVip = isVipSellerEmail(email);
+  if (isSeller && !isVip) {
+    if (!hasValidPartitaIva(piva)) {
+      window.showToast('Per vendere titoli a pagamento è obbligatoria una Partita IVA valida (11 cifre). Se non hai P.IVA, deseleziona la spunta: potrai comunque iscriverti e condividere giochi gratis!', 'error');
       return;
     }
-    if (!iban || !validateIBAN(iban)) {
+    if (getPaymentConfig().strictIbanValidation && (!iban || !validateIBAN(iban))) {
       window.showToast('IBAN non valido! Inserisci un formato IBAN corretto (es: IT00...).', 'error');
       return;
     }
   }
 
+  const hasVat = isVip || (isSeller && hasValidPartitaIva(piva));
+
   const userData = {
     firstName: name,
     lastName: surname,
     age: parseInt(age),
-    isSeller: isSeller,
-    role: isSeller ? 'seller' : 'user',
-    verified: false // Email verification state
+    isSeller: hasVat,
+    hasPartitaIva: hasVat,
+    canSellPaidGames: hasVat,
+    piva: hasVat ? piva.toUpperCase() : '',
+    iban: hasVat && iban ? iban.replace(/\s+/g, '').toUpperCase() : '',
+    role: hasVat ? 'seller' : 'user',
+    disclaimerAccepted: true,
+    cookiePrivacyAccepted: true,
+    verified: false
   };
-
-  if (getPaymentConfig().strictIbanValidation && String(email || '').trim().toLowerCase() !== 'danielepmp@yahoo.it' && isSeller) {
-    userData.piva = piva.trim().toUpperCase();
-    userData.iban = iban.replace(/\s+/g, '').toUpperCase();
-  }
 
   try {
     await registerUser(email, pass, userData);
@@ -501,21 +511,20 @@ subscribeToAuthChanges(async (user) => {
       const userDoc = await getDoc(doc(db, "users", user.uid));
       if (userDoc.exists()) {
         const userData = userDoc.data();
-        if (user.email && user.email.toLowerCase() === 'danielepmp@yahoo.it') userData.isSeller = true;
-        userDisplay.innerText = `${userData.firstName} ${userData.lastName} ${userData.isSeller ? '(Venditore)' : ''}`;
-        if (userData.isSeller) {
-          sellLink?.classList.remove('hidden');
-        } else {
-    sellLink?.classList.remove('hidden');
-        }
+        if (isVipSellerEmail(user.email)) userData.isSeller = true;
+        const canSell = isVipSellerEmail(user.email) || hasValidPartitaIva(userData.piva);
+        userDisplay.innerText = `${userData.firstName || 'Utente'} ${userData.lastName || ''} ${canSell ? '(Venditore)' : '(Creator)'}`.trim();
+        sellLink?.classList.remove('hidden');
       } else {
-        userDisplay.innerText = user.email;
-        sellLink?.classList.add('hidden');
+        const safeNick = user.displayName || (user.email ? user.email.split('@')[0] : 'Utente');
+        userDisplay.innerText = safeNick;
+        sellLink?.classList.remove('hidden');
       }
     } catch (e) {
       console.error("Error fetching user profile:", e);
-      userDisplay.innerText = user.email;
-      sellLink?.classList.add('hidden');
+      const safeNick = user.displayName || (user.email ? user.email.split('@')[0] : 'Utente');
+      userDisplay.innerText = safeNick;
+      sellLink?.classList.remove('hidden');
     }
     
   } else {

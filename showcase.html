@@ -645,15 +645,12 @@
         const renderSocialContacts = (profile) => {
             const bar = document.getElementById('social-contacts-bar');
             if (!bar) return;
-            const email = profile.contactEmail || profile.email || 'collaborazioni@indieplayx.com';
+            // Privacy Rule: User email addresses are NEVER displayed publicly to other users
             const discord = profile.contactDiscord || 'IndiePlayX_Community';
             const website = profile.contactWebsite || '';
             const social = profile.contactSocial || '';
 
-            let html = '';
-            if (email) {
-                html += `<a href="mailto:${email}" class="btn btn-prime-outline" style="padding: 6px 12px; font-size: 0.8rem; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;"><i class="fas fa-envelope" style="color: var(--prime-blue);"></i> ${email}</a>`;
-            }
+            let html = `<button type="button" class="btn btn-prime-outline open-private-msg-trigger" style="padding: 6px 12px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px;"><i class="fas fa-envelope-open-text" style="color: var(--prime-blue);"></i> Messaggio Privato (Email Protetta)</button>`;
             if (discord) {
                 html += `<button type="button" class="btn btn-prime-outline copy-discord-btn" data-discord="${discord}" style="padding: 6px 12px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px;"><i class="fab fa-discord" style="color: #5865F2;"></i> ${discord}</button>`;
             }
@@ -666,6 +663,13 @@
                 html += `<a href="${href}" target="_blank" rel="noopener noreferrer" class="btn btn-prime-outline" style="padding: 6px 12px; font-size: 0.8rem; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;"><i class="fas fa-share-alt" style="color: #f472b6;"></i> Social</a>`;
             }
             bar.innerHTML = html;
+            const msgTrigger = bar.querySelector('.open-private-msg-trigger');
+            if (msgTrigger) {
+                msgTrigger.onclick = () => {
+                    const mModal = document.getElementById('message-modal');
+                    if (mModal) mModal.style.display = 'flex';
+                };
+            }
             bar.querySelectorAll('.copy-discord-btn').forEach(btn => {
                 btn.onclick = () => {
                     const handle = btn.getAttribute('data-discord');

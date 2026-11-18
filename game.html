@@ -761,7 +761,7 @@
         import { db, auth, storage } from './src/firebase';
         import { sendEmailVerification } from "firebase/auth";
         import { doc, getDoc, updateDoc, arrayUnion, collection, addDoc, query, where, getDocs } from "firebase/firestore";
-        import { subscribeToAuthChanges, logoutUser } from './src/auth';
+        import { subscribeToAuthChanges, logoutUser, isVipSellerEmail } from './src/auth';
         import { initLanguageSelectors, translations, getLanguage, autoTranslateDOM } from './src/i18n';
         import { initBackendSystem, getPaymentConfig, calculateSplitPayment, validateCardLuhn, recordSplitTransaction, openQuickBuyModal, addToQuickCart, isGameOwnedExpress } from './src/backend-payments';
 
@@ -1338,7 +1338,7 @@
                 logoutBtn.classList.remove('hidden');
                 userDisplay.classList.remove('hidden');
                 
-                const isVipTestUser = user.email && user.email.toLowerCase() === 'danielepmp@yahoo.it';
+                const isVipTestUser = isVipSellerEmail(user.email);
                 if (!user.emailVerified && !isVipTestUser) {
                     banner.classList.remove('hidden');
                     resendBtn.onclick = async () => {
@@ -1361,22 +1361,18 @@
                     const sellLink = document.getElementById('sell-link');
                     if (userDoc.exists()) {
                         const userData = userDoc.data();
-                        if (user.email && user.email.toLowerCase() === 'danielepmp@yahoo.it') userData.isSeller = true;
-                        userDisplay.innerText = `${userData.firstName} ${userData.lastName}`;
-                        if (userData.isSeller) {
-                            sellLink?.classList.remove('hidden');
-                        } else {
-                            sellLink?.classList.add('hidden');
-                        }
+                        if (isVipSellerEmail(user.email)) userData.isSeller = true;
+                        userDisplay.innerText = `${userData.firstName || 'Utente'} ${userData.lastName || ''}`.trim();
+                        sellLink?.classList.remove('hidden');
                     } else {
-                        userDisplay.innerText = user.email;
-                        sellLink?.classList.add('hidden');
+                        userDisplay.innerText = user.displayName || (user.email ? user.email.split('@')[0] : 'Utente');
+                        sellLink?.classList.remove('hidden');
                     }
                 } catch (e) {
                     console.error("Error fetching user profile:", e);
-                    userDisplay.innerText = user.email;
+                    userDisplay.innerText = user.displayName || (user.email ? user.email.split('@')[0] : 'Utente');
                     const sellLink = document.getElementById('sell-link');
-                    sellLink?.classList.add('hidden');
+                    sellLink?.classList.remove('hidden');
                 }
             } else {
                 loginBtn.classList.remove('hidden');

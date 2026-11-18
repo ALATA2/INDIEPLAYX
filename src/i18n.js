@@ -789,10 +789,10 @@ export function getLanguage() {
     return stored;
   }
 
-  // Check navigator.languages array first, then navigator.language
+  // Check navigator.languages array first, then navigator.language; fallback to English ('en')
   const candidates = Array.isArray(navigator.languages) && navigator.languages.length > 0
     ? navigator.languages
-    : [navigator.language || navigator.userLanguage || 'it'];
+    : [navigator.language || navigator.userLanguage || 'en'];
 
   for (const raw of candidates) {
     if (!raw) continue;
@@ -803,7 +803,8 @@ export function getLanguage() {
     }
   }
 
-  return 'it';
+  localStorage.setItem('indieplay_lang', 'en');
+  return 'en';
 }
 
 export function setLanguage(lang) {

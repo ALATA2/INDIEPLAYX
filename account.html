@@ -585,6 +585,9 @@
                                     <input type="checkbox" id="is-free" style="width: 18px; height: 18px;"> FREE
                                 </label>
                             </div>
+                            <div id="vat-free-only-notice" style="display: none; margin-top: 6px; font-size: 0.75rem; color: #fbbf24; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.35); padding: 6px 9px; border-radius: 6px; line-height: 1.35;">
+                                <i class="fas fa-info-circle"></i> <strong>Solo Condivisione Gratuita:</strong> senza Partita IVA puoi condividere gratuitamente ciò che pubblichi. Inserisci la P.IVA (11 cifre) nel Profilo per vendere a pagamento.
+                            </div>
                         </div>
                     </div>
 
@@ -1008,7 +1011,7 @@
     </div>
 
     <script type="module">
-        import { subscribeToAuthChanges } from './src/auth';
+        import { subscribeToAuthChanges, isVipSellerEmail, hasValidPartitaIva, canUserSellPaidGames } from './src/auth';
         import { db, auth, storage } from './src/firebase';
         import { doc, getDoc, updateDoc, deleteDoc, addDoc, setDoc, collection, query, where, getDocs, orderBy } from "firebase/firestore";
         import { ref, uploadBytes } from "firebase/storage";
@@ -1565,11 +1568,14 @@
                 const userDoc = await getDoc(doc(db, "users", user.uid));
                 if (userDoc.exists()) {
                     const data = userDoc.data();
-                    if (user.email && user.email.toLowerCase() === 'danielepmp@yahoo.it') {
+                    if (isVipSellerEmail(user.email)) {
                         data.isSeller = true;
+                        data.hasPartitaIva = true;
+                        data.canSellPaidGames = true;
                         data.role = 'seller';
                     }
                     currentUserData = data;
+                    updatePublishPricePermissions(user, data);
                     profileName.innerText = `${data.firstName} ${data.lastName}`;
                     editName.value = `${data.firstName} ${data.lastName}`;
                     editAge.value = data.age || '';
@@ -1663,6 +1669,33 @@
             }
         });
 
+        function updatePublishPricePermissions(user, userData) {
+            const canSellPaid = canUserSellPaidGames(user, userData);
+            const priceInp = document.getElementById('game-price');
+            const freeChk = document.getElementById('is-free');
+            const noticeEl = document.getElementById('vat-free-only-notice');
+
+            // Everyone who registers can share/publish games, so show My Games & Publish tabs
+            sellerNavItem?.classList.remove('hidden');
+            publishNavItem?.classList.remove('hidden');
+            dashboardNavItem?.classList.remove('hidden');
+
+            if (!priceInp || !freeChk) return;
+            if (!canSellPaid) {
+                freeChk.checked = true;
+                freeChk.disabled = true;
+                priceInp.value = '';
+                priceInp.disabled = true;
+                priceInp.placeholder = 'Solo Gratis (Senza P.IVA)';
+                if (noticeEl) noticeEl.style.display = 'block';
+            } else {
+                freeChk.disabled = false;
+                priceInp.disabled = freeChk.checked;
+                priceInp.placeholder = '19.99';
+                if (noticeEl) noticeEl.style.display = 'none';
+            }
+        }
+
         function validateCForPIVA(value) {
             const val = value.trim().toUpperCase();
             const cfRegex = /^[A-Z]{6}[0-9LMNPQRSTUV]{2}[A-EHLMPR-T][0-9LMNPQRSTUV]{2}[A-Z][0-9LMNPQRSTUV]{3}[A-Z]$/;
@@ -1682,15 +1715,15 @@
         saveBtn.onclick = async () => {
             if (!currentUser) return;
 
-            if (editIsSeller.checked) {
-                const isVipTestSeller = !getPaymentConfig().strictIbanValidation || (currentUser && currentUser.email && currentUser.email.toLowerCase() === 'danielepmp@yahoo.it');
-                const pivaVal = isVipTestSeller ? (editPiva.value.trim() || '12345678901') : editPiva.value;
-                const ibanVal = isVipTestSeller ? (editIban.value.trim() || 'IT60X0542811101000000123456') : editIban.value;
-                if (!pivaVal || !validateCForPIVA(pivaVal)) {
-                    showToast('Codice Fiscale o Partita IVA non valido! Inserisci un Codice Fiscale di 16 caratteri o una P.IVA di 11 cifre.', 'error');
+            const isVip = isVipSellerEmail(currentUser.email);
+            if (editIsSeller.checked && !isVip) {
+                const pivaVal = editPiva.value.trim();
+                const ibanVal = editIban.value.trim();
+                if (!hasValidPartitaIva(pivaVal)) {
+                    showToast('Per vendere titoli a pagamento è obbligatoria una Partita IVA valida di 11 cifre! Senza P.IVA deseleziona la spunta Venditore: puoi comunque pubblicare e condividere giochi gratis.', 'error');
                     return;
                 }
-                if (!ibanVal || !validateIBAN(ibanVal)) {
+                if (getPaymentConfig().strictIbanValidation && (!ibanVal || !validateIBAN(ibanVal))) {
                     showToast('IBAN non valido! Inserisci un formato IBAN corretto (es: IT00...).', 'error');
                     return;
                 }
@@ -1926,10 +1959,16 @@
         publishGameBtn.onclick = async () => {
             const title = document.getElementById('game-title').value;
             const priceVal = document.getElementById('game-price').value;
-            const isFree = document.getElementById('is-free').checked;
+            const canSellPaid = canUserSellPaidGames(currentUser, currentUserData);
+            const isFree = !canSellPaid ? true : document.getElementById('is-free').checked;
             const desc = document.getElementById('game-desc').value;
             const category = document.getElementById('game-category').value;
             const type = document.getElementById('game-type').value;
+
+            if (!canSellPaid && !document.getElementById('is-free').checked && priceVal) {
+                showToast('Senza Partita IVA registrata puoi solo condividere gratuitamente (FREE) ciò che pubblichi!', 'error');
+                return;
+            }
 
             const finalPrice = isFree ? 'FREE' : priceVal;
 

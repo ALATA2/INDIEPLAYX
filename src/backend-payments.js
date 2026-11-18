@@ -2,6 +2,7 @@ import { db, auth } from './firebase';
 import { collection, getDocs, addDoc, doc, setDoc, getDoc } from 'firebase/firestore';
 import { getLanguage, autoTranslateDOM } from './i18n';
 import { escapeHTML, safeUrl, sha256Hex, checkRateLimit, resetRateLimit } from './security';
+import { getSubscribersDatabase, syncSubscribersDatabaseFromCloud, exportSubscribersDatabaseCSV, ADMIN_NOTIFICATION_EMAIL } from './auth';
 
 // Hash SHA-256 verificati nativamente via Web Crypto API (zero password in chiaro nel bundle)
 const MAGAZINE_PASSWORD_HASH = 'f5cc70f88b12210cbd1758da2ba5e8de99787c31e70930538d0436be9756470a';
@@ -33,6 +34,7 @@ const DEFAULT_PAYMENT_CONFIG = {
   gatewayProvider: 'stripe_connect', // 'stripe_connect' | 'paypal_commerce' | 'sepa_split'
   stripePublishableKey: 'pk_live_indieplayx_configure_me',
   stripeConnectWebhookUrl: 'https://api.indieplayx.com/v1/stripe/split-payout',
+  paypalBusinessEmail: 'devindieplay@gmail.com',
   paypalClientId: '',
   platformIban: 'IT60X0542811101000000123456',
   updatedAt: new Date().toISOString()
@@ -1409,6 +1411,7 @@ export function initBackendSystem() {
   injectPortalNewsModals();
   initExpress1ClickSystem();
   initSpecialProjectsSections();
+  initFirstVisitLegalConsentModal();
 
   document.querySelectorAll('.open-backend-link').forEach(btn => {
     btn.onclick = (e) => {
@@ -1651,7 +1654,11 @@ function openBackendConsole() {
         </div>
       </div>
 
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.9rem;">
+        <div>
+          <label style="font-size: 0.76rem; color: var(--text-gray); font-weight: 700; display: block; margin-bottom: 4px;"><i class="fab fa-paypal" style="color:#38bdf8;"></i> Contatto Email PayPal Piattaforma</label>
+          <input type="email" id="be-paypal-email" value="${escapeHTML(cfg.paypalBusinessEmail || 'devindieplay@gmail.com')}" placeholder="devindieplay@gmail.com" style="width: 100%; padding: 8px; background: #0f1722; border: 1px solid rgba(56,189,248,0.35); border-radius: 6px; color: white; font-size: 0.84rem; font-weight: 700;">
+        </div>
         <div>
           <label style="font-size: 0.76rem; color: var(--text-gray); font-weight: 700; display: block; margin-bottom: 4px;">Stripe Publishable Key (Live)</label>
           <input type="text" id="be-stripe-pk" value="${cfg.stripePublishableKey}" style="width: 100%; padding: 8px; background: #0f1722; border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: white; font-family: monospace; font-size: 0.82rem;">
@@ -1665,6 +1672,9 @@ function openBackendConsole() {
       <div style="display: flex; gap: 0.8rem; flex-wrap: wrap;">
         <button type="submit" class="btn btn-prime" style="padding: 0.8rem 1.6rem; font-weight: 800;">
           <i class="fas fa-save"></i> Salva Parametri & Chiavi
+        </button>
+        <button type="button" id="be-export-subscribers-csv-btn" class="btn btn-prime-outline" style="padding: 0.8rem 1.2rem; font-weight: 800; border-color: #34d399; color: #34d399;">
+          <i class="fas fa-users"></i> Scarica File Database Iscritti (.CSV)
         </button>
         <button type="button" id="be-export-backup-btn" class="btn btn-prime-outline" style="padding: 0.8rem 1.3rem; font-weight: 700;">
           <i class="fas fa-database"></i> Esporta Backup Utenti, Vetrine & Giochi (JSON)
@@ -1764,12 +1774,22 @@ function openBackendConsole() {
       platformFeePercent: parseFloat(document.getElementById('be-fee-pct').value) || 15,
       gatewayProvider: document.getElementById('be-gateway').value,
       platformIban: document.getElementById('be-platform-iban').value.trim(),
+      paypalBusinessEmail: document.getElementById('be-paypal-email')?.value.trim() || 'devindieplay@gmail.com',
       stripePublishableKey: document.getElementById('be-stripe-pk').value.trim(),
       stripeConnectWebhookUrl: document.getElementById('be-stripe-webhook').value.trim()
     });
     openBackendConsole();
-    if (window.showToast) window.showToast('Parametri economici e chiavi salvati!', 'success');
+    if (window.showToast) window.showToast('Parametri economici, email PayPal e chiavi salvati!', 'success');
   };
+
+  const subCsvBtn = document.getElementById('be-export-subscribers-csv-btn');
+  if (subCsvBtn) {
+    subCsvBtn.onclick = async () => {
+      await syncSubscribersDatabaseFromCloud();
+      exportSubscribersDatabaseCSV();
+      if (window.showToast) window.showToast('File Database Iscritti (.CSV) scaricato!', 'success');
+    };
+  }
 
   const backupBtn = document.getElementById('be-export-backup-btn');
   if (backupBtn) {
@@ -3274,11 +3294,16 @@ export async function initBitmemeAdminHub() {
               </div>
 
               <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 0.85rem; font-size: 0.8rem;">
-                <div style="font-weight: 800; color: #fbbf24; margin-bottom: 5px;">Stato Rapido Moduli Attivi:</div>
+                <div style="font-weight: 800; color: #fbbf24; margin-bottom: 5px;">Stato Rapido Moduli, PayPal & Database Iscritti:</div>
                 <div style="display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.05);"><span>Modalità Pagamenti:</span><strong style="color:${cfg.realPaymentsEnabled ? '#34d399' : '#fbbf24'};">${cfg.realPaymentsEnabled ? 'TRANSAZIONI REALI LIVE' : 'SIMULAZIONE TEST'}</strong></div>
-                <div style="display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.05);"><span>Split-Payment Sviluppatori:</span><strong style="color:${cfg.splitPaymentEnabled ? '#34d399' : '#94a3b8'};">${cfg.splitPaymentEnabled ? `ATTIVO (${100 - (Number(cfg.platformFeePercent) || 15)}% Dev)` : 'DISATTIVATO'}</strong></div>
-                <div style="display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.05);"><span>Sezione BITBONK™:</span><strong style="color:${cfg.bitbonkVisible !== false ? '#34d399' : '#f87171'};">${cfg.bitbonkVisible !== false ? 'VISIBILE' : 'NASCOSTA'}</strong></div>
-                <div style="display: flex; justify-content: space-between; padding: 3px 0;"><span>Sezione MEME CONSOLE™:</span><strong style="color:${cfg.memeConsoleVisible !== false ? '#34d399' : '#f87171'};">${cfg.memeConsoleVisible !== false ? 'VISIBILE' : 'NASCOSTA'}</strong></div>
+                <div style="display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.05);"><span>Split-Payment Sviluppatori:</span><strong style="color:${cfg.splitPaymentEnabled ? '#34d399' : '#94a3b8'};">${cfg.splitPaymentEnabled ? `ATTIVO (${100 - (Number(cfg.platformFeePercent) || 15)}% Dev / ${cfg.platformFeePercent}% Sito)` : `PRONTO (${100 - (Number(cfg.platformFeePercent) || 15)}% Dev / ${cfg.platformFeePercent}% Sito)`}</strong></div>
+                <div style="display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.05);"><span>Contatto PayPal Piattaforma:</span><strong style="color:#38bdf8;">${escapeHTML(cfg.paypalBusinessEmail || 'devindieplay@gmail.com')}</strong></div>
+                <div style="display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.05);"><span>Email Notifiche Nuovi Iscritti:</span><strong style="color:#34d399;">${escapeHTML(ADMIN_NOTIFICATION_EMAIL)}</strong></div>
+                <div style="margin-top: 8px;">
+                  <button type="button" id="bm-download-subscribers-csv-btn" class="btn btn-prime-outline" style="width: 100%; padding: 0.65rem; font-size: 0.8rem; font-weight: 800; border-color: #34d399; color: #34d399; justify-content: center;">
+                    <i class="fas fa-file-csv"></i> Scarica File Database Iscritti (.CSV Excel — ${getSubscribersDatabase().length} Utenti)
+                  </button>
+                </div>
               </div>
             </div>
           `}
@@ -3415,6 +3440,16 @@ export async function initBitmemeAdminHub() {
     const openBeBtn = document.getElementById('bm-open-be-console-btn');
     if (openBeBtn) openBeBtn.onclick = () => openBackendConsole();
 
+    const dlSubBtn = document.getElementById('bm-download-subscribers-csv-btn');
+    if (dlSubBtn) {
+      dlSubBtn.onclick = async () => {
+        await syncSubscribersDatabaseFromCloud();
+        exportSubscribersDatabaseCSV();
+        renderHub();
+        if (window.showToast) window.showToast('File Database Iscritti (.CSV) scaricato con successo!', 'success');
+      };
+    }
+
     const lockBeBtn = document.getElementById('bm-lock-be-btn');
     if (lockBeBtn) {
       lockBeBtn.onclick = () => {
@@ -3431,6 +3466,121 @@ export async function initBitmemeAdminHub() {
   window.addEventListener('indieplay:portalnewschange', renderHub);
   window.addEventListener('indieplay:paymentconfigchange', renderHub);
   renderHub();
+}
+
+// ============================================================================
+// 6. POP-UP DI PRIMO AVVIO: SCARICO DI RESPONSABILITÀ (DISCLAIMER), PRIVACY & COOKIE
+// ============================================================================
+const STORAGE_KEY_FIRST_VISIT_CONSENT = 'indieplay_legal_consent_v1';
+
+export function initFirstVisitLegalConsentModal() {
+  if (typeof window === 'undefined' || !document.body) return;
+  if (window.location.pathname.toLowerCase().includes('bitmeme') || document.getElementById('bitmeme-hub-root')) {
+    return;
+  }
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_FIRST_VISIT_CONSENT);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.accepted === true) return;
+    }
+  } catch (e) {}
+
+  if (document.getElementById('ipx-first-visit-consent-modal')) return;
+
+  const modal = document.createElement('div');
+  modal.id = 'ipx-first-visit-consent-modal';
+  modal.className = 'lightbox';
+  modal.style.cssText = 'display: flex; justify-content: center; align-items: center; z-index: 9500; background: rgba(0, 5, 13, 0.92); backdrop-filter: blur(10px);';
+  modal.innerHTML = `
+    <div class="modal-content glass" style="background: rgba(14, 21, 32, 0.99); border: 1px solid rgba(0, 168, 225, 0.45); border-radius: 18px; padding: 2rem; max-width: 600px; width: 93%; max-height: 92vh; overflow-y: auto; color: white; position: relative; box-shadow: 0 25px 70px rgba(0,0,0,0.95); text-align: left;">
+      <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 1.1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.9rem;">
+        <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(0, 168, 225, 0.16); border: 1px solid var(--prime-blue); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <i class="fas fa-shield-alt" style="color: var(--prime-blue); font-size: 1.45rem;"></i>
+        </div>
+        <div>
+          <span style="font-size: 0.72rem; font-weight: 900; color: #38bdf8; letter-spacing: 0.8px; text-transform: uppercase;">BENVENUTO SU INDIE PLAY X</span>
+          <h2 style="margin: 2px 0 0; font-size: 1.35rem; font-weight: 900; color: white;">Scarico di Responsabilità, Privacy & Cookie</h2>
+        </div>
+      </div>
+
+      <div style="background: rgba(0,0,0,0.38); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 1rem 1.15rem; margin-bottom: 1.1rem; font-size: 0.85rem; line-height: 1.58; color: #cbd5e1; max-height: 240px; overflow-y: auto;">
+        <p style="margin: 0 0 0.7rem;">
+          <strong style="color: #fbbf24;"><i class="fas fa-exclamation-triangle"></i> 1. Scarico di Responsabilità (Disclaimer Contenuti & Software):</strong><br>
+          <strong>INDIE PLAY X</strong> è un portale e vetrina per sviluppatori indipendenti. I videogiochi, gli archivi scaricabili (<code>.ZIP</code>) e i link esterni pubblicati dagli utenti sono forniti da terze parti <em>"così come sono"</em>. Il download e l'esecuzione del software avvengono sotto l'esclusiva responsabilità dell'utente; la piattaforma declina ogni responsabilità per eventuali bug, incompatibilità o danni hardware/software.
+        </p>
+        <p style="margin: 0 0 0.7rem;">
+          <strong style="color: #34d399;"><i class="fas fa-user-lock"></i> 2. Tutela Privacy & Riservatezza Email (GDPR):</strong><br>
+          Nel rispetto del Regolamento UE 2016/679 (GDPR), gli indirizzi email degli utenti iscritti sono strettamente privati e <strong>non vengono mai resi visibili agli altri utenti</strong> sul portale. Chi si iscrive senza Partita IVA può condividere gratuitamente le proprie opere; la vendita a pagamento è riservata ai titolari di Partita IVA.
+        </p>
+        <p style="margin: 0;">
+          <strong style="color: #38bdf8;"><i class="fas fa-cookie-bite"></i> 3. Cookie Tecnici & Funzionali:</strong><br>
+          Utilizziamo cookie tecnici e storage locale essenziali per mantenere attiva la sessione di accesso, rilevare automaticamente la lingua del browser, gestire il carrello rapido 1-Click e garantire la sicurezza delle transazioni.
+        </p>
+      </div>
+
+      <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 1rem; font-size: 0.78rem;">
+        <a href="javascript:void(0)" id="fv-open-privacy" style="color: #38bdf8; text-decoration: none; font-weight: 700;"><i class="fas fa-file-contract"></i> Leggi Informativa Privacy Completa</a>
+        <a href="javascript:void(0)" id="fv-open-cookie" style="color: #34d399; text-decoration: none; font-weight: 700;"><i class="fas fa-cookie"></i> Leggi Informativa Cookie Completa</a>
+      </div>
+
+      <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; padding: 0.85rem 1rem; margin-bottom: 1.15rem;">
+        <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; user-select: none; font-size: 0.84rem; color: white; font-weight: 600; line-height: 1.45;">
+          <input type="checkbox" id="fv-consent-checkbox" checked style="width: 19px; height: 19px; margin-top: 2px; accent-color: var(--prime-blue); cursor: pointer; flex-shrink: 0;">
+          <span>Dichiaro di aver letto e compreso lo <strong>Scarico di Responsabilità (Disclaimer)</strong>, l'<strong>Informativa Privacy (GDPR)</strong> e l'<strong>Informativa sui Cookie</strong> e accetto integralmente le condizioni d'uso del portale.</span>
+        </label>
+      </div>
+
+      <button type="button" id="fv-accept-consent-btn" class="btn btn-prime" style="width: 100%; padding: 0.95rem; font-size: 0.98rem; font-weight: 900; border-radius: 10px; justify-content: center; cursor: pointer;">
+        <i class="fas fa-check-circle"></i> Accetta Scarico di Responsabilità, Cookie & Entra nel Portale
+      </button>
+    </div>
+  `;
+  document.body.appendChild(modal);
+
+  const chk = document.getElementById('fv-consent-checkbox');
+  const acceptBtn = document.getElementById('fv-accept-consent-btn');
+  if (chk && acceptBtn) {
+    chk.onchange = () => {
+      acceptBtn.disabled = !chk.checked;
+      acceptBtn.style.opacity = chk.checked ? '1' : '0.5';
+    };
+    acceptBtn.onclick = () => {
+      if (!chk.checked) {
+        if (window.showToast) window.showToast('Spunta la casella di accettazione per proseguire.', 'error');
+        return;
+      }
+      try {
+        localStorage.setItem(STORAGE_KEY_FIRST_VISIT_CONSENT, JSON.stringify({
+          accepted: true,
+          acceptedAt: new Date().toISOString()
+        }));
+      } catch (e) {}
+      modal.remove();
+      if (window.showToast) window.showToast('Preferenze legali, Disclaimer e Cookie salvati.', 'success');
+    };
+  }
+
+  const openPriv = document.getElementById('fv-open-privacy');
+  if (openPriv) {
+    openPriv.onclick = () => {
+      const pm = document.getElementById('privacy-modal');
+      if (pm) {
+        pm.style.zIndex = '9600';
+        pm.style.display = 'flex';
+      }
+    };
+  }
+  const openCook = document.getElementById('fv-open-cookie');
+  if (openCook) {
+    openCook.onclick = () => {
+      const cm = document.getElementById('cookie-modal');
+      if (cm) {
+        cm.style.zIndex = '9600';
+        cm.style.display = 'flex';
+      }
+    };
+  }
 }
 
 

@@ -565,9 +565,9 @@
         <div class="footer-legal" data-i18n="footer_rights">
             © 2026 IndiePlay-X. Tutti i diritti riservati.
         </div>
-        <div id="footer-version-label" style="text-align: left; font-size: 0.75rem; color: rgba(255,255,255,0.55); font-weight: 600; margin-top: 0.8rem;">Version 1.11287</div>
+        <div id="footer-version-label" style="text-align: left; font-size: 0.75rem; color: rgba(255,255,255,0.55); font-weight: 600; margin-top: 0.8rem;">Version 1.11288</div>
     </footer>
-    <div id="indieplay-version-badge" class="indieplay-version-badge">Version 1.11287</div>
+    <div id="indieplay-version-badge" class="indieplay-version-badge">Version 1.11288</div>
 
     <!-- Login Modal -->
     <div id="login-modal" class="modal">
@@ -647,21 +647,28 @@
                     <label class="checkbox-container">
                         <input type="checkbox" id="is-seller">
                         <span class="checkmark"></span>
-                        Voglio vendere i miei giochi (Profilo Venditore)
+                        Voglio vendere giochi a pagamento (Richiede Partita IVA — Senza P.IVA puoi comunque condividere giochi gratis)
                     </label>
                 </div>
 
                 <div id="seller-fields" class="hidden">
                     <div class="form-row">
                         <div class="form-group">
-                            <label>Codice Fiscale o Partita IVA</label>
-                            <input type="text" id="register-piva" placeholder="Codice Fiscale o P.IVA">
+                            <label>Partita IVA (11 cifre — obbligatoria per vendere)</label>
+                            <input type="text" id="register-piva" placeholder="11 cifre Partita IVA">
                         </div>
                         <div class="form-group">
-                            <label>IBAN</label>
+                            <label>IBAN (per accredito vendite)</label>
                             <input type="text" id="register-iban" placeholder="IT00X00000...">
                         </div>
                     </div>
+                </div>
+
+                <div style="margin-top: 0.85rem; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 0.75rem 0.9rem;">
+                    <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-size: 0.8rem; color: #e2e8f0; line-height: 1.45;">
+                        <input type="checkbox" id="register-accept-disclaimer" required style="width: 18px; height: 18px; margin-top: 2px; accent-color: var(--prime-blue); flex-shrink: 0;">
+                        <span>Dichiaro di aver letto e accettato lo <strong>Scarico di Responsabilità (Disclaimer)</strong>, l'<a href="javascript:void(0)" class="open-privacy-link" style="color: var(--prime-blue);">Informativa Privacy (GDPR)</a> e l'<a href="javascript:void(0)" class="open-cookie-link" style="color: var(--prime-blue);">Informativa sui Cookie</a>.</span>
+                    </label>
                 </div>
 
                 <button type="submit" class="btn btn-prime w-100" style="margin-top: 1rem;">Registrati Ora</button>
