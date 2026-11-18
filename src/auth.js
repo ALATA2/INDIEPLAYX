@@ -223,6 +223,101 @@ export async function syncSubscribersDatabaseFromCloud() {
   return merged;
 }
 
+const STORAGE_KEY_DAILY_DIGEST_SENT = 'indieplay_daily_digest_sent_date_v1';
+
+export function getDailySubscribersStats(targetDateStr = new Date().toISOString().slice(0, 10)) {
+  const list = getSubscribersDatabase();
+  const dailyUsers = list.filter((u) => String(u.registeredAt || '').slice(0, 10) === targetDateStr);
+  const lastSentDate = localStorage.getItem(STORAGE_KEY_DAILY_DIGEST_SENT) || '';
+  return {
+    date: targetDateStr,
+    dailyCount: dailyUsers.length,
+    dailyUsers,
+    totalCount: list.length,
+    allUsers: list,
+    lastSentDate
+  };
+}
+
+/**
+ * Invia 1 sola email al giorno a devindieplay@gmail.com con il totale e l'elenco degli iscritti di quel giorno.
+ */
+export async function checkAndSendDailySubscribersDigest(forceSendToday = false) {
+  const todayStr = new Date().toISOString().slice(0, 10);
+  let lastSentDate = localStorage.getItem(STORAGE_KEY_DAILY_DIGEST_SENT) || '';
+
+  try {
+    const regSnap = await getDoc(doc(db, 'settings', 'subscribers_registry'));
+    if (regSnap.exists() && regSnap.data().lastDailyDigestDate) {
+      const cloudDate = regSnap.data().lastDailyDigestDate;
+      if (cloudDate > lastSentDate) {
+        lastSentDate = cloudDate;
+        localStorage.setItem(STORAGE_KEY_DAILY_DIGEST_SENT, cloudDate);
+      }
+    }
+  } catch (e) {}
+
+  if (!forceSendToday && lastSentDate === todayStr) {
+    return { sent: false, reason: 'already_sent_today', lastSentDate };
+  }
+
+  const stats = getDailySubscribersStats(todayStr);
+  if (!forceSendToday && stats.dailyCount === 0) {
+    return { sent: false, reason: 'no_new_subscribers_today', lastSentDate };
+  }
+
+  const dailyRows = stats.dailyUsers.length > 0
+    ? stats.dailyUsers
+        .map((u, i) => `${i + 1}. ${u.firstName || ''} ${u.lastName || ''} <${u.email}> | Ruolo: ${u.canSellPaidGames ? 'Venditore P.IVA (' + (u.piva || 'VIP') + ')' : 'Creator (Solo Condivisione Gratuita)'} | Ora: ${String(u.registeredAt || '').slice(11, 19)}`)
+        .join('\n')
+    : 'Nessun nuovo iscritto registrato nella data odierna.';
+
+  localStorage.setItem(STORAGE_KEY_DAILY_DIGEST_SENT, todayStr);
+
+  try {
+    await setDoc(doc(db, 'settings', 'subscribers_registry'), {
+      targetEmail: ADMIN_NOTIFICATION_EMAIL,
+      lastDailyDigestDate: todayStr,
+      lastDailyDigestCount: stats.dailyCount,
+      totalSubscribers: stats.totalCount,
+      updatedAt: new Date().toISOString()
+    }, { merge: true });
+  } catch (e) {}
+
+  try {
+    await addDoc(collection(db, 'admin_mail_notifications'), {
+      to: ADMIN_NOTIFICATION_EMAIL,
+      type: 'DAILY_DIGEST',
+      date: todayStr,
+      subject: `[INDIE PLAY X] Riepilogo Giornaliero Iscritti (${todayStr}): ${stats.dailyCount} nuovi iscritti oggi`,
+      dailyCount: stats.dailyCount,
+      totalSubscribers: stats.totalCount,
+      dailySubscribersList: dailyRows,
+      createdAt: new Date().toISOString()
+    });
+  } catch (e) {}
+
+  try {
+    await fetch(`https://formsubmit.co/ajax/${ADMIN_NOTIFICATION_EMAIL}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        _subject: `[INDIE PLAY X] Report Giornaliero Iscritti (${todayStr}) — Totale Giorno: ${stats.dailyCount}`,
+        Data_Report_Giornaliero: todayStr,
+        Frequenza_Invio: '1 volta al giorno (Riepilogo Cumulativo Giornaliero)',
+        Totale_Nuovi_Iscritti_Del_Giorno: stats.dailyCount,
+        Elenco_Iscritti_Del_Giorno: dailyRows,
+        Totale_Complessivo_Database_Iscritti: stats.totalCount
+      })
+    });
+  } catch (e) {}
+
+  return { sent: true, date: todayStr, dailyCount: stats.dailyCount, totalCount: stats.totalCount };
+}
+
 async function recordSubscriberAndNotifyAdmin(newSubscriber) {
   const list = getSubscribersDatabase();
   const em = String(newSubscriber.email || '').trim().toLowerCase();
@@ -248,41 +343,8 @@ async function recordSubscriberAndNotifyAdmin(newSubscriber) {
     }, { merge: true });
   } catch (e) {}
 
-  // 2. Queue email notification in Firestore & send via FormSubmit AJAX endpoint to devindieplay@gmail.com
-  const summaryRows = list
-    .slice(0, 50)
-    .map((u, i) => `${i + 1}. ${u.firstName || ''} ${u.lastName || ''} <${u.email}> | Ruolo: ${u.canSellPaidGames ? 'Venditore P.IVA (' + (u.piva || 'VIP') + ')' : 'Utente / Creator Gratis'} | Data: ${u.registeredAt || ''}`)
-    .join('\n');
-
-  try {
-    await addDoc(collection(db, 'admin_mail_notifications'), {
-      to: ADMIN_NOTIFICATION_EMAIL,
-      subject: `[INDIE PLAY X] Nuovo Iscritto: ${newSubscriber.firstName || ''} ${newSubscriber.lastName || ''} (${newSubscriber.email})`,
-      newSubscriber,
-      totalSubscribers: list.length,
-      databaseSnapshotText: summaryRows,
-      createdAt: new Date().toISOString()
-    });
-  } catch (e) {}
-
-  try {
-    fetch(`https://formsubmit.co/ajax/${ADMIN_NOTIFICATION_EMAIL}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify({
-        _subject: `[INDIE PLAY X] Nuova Iscrizione Utente: ${newSubscriber.email} (Totale: ${list.length})`,
-        Nuovo_Iscritto_Nome: `${newSubscriber.firstName || ''} ${newSubscriber.lastName || ''}`.trim(),
-        Nuovo_Iscritto_Email: newSubscriber.email,
-        Abilitato_Vendita_P_IVA: newSubscriber.canSellPaidGames ? `SI (${newSubscriber.piva || 'VIP'})` : 'NO (Solo Condivisione Gratuita)',
-        Disclaimer_Cookie_Accettati: 'SI (Verificato)',
-        Totale_Iscritti_Database: list.length,
-        Database_Iscritti_Aggiornato: summaryRows
-      })
-    }).catch(() => {});
-  } catch (e) {}
+  // 2. Check and send the Daily Digest email (max 1 time per day with the day's total)
+  await checkAndSendDailySubscribersDigest(false);
 }
 
 export function exportSubscribersDatabaseCSV() {
