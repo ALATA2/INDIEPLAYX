@@ -3,6 +3,7 @@ import { collection, getDocs, addDoc, doc, setDoc, getDoc } from 'firebase/fires
 import { getLanguage, autoTranslateDOM } from './i18n';
 import { escapeHTML, safeUrl, sha256Hex, checkRateLimit, resetRateLimit } from './security';
 import { getSubscribersDatabase, syncSubscribersDatabaseFromCloud, exportSubscribersDatabaseCSV, checkAndSendDailySubscribersDigest, getDailySubscribersStats, getActiveUser, ADMIN_NOTIFICATION_EMAIL } from './auth';
+import { initWoxlyticsTracker } from './woxlytics-tracker';
 
 // Hash SHA-256 verificati nativamente via Web Crypto API (zero password in chiaro nel bundle)
 const MAGAZINE_PASSWORD_HASH = 'f5cc70f88b12210cbd1758da2ba5e8de99787c31e70930538d0436be9756470a';
@@ -1413,6 +1414,7 @@ export function initBackendSystem() {
   initSpecialProjectsSections();
   initFirstVisitLegalConsentModal();
   trackPrivatePageView();
+  initWoxlyticsTracker(getLanguage);
   setTimeout(() => {
     checkAndSendDailySubscribersDigest(false).catch(() => {});
   }, 2500);
@@ -3731,8 +3733,8 @@ export async function syncPrivateAnalyticsFromCloud() {
 export function trackPrivatePageView() {
   if (typeof window === 'undefined') return;
   const path = (window.location.pathname || '').toLowerCase();
-  // Non conteggiare le aperture della pagina amministrativa riservata /bitmeme
-  if (path.includes('bitmeme') || document.getElementById('bitmeme-hub-root')) return;
+  // Non conteggiare le aperture delle pagine interne /bitmeme o /woxlytics
+  if (path.includes('bitmeme') || path.includes('woxlytics') || document.getElementById('bitmeme-hub-root') || document.getElementById('woxlytics-app-root')) return;
 
   setTimeout(async () => {
     try {
@@ -3814,6 +3816,9 @@ function renderPrivateAnalyticsDashboardHTML() {
           </div>
         </div>
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <a href="/woxlytics" target="_blank" class="btn btn-prime-outline" style="padding: 0.55rem 1rem; font-size: 0.78rem; font-weight: 800; text-decoration: none; border-color: #38bdf8; color: #38bdf8;">
+            <i class="fas fa-chart-pie"></i> Apri Woxlytics Completo
+          </a>
           <button type="button" id="bm-refresh-analytics-btn" class="btn btn-prime-outline" style="padding: 0.55rem 1rem; font-size: 0.78rem; font-weight: 800;">
             <i class="fas fa-sync-alt"></i> Aggiorna Live
           </button>

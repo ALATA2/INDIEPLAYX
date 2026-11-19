@@ -8,18 +8,20 @@ export default defineConfig({
   base: isRootHost ? '/' : '/INDIEPLAYX/',
   plugins: [
     {
-      name: 'copy-bitmeme-clean-route',
+      name: 'copy-clean-routes',
       closeBundle() {
-        try {
-          const srcHtml = resolve(__dirname, 'dist/bitmeme.html');
-          const destDir = resolve(__dirname, 'dist/bitmeme');
-          if (fs.existsSync(srcHtml)) {
-            fs.mkdirSync(destDir, { recursive: true });
-            fs.copyFileSync(srcHtml, resolve(destDir, 'index.html'));
+        ['bitmeme', 'woxlytics'].forEach((route) => {
+          try {
+            const srcHtml = resolve(__dirname, `dist/${route}.html`);
+            const destDir = resolve(__dirname, `dist/${route}`);
+            if (fs.existsSync(srcHtml)) {
+              fs.mkdirSync(destDir, { recursive: true });
+              fs.copyFileSync(srcHtml, resolve(destDir, 'index.html'));
+            }
+          } catch (e) {
+            console.warn(`Could not copy ${route} route:`, e);
           }
-        } catch (e) {
-          console.warn('Could not copy bitmeme route:', e);
-        }
+        });
       },
     },
   ],
@@ -32,6 +34,7 @@ export default defineConfig({
         account: resolve(__dirname, 'account.html'),
         showcase: resolve(__dirname, 'showcase.html'),
         bitmeme: resolve(__dirname, 'bitmeme.html'),
+        woxlytics: resolve(__dirname, 'woxlytics.html'),
       },
       output: {
         manualChunks(id) {

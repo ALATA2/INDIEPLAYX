@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Woxlytics — Analytics Suite | INDIE PLAY X</title>
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <meta name="theme-color" content="#00050d">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="alternate icon" type="image/png" href="/images/logo_litte.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        body.wx-body {
+            min-height: 100vh;
+            background: radial-gradient(circle at 15% 0%, #0d1f36 0%, #050a14 45%, #00050d 100%);
+            color: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+        .wx-main {
+            flex: 1;
+            max-width: 1380px;
+            width: 94%;
+            margin: 1.8rem auto 4rem;
+        }
+        .wx-hero-head {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+            padding-bottom: 1.2rem;
+            border-bottom: 1px solid rgba(56, 189, 248, 0.18);
+            margin-bottom: 1.4rem;
+        }
+        .wx-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+            background: rgba(15, 23, 38, 0.85);
+            border: 1px solid rgba(56, 189, 248, 0.22);
+            border-radius: 14px;
+            padding: 0.9rem 1.2rem;
+            margin-bottom: 1.4rem;
+            backdrop-filter: blur(10px);
+        }
+        .wx-toolbar-left {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .wx-live-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(16, 185, 129, 0.12);
+            border: 1px solid rgba(16, 185, 129, 0.35);
+            color: #a7f3d0;
+            padding: 5px 12px;
+            border-radius: 999px;
+            font-size: 0.76rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+        .wx-pulse-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: #22c55e;
+            box-shadow: 0 0 10px #22c55e;
+            animation: wxPulse 1.6s infinite;
+        }
+        @keyframes wxPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.75); }
+        }
+        .wx-muted-meta {
+            font-size: 0.78rem;
+            color: #94a3b8;
+        }
+        .wx-toolbar-actions {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .wx-seg-group {
+            display: inline-flex;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 9px;
+            padding: 2px;
+        }
+        .wx-seg-btn {
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            font-size: 0.75rem;
+            font-weight: 800;
+            padding: 5px 10px;
+            border-radius: 7px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .wx-seg-btn.active {
+            background: #0284c7;
+            color: #fff;
+        }
+        .wx-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border-radius: 9px;
+            padding: 6px 12px;
+            font-size: 0.76rem;
+            font-weight: 800;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+        .wx-btn-cyan {
+            background: linear-gradient(135deg, #0ea5e9, #0284c7);
+            color: #fff;
+        }
+        .wx-btn-cyan:hover { filter: brightness(1.1); }
+        .wx-btn-emerald {
+            background: rgba(16, 185, 129, 0.22);
+            border-color: rgba(16, 185, 129, 0.55);
+            color: #34d399;
+        }
+        .wx-btn-ghost {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.12);
+            color: #e2e8f0;
+        }
+        .wx-btn-ghost:hover { background: rgba(255, 255, 255, 0.11); }
+        .wx-btn-danger {
+            background: rgba(239, 68, 68, 0.14);
+            border-color: rgba(239, 68, 68, 0.35);
+            color: #fca5a5;
+        }
+        .wx-btn-danger:hover { background: rgba(239, 68, 68, 0.28); color: #fff; }
+        .wx-empty-banner {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: rgba(14, 165, 233, 0.1);
+            border: 1px dashed rgba(56, 189, 248, 0.5);
+            border-radius: 14px;
+            padding: 1.1rem 1.3rem;
+            margin-bottom: 1.4rem;
+        }
+        .wx-kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.4rem;
+        }
+        .wx-kpi-card {
+            background: rgba(15, 23, 38, 0.88);
+            border: 1px solid rgba(255, 255, 255, 0.09);
+            border-top: 3px solid var(--accent, #38bdf8);
+            border-radius: 14px;
+            padding: 1.1rem 1.2rem;
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+        }
+        .wx-kpi-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.72rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #94a3b8;
+        }
+        .wx-kpi-head i {
+            color: var(--accent, #38bdf8);
+            font-size: 1rem;
+        }
+        .wx-kpi-value {
+            font-size: 1.75rem;
+            font-weight: 900;
+            color: #fff;
+            margin: 6px 0 4px;
+            line-height: 1.15;
+        }
+        .wx-kpi-sub {
+            font-size: 0.75rem;
+            color: #94a3b8;
+        }
+        .wx-grid-2-wide {
+            display: grid;
+            grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+            gap: 1.2rem;
+            margin-bottom: 1.2rem;
+        }
+        .wx-grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1.2rem;
+            margin-bottom: 1.2rem;
+        }
+        .wx-grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 1.2rem;
+            margin-bottom: 1.2rem;
+        }
+        @media (max-width: 1050px) {
+            .wx-grid-2-wide, .wx-grid-2, .wx-grid-3 {
+                grid-template-columns: 1fr;
+            }
+        }
+        .wx-panel {
+            background: rgba(15, 23, 38, 0.88);
+            border: 1px solid rgba(255, 255, 255, 0.09);
+            border-radius: 16px;
+            padding: 1.25rem 1.35rem;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.38);
+        }
+        .wx-panel-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 1rem;
+            padding-bottom: 0.7rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+        }
+        .wx-panel-head h3 {
+            margin: 0;
+            font-size: 0.94rem;
+            font-weight: 800;
+            color: #f8fafc;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .wx-badge {
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: #94a3b8;
+            background: rgba(255, 255, 255, 0.06);
+            padding: 3px 9px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+        .wx-bar-chart {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            height: 175px;
+            gap: 5px;
+            padding-top: 18px;
+        }
+        .wx-bar-chart-compact {
+            gap: 3px;
+        }
+        .wx-bar-col {
+            flex: 1;
+            min-width: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+        }
+        .wx-bar-num {
+            font-size: 0.68rem;
+            font-weight: 800;
+            margin-bottom: 3px;
+            min-height: 14px;
+        }
+        .wx-bar-fill {
+            width: 100%;
+            max-width: 30px;
+            border-radius: 5px 5px 0 0;
+            background: linear-gradient(180deg, #38bdf8, #0284c7);
+            transition: height 0.35s ease;
+        }
+        .wx-bar-fill.today {
+            background: linear-gradient(180deg, #fbbf24, #ea580c);
+        }
+        .wx-bar-fill.amber {
+            background: linear-gradient(180deg, #fbbf24, #d97706);
+            max-width: 16px;
+        }
+        .wx-bar-lbl {
+            font-size: 0.66rem;
+            color: #64748b;
+            font-weight: 700;
+            margin-top: 6px;
+            white-space: nowrap;
+        }
+        .wx-scroll-list {
+            max-height: 360px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+        .wx-search-input {
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            color: #f8fafc;
+            border-radius: 8px;
+            padding: 6px 11px;
+            font-size: 0.78rem;
+            min-width: 210px;
+        }
+        .wx-table-wrap {
+            overflow-x: auto;
+        }
+        .wx-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+        }
+        .wx-table th {
+            text-align: left;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #94a3b8;
+            padding: 9px 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            white-space: nowrap;
+        }
+        .wx-table td {
+            padding: 9px 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            vertical-align: middle;
+        }
+        .wx-table tbody tr:hover {
+            background: rgba(56, 189, 248, 0.05);
+        }
+        .wx-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+        .wx-pill.human {
+            background: rgba(34, 197, 94, 0.18);
+            border: 1px solid rgba(34, 197, 94, 0.45);
+            color: #4ade80;
+        }
+        .wx-pill.human-soft {
+            background: rgba(56, 189, 248, 0.14);
+            border: 1px solid rgba(56, 189, 248, 0.35);
+            color: #7dd3fc;
+        }
+        .wx-pill.bot {
+            background: rgba(239, 68, 68, 0.18);
+            border: 1px solid rgba(239, 68, 68, 0.45);
+            color: #fca5a5;
+        }
+    </style>
+    <script>
+        window.showToast = function(message, typeOrIcon = 'success', icon = null) {
+            let type = 'success';
+            if (String(typeOrIcon).startsWith('fa-')) {
+                icon = typeOrIcon;
+                type = (icon === 'fa-check-circle' || icon === 'fa-check') ? 'success' : 'info';
+            } else {
+                type = typeOrIcon;
+            }
+            if (!icon) {
+                if (type === 'success') icon = 'fa-check-circle';
+                else if (type === 'error') icon = 'fa-exclamation-triangle';
+                else icon = 'fa-info-circle';
+            }
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<i class="fas ${icon}"></i> <span>${message}</span>`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 80);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 400);
+            }, 3600);
+        };
+    </script>
+</head>
+<body class="wx-body">
+    <header class="prime-header" style="position: sticky; top: 0; z-index: 1000;">
+        <nav style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 4%;">
+            <a href="/" class="prime-logo" style="text-decoration: none; display: flex; align-items: center; gap: 12px;">
+                <img src="/images/indieplayx_logo.svg" alt="INDIE PLAY X" style="height: 36px; width: auto; object-fit: contain;">
+                <span style="background: rgba(56, 189, 248, 0.16); border: 1px solid rgba(56, 189, 248, 0.45); color: #38bdf8; padding: 4px 11px; border-radius: 7px; font-size: 0.74rem; font-weight: 900; letter-spacing: 0.8px;">
+                    <i class="fas fa-chart-pie"></i> WOXLYTICS ANALYTICS
+                </span>
+            </a>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <a href="/" class="btn btn-prime-outline" style="text-decoration: none; padding: 0.5rem 1rem; font-size: 0.8rem; font-weight: 800; display: inline-flex; align-items: center; gap: 7px;">
+                    <i class="fas fa-arrow-left"></i> Torna al Sito
+                </a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="wx-main">
+        <div class="wx-hero-head">
+            <div>
+                <span style="font-size: 0.74rem; color: #38bdf8; font-weight: 900; text-transform: uppercase; letter-spacing: 1px;">
+                    <i class="fas fa-radar"></i> PIATTAFORMA ANALITICA FIRST-PARTY • ZERO COOKIE DI TERZE PARTI (NO-INDEX)
+                </span>
+                <h1 style="font-size: clamp(1.6rem, 3vw, 2.3rem); font-weight: 900; margin: 5px 0 4px; color: #fff;">
+                    Woxlytics — Telemetria Completa INDIE PLAY X
+                </h1>
+                <p style="margin: 0; font-size: 0.88rem; color: #94a3b8;">
+                    Monitoraggio in tempo reale di visite, permanenza, Paesi, rilevamento Umani vs Bot, dispositivi, lingue e canali di provenienza.
+                </p>
+            </div>
+        </div>
+
+        <div id="woxlytics-app-root">
+            <div class="loading">Caricamento telemetria Woxlytics dal Cloud...</div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initWoxlyticsDashboard } from '/src/woxlytics-dashboard.js';
+        import { renderVersionBadge } from '/src/version.js';
+
+        renderVersionBadge();
+        initWoxlyticsDashboard();
+    </script>
+</body>
+</html>
