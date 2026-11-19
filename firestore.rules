@@ -1,0 +1,93 @@
+rules_version = '2';
+
+// ============================================================================
+// INDIE PLAY X — Firebase Cloud Firestore Security Rules
+// Da copiare/pubblicare in Firebase Console -> Firestore Database -> Regole
+// ============================================================================
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'danielepmp@yahoo.it' ||
+        request.auth.token.email == 'devindieplay@gmail.com'
+      );
+    }
+
+    // 1. Profili Utenti: lettura per vetrine/profili, scrittura SOLO al proprietario o admin
+    match /users/{userId} {
+      allow read: if true;
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // 2. Catalogo Giochi: lettura pubblica, creazione/modifica solo al creatore autenticato o admin
+    match /games/{gameId} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin() || (
+        isSignedIn() && (
+          resource.data.sellerId == request.auth.uid ||
+          resource.data.authorUid == request.auth.uid ||
+          resource.data.userId == request.auth.uid
+        )
+      );
+    }
+
+    // 3. Messaggi Privati (Spazio Social -> Casella Account):
+    //    chiunque può inviare un messaggio, ma SOLO il destinatario (o admin) può leggerlo/modificarlo/eliminarlo
+    match /private_messages/{msgId} {
+      allow create: if request.resource.data.message is string
+                    && request.resource.data.message.size() > 0
+                    && request.resource.data.message.size() <= 4000;
+      allow read, update, delete: if isAdmin() || (
+        isSignedIn() && (
+          resource.data.toUid == request.auth.uid ||
+          resource.data.recipientUid == request.auth.uid
+        )
+      );
+    }
+
+    // 4. Bacheche Social & Follower (showcase.html)
+    match /social_walls/{wallId} {
+      allow read: if true;
+      allow write: if request.resource.data.keys().hasOnly(['posts', 'followersCount', 'updatedAt']);
+    }
+
+    // 5. Recensioni Giochi
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+    }
+
+    // 6. Impostazioni Piattaforma & Telemetria (settings)
+    match /settings/woxlytics_v1 {
+      allow read: if true;
+      allow write: if request.resource.data.version == 1;
+    }
+
+    match /settings/private_analytics {
+      allow read, write: if true;
+    }
+
+    match /settings/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 7. Blocca qualsiasi altra collezione non prevista
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

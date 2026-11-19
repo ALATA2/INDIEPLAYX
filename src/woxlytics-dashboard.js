@@ -2,8 +2,27 @@ import {
   fetchWoxlyticsFromCloud,
   loadWoxlyticsLocal,
   resetWoxlyticsData,
+  isWoxlyticsEnabledInCloud,
   getCountryMeta
 } from './woxlytics-tracker.js';
+import { sha256Hex, checkRateLimit, resetRateLimit } from './security.js';
+
+// Stessi hash SHA-256 di /bitmeme (Backend & Redazione) — zero password in chiaro
+const WOX_BACKEND_HASH = 'c94e1e094df381b87be436ce966fc5a4b20280dffdf0624e0d60b978499101a6';
+const WOX_MAGAZINE_HASH = 'f5cc70f88b12210cbd1758da2ba5e8de99787c31e70930538d0436be9756470a';
+const WOX_UNLOCK_KEY = 'indieplay_woxlytics_unlocked_v1';
+
+function isWoxlyticsSessionUnlocked() {
+  try {
+    return (
+      sessionStorage.getItem(WOX_UNLOCK_KEY) === 'true' ||
+      sessionStorage.getItem('indieplay_backend_unlocked_v1') === 'true' ||
+      sessionStorage.getItem('indieplay_mag_unlocked_v1') === 'true'
+    );
+  } catch (e) {
+    return false;
+  }
+}
 
 function esc(str) {
   return String(str ?? '')
@@ -127,6 +146,58 @@ export function initWoxlyticsDashboard() {
   let autoRefreshOn = false;
   let autoRefreshTimer = null;
   let isLoading = false;
+  let woxlyticsEnabled = true;
+
+  const renderAuthGate = () => {
+    root.innerHTML = `
+      <div style="max-width: 460px; margin: 3rem auto; background: rgba(15, 23, 38, 0.94); border: 1px solid rgba(56, 189, 248, 0.45); border-radius: 18px; padding: 2.2rem; box-shadow: 0 24px 60px rgba(0,0,0,0.65); text-align: center;">
+        <div style="width: 64px; height: 64px; margin: 0 auto 1rem; border-radius: 16px; background: rgba(56, 189, 248, 0.14); border: 1px solid rgba(56, 189, 248, 0.5); display: flex; align-items: center; justify-content: center;">
+          <i class="fas fa-shield-halved" style="font-size: 1.85rem; color: #38bdf8;"></i>
+        </div>
+        <span style="font-size: 0.72rem; font-weight: 900; color: #38bdf8; letter-spacing: 1px; text-transform: uppercase;">ACCESSO RISERVATO PROTETTO (SHA-256)</span>
+        <h2 style="margin: 6px 0 8px; font-size: 1.45rem; font-weight: 900; color: #fff;">Sblocca Woxlytics Analytics</h2>
+        <p style="margin: 0 0 1.4rem; font-size: 0.85rem; color: #94a3b8; line-height: 1.5;">
+          Inserisci la password amministrativa (Backend o Redazione) per visualizzare i dati analitici privati di INDIE PLAY X, oppure accedi direttamente da <code>/bitmeme</code>.
+        </p>
+
+        <form id="wx-auth-form" style="display: flex; flex-direction: column; gap: 12px; text-align: left;">
+          <label for="wx-auth-pwd" style="font-size: 0.76rem; font-weight: 800; color: #cbd5e1; text-transform: uppercase;">Password Amministratore</label>
+          <input type="password" id="wx-auth-pwd" required autocomplete="current-password" placeholder="Inserisci password..." style="width: 100%; padding: 0.85rem 1rem; border-radius: 10px; border: 1px solid rgba(56, 189, 248, 0.35); background: rgba(0, 5, 13, 0.8); color: #fff; font-size: 0.95rem;">
+          <button type="submit" class="wx-btn wx-btn-cyan" style="justify-content: center; padding: 0.85rem; font-size: 0.9rem; margin-top: 4px;">
+            <i class="fas fa-unlock-keyhole"></i> Sblocca Dashboard Woxlytics
+          </button>
+        </form>
+
+        <div style="margin-top: 1.3rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem;">
+          <a href="/bitmeme" style="color: #fbbf24; text-decoration: none; font-weight: 800;"><i class="fas fa-user-shield"></i> Vai a /bitmeme</a>
+          <a href="/" style="color: #94a3b8; text-decoration: none; font-weight: 700;"><i class="fas fa-home"></i> Homepage</a>
+        </div>
+      </div>
+    `;
+
+    const form = document.getElementById('wx-auth-form');
+    if (form) {
+      form.onsubmit = async (e) => {
+        e.preventDefault();
+        const rl = checkRateLimit('woxlytics_auth', 5, 60000);
+        if (!rl.allowed) {
+          if (window.showToast) window.showToast(`Troppi tentativi falliti. Riprova tra ${rl.remainingSec}s.`, 'error');
+          return;
+        }
+        const pwd = document.getElementById('wx-auth-pwd')?.value || '';
+        const digest = await sha256Hex(pwd);
+        if (digest === WOX_BACKEND_HASH || digest === WOX_MAGAZINE_HASH) {
+          resetRateLimit('woxlytics_auth');
+          sessionStorage.setItem(WOX_UNLOCK_KEY, 'true');
+          if (window.showToast) window.showToast('Accesso Woxlytics autorizzato!', 'success');
+          render();
+          refreshFromCloud(false);
+        } else {
+          if (window.showToast) window.showToast('Password errata! Accesso negato.', 'error');
+        }
+      };
+    }
+  };
 
   const exportCSV = () => {
     const s = currentStats;
@@ -200,9 +271,18 @@ export function initWoxlyticsDashboard() {
   };
 
   const refreshFromCloud = async (showNotice = false) => {
+    if (!isWoxlyticsSessionUnlocked()) {
+      renderAuthGate();
+      return;
+    }
     isLoading = true;
     render();
-    currentStats = await fetchWoxlyticsFromCloud();
+    const [cloudStats, enabledState] = await Promise.all([
+      fetchWoxlyticsFromCloud(),
+      isWoxlyticsEnabledInCloud()
+    ]);
+    currentStats = cloudStats;
+    woxlyticsEnabled = enabledState;
     isLoading = false;
     render();
     if (showNotice && window.showToast) {
@@ -211,6 +291,10 @@ export function initWoxlyticsDashboard() {
   };
 
   const render = () => {
+    if (!isWoxlyticsSessionUnlocked()) {
+      renderAuthGate();
+      return;
+    }
     const s = currentStats;
     const t = s.totals || {};
     const totalViews = Number(t.views || 0);
@@ -324,8 +408,29 @@ export function initWoxlyticsDashboard() {
           <button type="button" id="wx-btn-reset" class="wx-btn wx-btn-danger" title="Azzera tutte le statistiche Woxlytics">
             <i class="fas fa-trash-alt"></i> Reset
           </button>
+          <a href="/bitmeme" class="wx-btn wx-btn-ghost" style="text-decoration:none; border-color:rgba(245,158,11,0.4); color:#fbbf24;">
+            <i class="fas fa-user-shield"></i> /bitmeme
+          </a>
+          <button type="button" id="wx-btn-lock" class="wx-btn wx-btn-danger" title="Blocca sessione Woxlytics">
+            <i class="fas fa-lock"></i> Blocca
+          </button>
         </div>
       </div>
+
+      ${!woxlyticsEnabled ? `
+        <div class="wx-empty-banner" style="background: rgba(245, 158, 11, 0.12); border-color: rgba(245, 158, 11, 0.55);">
+          <i class="fas fa-pause-circle" style="font-size:1.6rem; color:#fbbf24;"></i>
+          <div style="flex:1;">
+            <strong style="color:#fbbf24;">Woxlytics è attualmente DISATTIVATO da /bitmeme</strong>
+            <p style="margin:4px 0 0; color:#cbd5e1; font-size:0.84rem;">
+              Il tracciamento di nuove visite è in pausa. Puoi continuare a consultare o esportare i dati storici qui sotto, oppure riattivarlo subito dalla console <code>/bitmeme</code>.
+            </p>
+          </div>
+          <a href="/bitmeme" class="wx-btn wx-btn-cyan" style="text-decoration:none;">
+            <i class="fas fa-play-circle"></i> Riattiva in /bitmeme
+          </a>
+        </div>
+      ` : ''}
 
       ${totalViews === 0 ? `
         <div class="wx-empty-banner">
@@ -846,9 +951,28 @@ export function initWoxlyticsDashboard() {
         if (window.showToast) window.showToast('Statistiche Woxlytics azzerate con successo.', 'info');
       };
     }
+    const lockBtn = document.getElementById('wx-btn-lock');
+    if (lockBtn) {
+      lockBtn.onclick = () => {
+        if (autoRefreshTimer) {
+          clearInterval(autoRefreshTimer);
+          autoRefreshTimer = null;
+          autoRefreshOn = false;
+        }
+        sessionStorage.removeItem(WOX_UNLOCK_KEY);
+        sessionStorage.removeItem('indieplay_backend_unlocked_v1');
+        sessionStorage.removeItem('indieplay_mag_unlocked_v1');
+        renderAuthGate();
+        if (window.showToast) window.showToast('Sessione Woxlytics bloccata con successo.', 'info');
+      };
+    }
   };
 
-  // Initial render from cache + immediate live cloud fetch
-  render();
-  refreshFromCloud(false);
+  // Initial render (auth gate or dashboard if already unlocked from /bitmeme)
+  if (isWoxlyticsSessionUnlocked()) {
+    render();
+    refreshFromCloud(false);
+  } else {
+    renderAuthGate();
+  }
 }

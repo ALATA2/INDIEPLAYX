@@ -1,7 +1,9 @@
+# INDIE PLAY X — Robots Policy
 User-agent: *
 Allow: /
-Disallow: /account.html
 Disallow: /bitmeme
+Disallow: /bitmeme/
 Disallow: /bitmeme.html
-
-Sitemap: https://indieplayx.com/sitemap.xml
+Disallow: /woxlytics
+Disallow: /woxlytics/
+Disallow: /woxlytics.html

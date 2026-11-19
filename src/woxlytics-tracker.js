@@ -227,6 +227,25 @@ export async function fetchWoxlyticsFromCloud() {
   return loadWoxlyticsLocal();
 }
 
+export async function isWoxlyticsEnabledInCloud() {
+  try {
+    const snap = await getDoc(doc(db, 'settings', 'payment_config'));
+    if (snap.exists()) {
+      const data = snap.data();
+      if (data && data.woxlyticsEnabled === false) return false;
+      return true;
+    }
+  } catch (e) {}
+  try {
+    const raw = localStorage.getItem('indieplay_payment_config_v2');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.woxlyticsEnabled === false) return false;
+    }
+  } catch (e) {}
+  return true;
+}
+
 export async function resetWoxlyticsData() {
   const fresh = createEmptyWoxlyticsState();
   try {
@@ -596,6 +615,8 @@ export function initWoxlyticsTracker(getSiteLanguageFn = null) {
   // 1. Initial Pageview Recording (after 1.1s to let Geo & quick human gestures settle)
   setTimeout(async () => {
     try {
+      const enabled = await isWoxlyticsEnabledInCloud();
+      if (!enabled) return;
       const geo = await detectGeoLocation();
       const state = await fetchWoxlyticsFromCloud();
 

@@ -27,6 +27,7 @@ const DEFAULT_PAYMENT_CONFIG = {
   bitbonkVisible: true,             // 9. Sezione BITBONK — Carte da Gioco & Sticker Album Series 01 (Default: ATTIVO)
   memeConsoleVisible: true,         // 10. Sezione MEME CONSOLE — Progetto Hardware Model MC-01 (Default: ATTIVO)
   maintenanceMode: false,           // 11. Modalità Sito Down / Manutenzione Temporanea (Default: DISATTIVATO)
+  woxlyticsEnabled: true,           // 12. Piattaforma Analitica Privata /woxlytics (Default: ATTIVO)
   maintenanceTitle: 'WE ARE UPGRADING THE ARCADE!',
   maintenanceMessage: 'INDIE PLAY X is temporarily offline for scheduled maintenance and system upgrades. Hold tight — our team is tuning the servers and we will be back online shortly!',
 
@@ -3290,6 +3291,30 @@ export async function initBitmemeAdminHub() {
                 </button>
               </div>
 
+              <!-- Controllo & Accesso Diretto Woxlytics (/woxlytics) -->
+              <div style="background: ${cfg.woxlyticsEnabled !== false ? 'rgba(14, 165, 233, 0.12)' : 'rgba(100, 116, 139, 0.12)'}; border: 1px solid ${cfg.woxlyticsEnabled !== false ? 'rgba(56, 189, 248, 0.5)' : 'rgba(148, 163, 184, 0.35)'}; border-radius: 12px; padding: 1rem;">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 0.65rem; flex-wrap: wrap;">
+                  <div style="font-size: 0.84rem; font-weight: 900; color: ${cfg.woxlyticsEnabled !== false ? '#38bdf8' : '#94a3b8'};">
+                    <i class="fas fa-chart-pie"></i> Woxlytics Analytics Suite (/woxlytics)
+                  </div>
+                  <span style="padding: 3px 9px; border-radius: 999px; font-size: 0.7rem; font-weight: 900; background: ${cfg.woxlyticsEnabled !== false ? '#0284c7' : '#475569'}; color: white;">
+                    ${cfg.woxlyticsEnabled !== false ? 'ATTIVO & PROTETTO' : 'DISATTIVATO'}
+                  </span>
+                </div>
+                <p style="margin: 0 0 0.75rem; font-size: 0.76rem; color: #cbd5e1; line-height: 1.4;">
+                  Protetto da autenticazione SHA-256. Cliccando dal link interno qui sotto accedi direttamente senza reinserire la password.
+                </p>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                  <button type="button" id="bm-toggle-woxlytics-btn" class="btn" style="flex: 1; min-width: 170px; padding: 0.7rem 0.9rem; font-weight: 900; font-size: 0.78rem; border-radius: 8px; border: none; cursor: pointer; justify-content: center; display: inline-flex; align-items: center; gap: 7px; background: ${cfg.woxlyticsEnabled !== false ? '#475569' : '#10b981'}; color: white;">
+                    <i class="fas ${cfg.woxlyticsEnabled !== false ? 'fa-pause-circle' : 'fa-play-circle'}"></i>
+                    ${cfg.woxlyticsEnabled !== false ? 'Disattiva Woxlytics' : 'Attiva Woxlytics'}
+                  </button>
+                  <a href="/woxlytics" class="btn btn-prime" style="flex: 1; min-width: 170px; padding: 0.7rem 0.9rem; font-weight: 900; font-size: 0.78rem; border-radius: 8px; text-decoration: none; justify-content: center; display: inline-flex; align-items: center; gap: 7px; background: linear-gradient(135deg, #0ea5e9, #0284c7); color: white; border: none;">
+                    <i class="fas fa-arrow-up-right-from-square"></i> Apri /woxlytics
+                  </a>
+                </div>
+              </div>
+
               <div style="display: flex; gap: 8px;">
                 <button type="button" id="bm-open-be-console-btn" class="btn btn-prime" style="flex: 1; padding: 0.9rem 1rem; font-weight: 900; background: #f59e0b; color: #0f172a; border: none; justify-content: center; font-size: 0.86rem;">
                   <i class="fas fa-sliders-h"></i> Apri Pannello Completo Backend (10 Voci & Pagamenti)
@@ -3443,6 +3468,25 @@ export async function initBitmemeAdminHub() {
               ? '🔴 Sito messo in MANUTENZIONE (Offline temporaneo attivo per tutti i visitatori)!'
               : '🟢 Sito rimesso ONLINE e accessibile a tutti!',
             nextState ? 'info' : 'success'
+          );
+        }
+      };
+    }
+
+    // Wire Woxlytics 1-Click Toggle
+    const toggleWoxBtn = document.getElementById('bm-toggle-woxlytics-btn');
+    if (toggleWoxBtn) {
+      toggleWoxBtn.onclick = async () => {
+        const nextState = getPaymentConfig().woxlyticsEnabled === false;
+        toggleWoxBtn.disabled = true;
+        await savePaymentConfig({ woxlyticsEnabled: nextState });
+        renderHub();
+        if (window.showToast) {
+          window.showToast(
+            nextState
+              ? '🟢 Woxlytics ATTIVATO! Tracciamento e dashboard operativi su /woxlytics.'
+              : '⏸️ Woxlytics DISATTIVATO! Il tracciamento visite è in pausa.',
+            nextState ? 'success' : 'info'
           );
         }
       };
@@ -3816,7 +3860,7 @@ function renderPrivateAnalyticsDashboardHTML() {
           </div>
         </div>
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-          <a href="/woxlytics" target="_blank" class="btn btn-prime-outline" style="padding: 0.55rem 1rem; font-size: 0.78rem; font-weight: 800; text-decoration: none; border-color: #38bdf8; color: #38bdf8;">
+          <a href="/woxlytics" class="btn btn-prime-outline" style="padding: 0.55rem 1rem; font-size: 0.78rem; font-weight: 800; text-decoration: none; border-color: #38bdf8; color: #38bdf8;">
             <i class="fas fa-chart-pie"></i> Apri Woxlytics Completo
           </a>
           <button type="button" id="bm-refresh-analytics-btn" class="btn btn-prime-outline" style="padding: 0.55rem 1rem; font-size: 0.78rem; font-weight: 800;">
