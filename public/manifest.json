@@ -1,0 +1,26 @@
+{
+  "name": "INDIE PLAY X — Play. Create. Connect.",
+  "short_name": "INDIE PLAY X",
+  "description": "Discover free and paid indie games, play browser games, share projects and connect with indie creators.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#00050d",
+  "theme_color": "#00050d",
+  "categories": ["games", "entertainment", "social"],
+  "icons": [
+    {
+      "src": "/images/social/pwa-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/images/social/pwa-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

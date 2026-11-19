@@ -9,25 +9,29 @@
     <meta name="author" content="INDIE PLAY X">
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
     <meta name="theme-color" content="#00050d">
-    <link rel="canonical" href="https://indieplayx.com/">
+    <link rel="canonical" href="https://www.indieplayx.com/">
+    <link rel="manifest" href="/manifest.json">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-    <link rel="alternate icon" type="image/png" href="/images/logo_litte.png">
-    <link rel="apple-touch-icon" href="/images/logo_litte.png">
+    <link rel="alternate icon" type="image/png" href="/images/social/pwa-icon-192.png">
+    <link rel="apple-touch-icon" href="/images/social/pwa-icon-192.png">
 
     <!-- Open Graph / Social Sharing -->
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="INDIE PLAY X">
-    <meta property="og:title" content="INDIE PLAY X — Scarica Videogiochi Indie Gratis e PC | Portale Alternativo">
-    <meta property="og:description" content="Esplora il portale alternativo dedicato ai videogiochi indipendenti: download PC, giochi online gratis nel browser, vetrine social per creator e IndiePlay Magazine.">
-    <meta property="og:url" content="https://indieplayx.com/">
-    <meta property="og:image" content="https://indieplayx.com/images/merch_hoodie_samurai_1777198641485.png">
-    <meta property="og:locale" content="it_IT">
+    <meta property="og:title" content="INDIE PLAY X — Play. Create. Connect. | Indie Games & Creators">
+    <meta property="og:description" content="Discover free and paid indie games, play online in your browser, explore creator spaces and join the INDIE PLAY X community.">
+    <meta property="og:url" content="https://www.indieplayx.com/">
+    <meta property="og:image" content="https://www.indieplayx.com/images/social/og-en.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:locale:alternate" content="it_IT">
 
     <!-- Twitter / X Card -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="INDIE PLAY X — Portale Videogiochi Indie & Download PC">
-    <meta name="twitter:description" content="Scarica giochi indie, gioca gratis online e scopri nuove realtà indipendenti su INDIE PLAY X.">
-    <meta name="twitter:image" content="https://indieplayx.com/images/merch_hoodie_samurai_1777198641485.png">
+    <meta name="twitter:title" content="INDIE PLAY X — Play. Create. Connect.">
+    <meta name="twitter:description" content="Discover free and paid indie games, share projects and meet new indie creators on INDIE PLAY X.">
+    <meta name="twitter:image" content="https://www.indieplayx.com/images/social/og-en.jpg">
 
     <!-- Dati Strutturati Schema.org (JSON-LD) per Google -->
     <script type="application/ld+json">
@@ -191,70 +195,154 @@
 
     <main id="store">
         <section class="genre-section">
-            <div class="section-header">
-                <h2 data-i18n="categories_title">Categorie</h2>
-            </div>
-            <div class="genre-row">
-                <div class="genre-card">
-                    <i class="fas fa-hand-fist"></i>
-                    <span><span data-i18n="genre_fight">Picchiaduro</span> &gt;</span>
-                </div>
-                <div class="genre-card">
-                    <i class="fas fa-floppy-disk"></i>
-                    <span><span data-i18n="genre_amiga">Amiga & Retro</span> &gt;</span>
-                </div>
-                <div class="genre-card">
-                    <i class="fas fa-sword"></i>
-                    <span><span data-i18n="genre_action">Azione e avventura</span> &gt;</span>
-                </div>
-                <div class="genre-card">
-                    <i class="fas fa-person-running"></i>
-                    <span><span data-i18n="genre_platform">Giochi a piattaforme</span> &gt;</span>
-                </div>
-                <div class="genre-card">
-                    <i class="fas fa-ghost"></i>
-                    <span><span data-i18n="genre_horror">Horror e Survival</span> &gt;</span>
-                </div>
-                <div class="genre-card">
-                    <i class="fas fa-puzzle-piece"></i>
-                    <span><span data-i18n="genre_puzzle">Puzzle e Rompicapo</span> &gt;</span>
-                </div>
-                <div class="genre-card">
-                    <i class="fas fa-magic"></i>
-                    <span><span data-i18n="genre_rpg">Giochi di ruolo (GDR)</span> &gt;</span>
-                </div>
-                <div class="genre-card">
-                    <i class="fas fa-crosshairs"></i>
-                    <span><span data-i18n="genre_fps">Sparatutto / FPS</span> &gt;</span>
-                </div>
-                <div class="genre-card">
-                    <i class="fas fa-car"></i>
-                    <span><span data-i18n="genre_race">Corse e volo</span> &gt;</span>
-                </div>
-                <div class="genre-card">
-                    <i class="fas fa-chess"></i>
-                    <span><span data-i18n="genre_strategy">Strategia e Simulazione</span> &gt;</span>
-                </div>
-                <div class="genre-card">
-                    <i class="fas fa-basketball"></i>
-                    <span><span data-i18n="genre_sport">Sport</span> &gt;</span>
-                </div>
-                <div class="genre-card">
-                    <i class="fas fa-face-smile"></i>
-                    <span><span data-i18n="genre_family">Bambini e famiglia</span> &gt;</span>
+            <div class="section-header" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+                <h2 data-i18n="categories_title" style="margin:0;">Categorie</h2>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <button type="button" id="genre-scroll-left" class="genre-nav-arrow" title="Scorri categorie a sinistra" aria-label="Scorri a sinistra">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button type="button" id="genre-scroll-right" class="genre-nav-arrow" title="Scorri categorie a destra" aria-label="Scorri a destra">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                    <button type="button" id="genre-expand-btn" class="genre-expand-btn" title="Mostra tutte le categorie in griglia">
+                        <i class="fas fa-th-large"></i> Tutte
+                    </button>
                 </div>
             </div>
+            <div class="genre-row-wrapper">
+                <div class="genre-row" id="genre-row-scroll">
+                    <div class="genre-card active-genre" data-genre="all">
+                        <i class="fas fa-border-all"></i>
+                        <span>Tutti i Giochi</span>
+                    </div>
+                    <div class="genre-card" data-genre="Picchiaduro">
+                        <i class="fas fa-hand-fist"></i>
+                        <span><span data-i18n="genre_fight">Picchiaduro</span> &gt;</span>
+                    </div>
+                    <div class="genre-card" data-genre="Amiga">
+                        <i class="fas fa-floppy-disk"></i>
+                        <span><span data-i18n="genre_amiga">Amiga &amp; Retro</span> &gt;</span>
+                    </div>
+                    <div class="genre-card" data-genre="Azione">
+                        <i class="fas fa-sword"></i>
+                        <span><span data-i18n="genre_action">Azione e avventura</span> &gt;</span>
+                    </div>
+                    <div class="genre-card" data-genre="Piattaforme">
+                        <i class="fas fa-person-running"></i>
+                        <span><span data-i18n="genre_platform">Giochi a piattaforme</span> &gt;</span>
+                    </div>
+                    <div class="genre-card" data-genre="Horror">
+                        <i class="fas fa-ghost"></i>
+                        <span><span data-i18n="genre_horror">Horror e Survival</span> &gt;</span>
+                    </div>
+                    <div class="genre-card" data-genre="Puzzle">
+                        <i class="fas fa-puzzle-piece"></i>
+                        <span><span data-i18n="genre_puzzle">Puzzle e Rompicapo</span> &gt;</span>
+                    </div>
+                    <div class="genre-card" data-genre="GDR">
+                        <i class="fas fa-magic"></i>
+                        <span><span data-i18n="genre_rpg">Giochi di ruolo (GDR)</span> &gt;</span>
+                    </div>
+                    <div class="genre-card" data-genre="Sparatutto">
+                        <i class="fas fa-crosshairs"></i>
+                        <span><span data-i18n="genre_fps">Sparatutto / FPS</span> &gt;</span>
+                    </div>
+                    <div class="genre-card" data-genre="Corse">
+                        <i class="fas fa-car"></i>
+                        <span><span data-i18n="genre_race">Corse e volo</span> &gt;</span>
+                    </div>
+                    <div class="genre-card" data-genre="Strategia">
+                        <i class="fas fa-chess"></i>
+                        <span><span data-i18n="genre_strategy">Strategia e Simulazione</span> &gt;</span>
+                    </div>
+                    <div class="genre-card" data-genre="Sport">
+                        <i class="fas fa-basketball"></i>
+                        <span><span data-i18n="genre_sport">Sport</span> &gt;</span>
+                    </div>
+                    <div class="genre-card" data-genre="Famiglia">
+                        <i class="fas fa-face-smile"></i>
+                        <span><span data-i18n="genre_family">Bambini e famiglia</span> &gt;</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Barra Ricerca & Filtri Avanzati Catalogo -->
+            <div class="catalog-filter-bar" id="catalog-filter-bar">
+                <div class="filter-group">
+                    <span class="filter-label"><i class="fas fa-tag"></i> Prezzo:</span>
+                    <button type="button" class="filter-chip active" data-price="all">Tutti</button>
+                    <button type="button" class="filter-chip" data-price="free">Gratis</button>
+                    <button type="button" class="filter-chip" data-price="paid">A Pagamento</button>
+                </div>
+                <div class="filter-group">
+                    <span class="filter-label"><i class="fas fa-desktop"></i> Piattaforma:</span>
+                    <select id="filter-platform-select" class="filter-select">
+                        <option value="all">Tutte</option>
+                        <option value="web">Web / Browser</option>
+                        <option value="windows">Windows PC</option>
+                        <option value="mac">macOS</option>
+                        <option value="android">Android</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <span class="filter-label"><i class="fas fa-arrow-down-wide-short"></i> Ordina:</span>
+                    <select id="filter-sort-select" class="filter-select">
+                        <option value="recent">Più Recenti</option>
+                        <option value="popular">Più Scaricati / Popolari</option>
+                        <option value="rated">Più Votati</option>
+                    </select>
+                </div>
+                <div class="filter-group" style="margin-left: auto;">
+                    <button type="button" id="filter-wishlist-btn" class="filter-chip wishlist-chip">
+                        <i class="fas fa-heart"></i> Wishlist (<span id="wishlist-count-badge">0</span>)
+                    </button>
+                    <button type="button" id="filter-reset-btn" class="filter-chip hidden" style="border-color: rgba(239,68,68,0.45); color:#fca5a5;">
+                        <i class="fas fa-times"></i> Azzera
+                    </button>
+                </div>
+            </div>
+            <div id="catalog-active-summary" class="hidden" style="margin-top: 0.75rem; font-size: 0.85rem; color: #38bdf8; font-weight: 700;"></div>
         </section>
 
         <section class="game-section">
-            <div class="section-header">
-                <h2 data-i18n="title_added">Aggiunti di recente su IndiePlay</h2>
+            <div class="section-header" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+                <h2 id="main-catalog-heading" data-i18n="title_added">Aggiunti di recente su IndiePlay</h2>
+                <div id="followed-updates-banner" class="hidden" style="background:rgba(56,189,248,0.14); border:1px solid rgba(56,189,248,0.45); color:#7dd3fc; padding:5px 12px; border-radius:999px; font-size:0.78rem; font-weight:800; cursor:pointer;"></div>
             </div>
             <div id="game-grid" class="game-row">
                 <div class="loading">Caricamento...</div>
             </div>
             <div style="text-align: center; margin-top: 1.5rem;">
                 <button id="load-more-btn" class="btn btn-prime-outline hidden" style="padding: 0.8rem 2.5rem;" data-i18n="btn_load_more">Carica Altri</button>
+            </div>
+        </section>
+
+        <!-- Sezione Top Indie Creators & Community Spotlight -->
+        <section class="creators-spotlight-section" id="top-creators-section">
+            <div class="section-header" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+                <div>
+                    <span style="font-size:0.72rem; font-weight:900; color:#38bdf8; letter-spacing:1px; text-transform:uppercase;">
+                        <i class="fas fa-trophy"></i> CLASSIFICA MENSILE &amp; SPAZI SOCIAL
+                    </span>
+                    <h2 style="margin:4px 0 0;">Top Indie Creators &amp; Community</h2>
+                </div>
+                <a href="account.html" class="btn btn-prime-outline" style="text-decoration:none; font-size:0.82rem; padding:0.55rem 1.1rem;">
+                    <i class="fas fa-rocket"></i> Crea il tuo Spazio Social
+                </a>
+            </div>
+            <div id="top-creators-grid" class="creators-leaderboard-grid">
+                <div class="loading">Caricamento classifica creatori...</div>
+            </div>
+            <div class="community-promo-banner">
+                <img src="/images/social/og-community-it.jpg" alt="INDIE PLAY X Community di Creatori — Le Idee Crescono Insieme" loading="lazy">
+                <div class="community-promo-overlay">
+                    <span style="background:rgba(56,189,248,0.2); border:1px solid rgba(56,189,248,0.5); color:#7dd3fc; padding:3px 10px; border-radius:999px; font-size:0.72rem; font-weight:900; letter-spacing:0.6px;">COMMUNITY DI CREATORI</span>
+                    <h3 style="margin:8px 0 6px; font-size:1.35rem; font-weight:900; color:white;">Condividi i tuoi giochi, crea il tuo spazio e porta la tua community!</h3>
+                    <p style="margin:0 0 12px; color:#cbd5e1; font-size:0.86rem; max-width:560px;">Ogni creatore su INDIE PLAY X ha una vetrina social dedicata con bacheca, follower, link invito personalizzato e tutti i propri titoli collegati.</p>
+                    <a href="account.html" class="btn btn-prime" style="text-decoration:none; padding:0.65rem 1.3rem; font-weight:800;">
+                        <i class="fas fa-user-astronaut"></i> Apri il tuo Profilo Creator
+                    </a>
+                </div>
             </div>
         </section>
 
@@ -565,9 +653,9 @@
         <div class="footer-legal" data-i18n="footer_rights">
             © 2026 IndiePlay-X. Tutti i diritti riservati.
         </div>
-        <div id="footer-version-label" style="text-align: left; font-size: 0.75rem; color: rgba(255,255,255,0.55); font-weight: 600; margin-top: 0.8rem;">Version 1.11294</div>
+        <div id="footer-version-label" style="text-align: left; font-size: 0.75rem; color: rgba(255,255,255,0.55); font-weight: 600; margin-top: 0.8rem;">Version 1.11295</div>
     </footer>
-    <div id="indieplay-version-badge" class="indieplay-version-badge">Version 1.11294</div>
+    <div id="indieplay-version-badge" class="indieplay-version-badge">Version 1.11295</div>
 
     <!-- Login Modal -->
     <div id="login-modal" class="modal">

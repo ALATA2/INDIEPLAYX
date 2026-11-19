@@ -7,10 +7,20 @@
     <meta name="description" content="Scarica su PC o gioca online su INDIE PLAY X, il portale alternativo dedicato ai videogiochi indipendenti.">
     <meta name="robots" content="index, follow, max-image-preview:large">
     <meta name="theme-color" content="#00050d">
-    <link rel="canonical" href="https://indieplayx.com/game.html">
+    <link rel="canonical" href="https://www.indieplayx.com/game.html">
+    <link rel="manifest" href="/manifest.json">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-    <link rel="alternate icon" type="image/png" href="/images/logo_litte.png">
-    <link rel="apple-touch-icon" href="/images/logo_litte.png">
+    <link rel="alternate icon" type="image/png" href="/images/social/pwa-icon-192.png">
+    <link rel="apple-touch-icon" href="/images/social/pwa-icon-192.png">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="INDIE PLAY X">
+    <meta property="og:title" content="INDIE PLAY X — Play. Create. Connect.">
+    <meta property="og:description" content="Download PC indie games or play free online in your browser on INDIE PLAY X.">
+    <meta property="og:image" content="https://www.indieplayx.com/images/social/og-en.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="https://www.indieplayx.com/images/social/og-en.jpg">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="./style.css">
     <script>
@@ -493,6 +503,12 @@
         </div>
     </section>
 
+    <!-- Sezione Creatore & Altri Titoli dello Stesso Autore -->
+    <section id="game-creator-spotlight-section" style="padding: 1.5rem 5%; max-width: 1380px; margin: 0 auto;">
+        <div id="game-creator-card-root"></div>
+        <div id="more-by-creator-root" style="margin-top: 1.4rem;"></div>
+    </section>
+
     <section class="merch-horizontal-section" style="padding: 2rem 5%;">
         <div class="section-header">
             <h2>Merchandising Ufficiale</h2>
@@ -765,6 +781,10 @@
         import { initLanguageSelectors, translations, getLanguage, autoTranslateDOM } from './src/i18n';
         import { initBackendSystem, getPaymentConfig, calculateSplitPayment, validateCardLuhn, recordSplitTransaction, openQuickBuyModal, addToQuickCart, isGameOwnedExpress } from './src/backend-payments';
         import { syncModerationStateFromCloud, isGameModerated } from './src/moderation';
+        import { isInWishlist, toggleWishlist, updateSocialMetaTags, initPwaSupport } from './src/community-features';
+        import { getGames } from './src/store';
+
+        initPwaSupport();
 
         // Initialize i18n
         initLanguageSelectors();
@@ -829,7 +849,92 @@
         let currentUser = null;
 
 
-        async function loadGameDetails() {
+                async function renderCreatorAndMoreGames(game, currentGameId) {
+            const creatorRoot = document.getElementById('game-creator-card-root');
+            const moreRoot = document.getElementById('more-by-creator-root');
+            if (!creatorRoot) return;
+
+            const authorName = String(game.developer || game.author || 'IndiePlay Creator').trim();
+            const authorUid = String(game.sellerId || game.authorUid || game.userId || '').trim();
+            const showcaseUrl = `showcase.html?${authorUid ? `uid=${encodeURIComponent(authorUid)}&` : ''}dev=${encodeURIComponent(authorName)}`;
+            const inWish = isInWishlist(currentGameId);
+
+            creatorRoot.innerHTML = `
+                <div style="background: rgba(15, 23, 38, 0.92); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 16px; padding: 1.35rem 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+                    <div style="display: flex; align-items: center; gap: 14px;">
+                        <div style="width: 54px; height: 54px; border-radius: 50%; background: linear-gradient(135deg, #0ea5e9, #6366f1); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 900; color: white; flex-shrink: 0;">
+                            ${authorName.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                            <span style="font-size: 0.7rem; font-weight: 900; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.8px;">
+                                <i class="fas fa-user-astronaut"></i> REALIZZATO DA
+                            </span>
+                            <h2 style="margin: 2px 0 3px; font-size: 1.3rem; font-weight: 900; color: white;">${authorName}</h2>
+                            <div style="font-size: 0.8rem; color: #94a3b8;">Scopri la bio, la bacheca social e tutti gli altri giochi di questo creatore su INDIE PLAY X.</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                        <button type="button" id="game-detail-wishlist-btn" class="btn btn-prime-outline" style="padding: 0.65rem 1.1rem; font-size: 0.84rem; font-weight: 800; border-color: ${inWish ? '#f87171' : 'rgba(255,255,255,0.22)'}; color: ${inWish ? '#fca5a5' : 'white'};">
+                            <i class="${inWish ? 'fas' : 'far'} fa-heart" style="color:#f87171;"></i> ${inWish ? 'Salvato in Wishlist' : 'Aggiungi a Wishlist'}
+                        </button>
+                        <a href="${showcaseUrl}" class="btn btn-prime" style="text-decoration: none; padding: 0.65rem 1.25rem; font-size: 0.84rem; font-weight: 800;">
+                            <i class="fas fa-store"></i> Vai allo Spazio Social di ${authorName}
+                        </a>
+                    </div>
+                </div>
+            `;
+
+            const wishBtn = document.getElementById('game-detail-wishlist-btn');
+            if (wishBtn) {
+                wishBtn.onclick = async () => {
+                    const savedNow = await toggleWishlist({ id: currentGameId, title: game.title });
+                    wishBtn.style.borderColor = savedNow ? '#f87171' : 'rgba(255,255,255,0.22)';
+                    wishBtn.style.color = savedNow ? '#fca5a5' : 'white';
+                    wishBtn.innerHTML = `<i class="${savedNow ? 'fas' : 'far'} fa-heart" style="color:#f87171;"></i> ${savedNow ? 'Salvato in Wishlist' : 'Aggiungi a Wishlist'}`;
+                };
+            }
+
+            if (!moreRoot) return;
+            try {
+                const all = await getGames();
+                const otherGames = all.filter((g) => {
+                    if (String(g.id) === String(currentGameId)) return false;
+                    const sameUid = authorUid && (g.sellerId === authorUid || g.authorUid === authorUid || g.userId === authorUid);
+                    const sameName = String(g.developer || g.author || '').trim().toLowerCase() === authorName.toLowerCase();
+                    return sameUid || sameName;
+                });
+
+                if (otherGames.length > 0) {
+                    moreRoot.innerHTML = `
+                        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.85rem;">
+                            <h3 style="margin:0; font-size:1.15rem; font-weight:900; color:white;">
+                                <i class="fas fa-gamepad" style="color:#38bdf8;"></i> Altri titoli realizzati da ${authorName} (${otherGames.length})
+                            </h3>
+                            <a href="${showcaseUrl}" style="color:#38bdf8; font-size:0.82rem; font-weight:800; text-decoration:none;">Vedi tutti &rarr;</a>
+                        </div>
+                        <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(210px, 1fr)); gap:14px;">
+                            ${otherGames.slice(0, 6).map((og) => {
+                                const img = getAssetUrl(og.imageUrl || og.header?.src || '/images/placeholder.png');
+                                const free = og.price === 'FREE' || og.price === '0' || !og.price;
+                                return `
+                                    <a href="game.html?id=${encodeURIComponent(og.id)}" style="text-decoration:none; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:12px; overflow:hidden; display:flex; flex-direction:column; transition:transform 0.2s;">
+                                        <img src="${img}" alt="${og.title || ''}" style="width:100%; height:120px; object-fit:cover;" onerror="this.src='/images/placeholder.png'">
+                                        <div style="padding:0.75rem;">
+                                            <div style="font-weight:800; color:white; font-size:0.88rem; margin-bottom:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${og.title || 'Gioco Indie'}</div>
+                                            <div style="font-size:0.76rem; color:#38bdf8; font-weight:800;">${free ? 'GRATIS' : '€' + og.price} • ${og.category || 'Indie'}</div>
+                                        </div>
+                                    </a>
+                                `;
+                            }).join('')}
+                        </div>
+                    `;
+                } else {
+                    moreRoot.innerHTML = '';
+                }
+            } catch (e) {}
+        }
+
+async function loadGameDetails() {
             if (!gameId) {
                 document.body.innerHTML = '<div style="color: white; padding: 5rem; text-align: center;"><h1>Gioco non trovato</h1><a href="/" style="color: var(--prime-blue);">Torna alla Home</a></div>';
                 return;
@@ -881,6 +986,17 @@
                     const headerImgSrc = getAssetUrl(rawHeaderImgSrc);
                     hero.style.background = `url('${headerImgSrc}') no-repeat center center`;
                     hero.style.backgroundSize = 'cover';
+
+                    // Dynamic Open Graph & Twitter Card Meta
+                    updateSocialMetaTags({
+                        title: `${game.title || 'Indie Game'} by ${game.developer || 'INDIE PLAY X'} — INDIE PLAY X`,
+                        description: String(game.desc || 'Discover & play indie games on INDIE PLAY X').slice(0, 160),
+                        image: headerImgSrc.startsWith('data:') ? '/images/social/og-en.jpg' : headerImgSrc,
+                        url: window.location.href
+                    });
+
+                    // Populate Creator Spotlight Card & "Altri titoli dello stesso Autore"
+                    renderCreatorAndMoreGames(game, gameId);
 
                     let isOwned = isGameOwnedExpress(gameId);
                     const user = getActiveUser();

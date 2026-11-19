@@ -7,10 +7,11 @@
     <meta name="description" content="Gestisci il tuo profilo social, carica nuovi giochi indie per PC o browser e controlla le tue vendite su INDIE PLAY X.">
     <meta name="robots" content="noindex, nofollow">
     <meta name="theme-color" content="#00050d">
-    <link rel="canonical" href="https://indieplayx.com/account.html">
+    <link rel="canonical" href="https://www.indieplayx.com/account.html">
+    <link rel="manifest" href="/manifest.json">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-    <link rel="alternate icon" type="image/png" href="/images/logo_litte.png">
-    <link rel="apple-touch-icon" href="/images/logo_litte.png">
+    <link rel="alternate icon" type="image/png" href="/images/social/pwa-icon-192.png">
+    <link rel="apple-touch-icon" href="/images/social/pwa-icon-192.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="./style.css">
     <script>
@@ -586,6 +587,34 @@
                         </div>
                     </div>
 
+                    <!-- SEZIONE 5: LINK INVITO REFERRAL CREATOR (UTM) & KIT SOCIAL UFFICIALE -->
+                    <div style="margin-top: 1.5rem; margin-bottom: 1.5rem; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.38); border-radius: 14px; padding: 1.4rem;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 0.9rem;">
+                            <i class="fas fa-share-nodes" style="color: #34d399; font-size: 1.3rem;"></i>
+                            <div>
+                                <h3 style="margin: 0; font-size: 1.1rem; color: white; font-weight: 800;">5. Link Invito Creator (?utm_source) &amp; Kit Grafico Social</h3>
+                                <p style="margin: 2px 0 0; font-size: 0.82rem; color: var(--text-gray);">Condividi questo link sui tuoi social (TikTok, Instagram, YouTube, Discord): il traffico portato dal tuo link viene tracciato automaticamente!</p>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 0.9rem;">
+                            <input type="text" id="creator-utm-referral-input" readonly value="https://www.indieplayx.com/?utm_source=creator_indieplay" style="flex: 1; min-width: 240px; padding: 10px 12px; border-radius: 8px; background: rgba(0,0,0,0.45); border: 1px solid rgba(52, 211, 153, 0.4); color: #a7f3d0; font-size: 0.82rem; font-family: monospace;">
+                            <button type="button" id="copy-creator-utm-btn" class="btn btn-prime" style="padding: 0.65rem 1.1rem; font-size: 0.82rem; font-weight: 800;">
+                                <i class="fas fa-copy"></i> Copia Link
+                            </button>
+                            <a id="share-utm-whatsapp" target="_blank" class="btn btn-prime-outline" style="padding: 0.65rem 0.9rem; font-size: 0.8rem; text-decoration: none; border-color: #22c55e; color: #4ade80;" title="Condividi su WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                            <a id="share-utm-x" target="_blank" class="btn btn-prime-outline" style="padding: 0.65rem 0.9rem; font-size: 0.8rem; text-decoration: none; border-color: #38bdf8; color: #7dd3fc;" title="Condividi su X"><i class="fab fa-x-twitter"></i></a>
+                            <a id="share-utm-telegram" target="_blank" class="btn btn-prime-outline" style="padding: 0.65rem 0.9rem; font-size: 0.8rem; text-decoration: none; border-color: #60a5fa; color: #93c5fd;" title="Condividi su Telegram"><i class="fab fa-telegram"></i></a>
+                        </div>
+                        <div style="font-size: 0.78rem; color: #cbd5e1; font-weight: 700; margin-bottom: 6px;">Scarica le grafiche ufficiali INDIE PLAY X per i tuoi post &amp; stories:</div>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <a href="/images/social/og-it.jpg" download="IndiePlayX_Banner_IT.jpg" class="btn btn-prime-outline" style="padding: 0.42rem 0.8rem; font-size: 0.74rem; text-decoration: none;"><i class="fas fa-download"></i> Banner IT (16:9)</a>
+                            <a href="/images/social/og-en.jpg" download="IndiePlayX_Banner_EN.jpg" class="btn btn-prime-outline" style="padding: 0.42rem 0.8rem; font-size: 0.74rem; text-decoration: none;"><i class="fas fa-download"></i> Banner EN (16:9)</a>
+                            <a href="/images/social/square-it.jpg" download="IndiePlayX_Post_IT.jpg" class="btn btn-prime-outline" style="padding: 0.42rem 0.8rem; font-size: 0.74rem; text-decoration: none;"><i class="fas fa-download"></i> Post Quadrato IT</a>
+                            <a href="/images/social/story-it.jpg" download="IndiePlayX_Story_IT.jpg" class="btn btn-prime-outline" style="padding: 0.42rem 0.8rem; font-size: 0.74rem; text-decoration: none;"><i class="fas fa-download"></i> Story 9:16 IT</a>
+                            <a href="/images/social/og-community-it.jpg" download="IndiePlayX_Community.jpg" class="btn btn-prime-outline" style="padding: 0.42rem 0.8rem; font-size: 0.74rem; text-decoration: none;"><i class="fas fa-download"></i> Community Banner</a>
+                        </div>
+                    </div>
+
                     <button id="save-profile-btn" class="btn btn-prime" style="width: fit-content; padding: 1rem 3rem;">Salva Modifiche</button>
                 </div>
             </div>
@@ -1047,6 +1076,38 @@
         import { ref, uploadBytes } from "firebase/storage";
         import { initLanguageSelectors, getLanguage, autoTranslateDOM } from './src/i18n';
         import { initBackendSystem, getPaymentConfig } from './src/backend-payments';
+        import { buildCreatorReferralLink, initPwaSupport } from './src/community-features';
+        initPwaSupport();
+
+        function setupCreatorReferralBox(userObj) {
+          const inp = document.getElementById('creator-utm-referral-input');
+          const copyBtn = document.getElementById('copy-creator-utm-btn');
+          if (!inp) return;
+          const handle = (userObj?.studioName || userObj?.displayName || userObj?.firstName || userObj?.email?.split('@')[0] || 'creator');
+          const target = userObj?.uid ? `/showcase.html?uid=${encodeURIComponent(userObj.uid)}&dev=${encodeURIComponent(handle)}` : '/';
+          const url = buildCreatorReferralLink(handle, target, 'social');
+          inp.value = url;
+          const shareText = encodeURIComponent(`Scopri i miei giochi indie su INDIE PLAY X! ${url}`);
+          const wa = document.getElementById('share-utm-whatsapp');
+          const xBtn = document.getElementById('share-utm-x');
+          const tg = document.getElementById('share-utm-telegram');
+          if (wa) wa.href = `https://wa.me/?text=${shareText}`;
+          if (xBtn) xBtn.href = `https://twitter.com/intent/tweet?text=${shareText}`;
+          if (tg) tg.href = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent('Scopri i miei giochi indie su INDIE PLAY X!')}`;
+          if (copyBtn) {
+            copyBtn.onclick = async () => {
+              try {
+                await navigator.clipboard.writeText(inp.value);
+                showToast('Link invito UTM copiato negli appunti!', 'success');
+              } catch (e) {
+                inp.select();
+                document.execCommand('copy');
+                showToast('Link invito UTM copiato!', 'success');
+              }
+            };
+          }
+        }
+        subscribeToAuthChanges((u) => { if (u) setupCreatorReferralBox(u); });
 
         // Initialize i18n
         initLanguageSelectors();

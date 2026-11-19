@@ -6,6 +6,7 @@ import { getSubscribersDatabase, syncSubscribersDatabaseFromCloud, exportSubscri
 import { initWoxlyticsTracker } from './woxlytics-tracker';
 import { syncModerationStateFromCloud } from './moderation';
 import { mountBitmemeModerationPanel } from './moderation-ui';
+import { submitWaitlistEmail } from './community-features';
 
 // Hash SHA-256 verificati nativamente via Web Crypto API (zero password in chiaro nel bundle)
 const MAGAZINE_PASSWORD_HASH = 'f5cc70f88b12210cbd1758da2ba5e8de99787c31e70930538d0436be9756470a';
@@ -2577,6 +2578,36 @@ function renderBitBonkSection() {
       if (window.showToast) window.showToast('🃏 Sei iscritto alla lista prioritaria di BITBONK™ Series 01!', 'success');
     };
   }
+
+  // Inietta modulo rapido Email "Avvisami al lancio" BITBONK
+  const bbCardEl = sec.firstElementChild;
+  if (bbCardEl && !document.getElementById('bitbonk-email-waitlist-form')) {
+    const form = document.createElement('form');
+    form.id = 'bitbonk-email-waitlist-form';
+    form.style.cssText = 'margin-top: 1.2rem; padding-top: 1rem; border-top: 1px solid rgba(236, 72, 153, 0.25); display: flex; align-items: center; gap: 10px; flex-wrap: wrap;';
+    form.innerHTML = `
+      <span style="font-size: 0.8rem; font-weight: 800; color: #f9a8d4;"><i class="fas fa-bell"></i> Avvisami al lancio di BITBONK™:</span>
+      <input type="email" id="bitbonk-waitlist-email" required placeholder="Inserisci la tua email..." style="flex: 1; min-width: 210px; padding: 9px 12px; border-radius: 8px; background: rgba(0,0,0,0.45); border: 1px solid rgba(236, 72, 153, 0.4); color: white; font-size: 0.84rem;">
+      <button type="submit" class="btn btn-prime" style="padding: 0.6rem 1.2rem; font-size: 0.82rem; font-weight: 800; background: linear-gradient(135deg, #ec4899, #be185d); border: none;">
+        <i class="fas fa-paper-plane"></i> Iscrivimi
+      </button>
+    `;
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      const inp = document.getElementById('bitbonk-waitlist-email');
+      try {
+        const res = await submitWaitlistEmail('bitbonk', inp?.value || '');
+        saveWaitlistFlag('bitbonk');
+        if (inp) inp.value = '';
+        if (window.showToast) {
+          window.showToast(res.alreadyRegistered ? 'Sei già in lista per BITBONK™!' : '🃏 Email salvata! Ti avviseremo al lancio di BITBONK™ Series 01!', 'success');
+        }
+      } catch (err) {
+        if (window.showToast) window.showToast(err.message || 'Inserisci una email valida.', 'error');
+      }
+    };
+    bbCardEl.appendChild(form);
+  }
 }
 
 function renderMemeConsoleSection() {
@@ -2668,6 +2699,36 @@ function renderMemeConsoleSection() {
       renderMemeConsoleSection();
       if (window.showToast) window.showToast('🚀 Ti sei registrato agli aggiornamenti R&D di MEME CONSOLE (Model MC-01)!', 'success');
     };
+  }
+
+  // Inietta modulo rapido Email "Avvisami al lancio" MEME CONSOLE
+  const cardEl = sec.firstElementChild;
+  if (cardEl && !document.getElementById('meme-email-waitlist-form')) {
+    const form = document.createElement('form');
+    form.id = 'meme-email-waitlist-form';
+    form.style.cssText = 'margin-top: 1.2rem; padding-top: 1rem; border-top: 1px solid rgba(168, 85, 247, 0.28); display: flex; align-items: center; gap: 10px; flex-wrap: wrap;';
+    form.innerHTML = `
+      <span style="font-size: 0.8rem; font-weight: 800; color: #d8b4fe;"><i class="fas fa-bell"></i> Avvisami al lancio di MEME CONSOLE™ MC-01:</span>
+      <input type="email" id="meme-waitlist-email" required placeholder="Inserisci la tua email..." style="flex: 1; min-width: 210px; padding: 9px 12px; border-radius: 8px; background: rgba(0,0,0,0.45); border: 1px solid rgba(168, 85, 247, 0.45); color: white; font-size: 0.84rem;">
+      <button type="submit" class="btn btn-prime" style="padding: 0.6rem 1.2rem; font-size: 0.82rem; font-weight: 800; background: linear-gradient(135deg, #9333ea, #6d28d9); border: none;">
+        <i class="fas fa-paper-plane"></i> Iscrivimi
+      </button>
+    `;
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      const inp = document.getElementById('meme-waitlist-email');
+      try {
+        const res = await submitWaitlistEmail('meme_console', inp?.value || '');
+        saveWaitlistFlag('memeConsole');
+        if (inp) inp.value = '';
+        if (window.showToast) {
+          window.showToast(res.alreadyRegistered ? 'Sei già in lista per MEME CONSOLE™!' : '🚀 Email salvata! Ti avviseremo al lancio di MEME CONSOLE™ MC-01!', 'success');
+        }
+      } catch (err) {
+        if (window.showToast) window.showToast(err.message || 'Inserisci una email valida.', 'error');
+      }
+    };
+    cardEl.appendChild(form);
   }
 }
 

@@ -7,3 +7,5 @@ Disallow: /bitmeme.html
 Disallow: /woxlytics
 Disallow: /woxlytics/
 Disallow: /woxlytics.html
+
+Sitemap: https://www.indieplayx.com/sitemap.xml

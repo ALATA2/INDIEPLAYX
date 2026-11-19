@@ -5,6 +5,8 @@ import { doc, getDoc, collection, getDocs, query, orderBy, limit } from "firebas
 import { initLanguageSelectors, translations, getLanguage, autoTranslateDOM } from './src/i18n';
 import { renderVersionBadge } from './src/version';
 import { initMagazineSystem, initBackendSystem, getPaymentConfig, openQuickBuyModal, addToQuickCart, isGameOwnedExpress, getPortalNews, openPortalNewsReaderModal } from './src/backend-payments';
+import { isInWishlist, toggleWishlist, getWishlist, syncWishlistFromCloud, getNewGamesFromFollowedCreators, markFollowedGamesSeen, initPwaSupport } from './src/community-features';
+initPwaSupport();
 
 // Initialize language selector and translate page
 initLanguageSelectors();
@@ -263,12 +265,22 @@ function createGameCard(game) {
     const placeholderUrl = getAssetUrl('/images/placeholder.png');
     const isFree = game.price === 'FREE' || game.price === '0' || !game.price;
     const isOwned = isGameOwnedExpress(game.id);
+    const inWish = isInWishlist(game.id);
+    const authorName = (game.developer || game.author || 'IndiePlay Creator').trim();
+    const authorUid = game.sellerId || game.authorUid || game.userId || '';
+    const showcaseHref = `${import.meta.env.BASE_URL}showcase.html?${authorUid ? `uid=${encodeURIComponent(authorUid)}&` : ''}dev=${encodeURIComponent(authorName)}`;
     card.innerHTML = `
+        <button type="button" class="card-wishlist-btn ${inWish ? 'saved' : ''}" title="${inWish ? 'Rimuovi dalla Wishlist' : 'Salva nella Wishlist'}" aria-label="Wishlist">
+            <i class="${inWish ? 'fas' : 'far'} fa-heart"></i>
+        </button>
         <img src="${imgUrl}" alt="${game.title}" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='${placeholderUrl}'">
         <div class="card-info">
-            <span class="prime-tag" style="color: #00a8e1; font-weight: bold; font-size: 0.8rem;">${includedTag}</span>
-            <h3>${game.title}</h3>
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: 4px;">
+            <span class="prime-tag" style="color: #00a8e1; font-weight: bold; font-size: 0.78rem;">${includedTag}</span>
+            <h3 style="margin-bottom: 2px;">${game.title}</h3>
+            <a href="${showcaseHref}" class="card-creator-link" title="Vedi profilo e altri giochi di ${authorName}">
+                <i class="fas fa-user-astronaut" style="color:#38bdf8; font-size:0.7rem;"></i> by ${authorName}
+            </a>
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: 6px;">
                 <div class="price" style="margin: 0;">${isFree ? 'GRATIS' : '€' + game.price}</div>
                 <div class="card-quick-buy-bar" style="display: flex; align-items: center; gap: 5px;">
                     ${isOwned ? `
@@ -291,6 +303,23 @@ function createGameCard(game) {
             </div>
         </div>
     `;
+    const wishBtn = card.querySelector('.card-wishlist-btn');
+    if (wishBtn) {
+        wishBtn.onclick = async (e) => {
+            e.stopPropagation();
+            const savedNow = await toggleWishlist(game);
+            wishBtn.classList.toggle('saved', savedNow);
+            wishBtn.innerHTML = `<i class="${savedNow ? 'fas' : 'far'} fa-heart"></i>`;
+            wishBtn.title = savedNow ? 'Rimuovi dalla Wishlist' : 'Salva nella Wishlist';
+            updateWishlistBadgeUI();
+        };
+    }
+    const creatorLink = card.querySelector('.card-creator-link');
+    if (creatorLink) {
+        creatorLink.onclick = (e) => {
+            e.stopPropagation();
+        };
+    }
     const quickBtn = card.querySelector('.card-1click-btn');
     if (quickBtn && !isOwned) {
         quickBtn.onclick = (e) => {
@@ -422,6 +451,9 @@ const loadGames = async () => {
     gameList.innerHTML = '';
     lastVisibleGameDoc = null;
     allGames.slice(0, PAGE_SIZE).forEach(game => gameList.appendChild(createGameCard(game)));
+    renderTopCreatorsLeaderboard(allGames);
+    renderFollowedUpdatesBanner(allGames);
+    updateWishlistBadgeUI();
     loadMoreBtn?.classList.add('hidden');
   }
 
@@ -700,81 +732,324 @@ const initHeroCarousel = () => {
 
 initHeroCarousel();
 
-// Category filtering
-function initCategoryFilters() {
-  const cards = document.querySelectorAll('.genre-card');
-  const gameGridHeader = document.querySelector('.game-section .section-header h2');
-  
-  cards.forEach(card => {
-    card.addEventListener('click', () => {
-      const span = card.querySelector('span span');
-      if (!span) return;
-      const i18nKey = span.getAttribute('data-i18n');
-      
-      const wasActive = card.classList.contains('active');
-      cards.forEach(c => c.classList.remove('active'));
-      
-      if (wasActive) {
-        // Deselect category, show all games
-        if (gameGridHeader) {
-            const lang = getLanguage();
-            const dict = translations[lang] || translations['en'];
-            gameGridHeader.textContent = dict.title_added || "Aggiunti di recente su IndiePlay";
-        }
-        resetStoreGrid();
-      } else {
-        card.classList.add('active');
-        const categoryName = span.textContent.trim();
-        if (gameGridHeader) {
-            gameGridHeader.textContent = categoryName;
-        }
-        filterGamesByCategory(i18nKey);
-      }
-    });
-  });
+// ============================================================================
+// UNIFIED CATEGORIES, SCROLL ARROWS, ADVANCED FILTERS, WISHLIST & CREATORS
+// ============================================================================
+const catalogFilterState = {
+  genreKey: 'all',
+  genreLabel: '',
+  price: 'all',
+  platform: 'all',
+  sort: 'recent',
+  wishlistOnly: false,
+  search: ''
+};
+
+function updateWishlistBadgeUI() {
+  const badge = document.getElementById('wishlist-count-badge');
+  if (badge) badge.textContent = String(getWishlist().length);
+}
+window.addEventListener('indieplay:wishlistchange', () => {
+  updateWishlistBadgeUI();
+  if (catalogFilterState.wishlistOnly) applyCatalogFilters();
+});
+
+function renderFollowedUpdatesBanner(allGames) {
+  const banner = document.getElementById('followed-updates-banner');
+  if (!banner) return;
+  const fresh = getNewGamesFromFollowedCreators(allGames);
+  if (!fresh.length) {
+    banner.classList.add('hidden');
+    return;
+  }
+  banner.classList.remove('hidden');
+  banner.innerHTML = `<i class="fas fa-bell"></i> ${fresh.length} nuov${fresh.length === 1 ? 'o titolo' : 'i titoli'} dai creatori che segui!`;
+  banner.onclick = () => {
+    markFollowedGamesSeen(fresh.map((g) => g.id));
+    banner.classList.add('hidden');
+    if (gameList) {
+      gameList.classList.add('filtered-grid-mode');
+      gameList.innerHTML = '';
+      fresh.forEach((g) => gameList.appendChild(createGameCard(g)));
+      const heading = document.getElementById('main-catalog-heading');
+      if (heading) heading.textContent = 'Novità dai Creatori che Segui';
+    }
+  };
 }
 
-function filterGamesByCategory(i18nKey) {
-  if (!gameList) return;
-  gameList.innerHTML = '';
-  loadMoreBtn?.classList.add('hidden');
+function renderTopCreatorsLeaderboard(allGames) {
+  const grid = document.getElementById('top-creators-grid');
+  if (!grid || !Array.isArray(allGames)) return;
 
-  const map = {
-    'genre_fight': ['Picchiaduro'],
-    'genre_amiga': ['Amiga'],
-    'genre_action': ['Azione', 'Avventura'],
-    'genre_platform': ['Platform'],
-    'genre_horror': ['Horror'],
-    'genre_puzzle': ['Puzzle'],
-    'genre_rpg': ['GDR'],
-    'genre_fps': ['Sparatutto'],
-    'genre_race': ['Corse'],
-    'genre_strategy': ['Strategia', 'Simulazione'],
-    'genre_sport': ['Sport'],
-    'genre_family': ['Bambini e Famiglia', 'Indie', 'Carte']
-  };
+  const creatorMap = new Map();
+  allGames.forEach((g) => {
+    const name = String(g.developer || g.author || 'IndiePlay').trim();
+    if (!name) return;
+    const key = name.toLowerCase();
+    if (!creatorMap.has(key)) {
+      creatorMap.set(key, { name, uid: g.sellerId || g.authorUid || g.userId || '', games: [], score: 0 });
+    }
+    const entry = creatorMap.get(key);
+    if (!entry.uid && (g.sellerId || g.authorUid || g.userId)) entry.uid = g.sellerId || g.authorUid || g.userId;
+    entry.games.push(g);
+    entry.score += 10 + Number(g.downloads || 0) + Number(g.likes || 0) * 2 + Number(g.rating || 4.5) * 3;
+  });
 
-  const targetCategories = map[i18nKey] || [];
-  const filtered = globalAllGames.filter(g => targetCategories.includes(g.category));
+  const ranked = Array.from(creatorMap.values())
+    .sort((a, b) => b.games.length - a.games.length || b.score - a.score)
+    .slice(0, 6);
 
-  if (filtered.length === 0) {
-    gameList.innerHTML = '<div class="loading">Nessun gioco trovato in questa categoria.</div>';
+  if (!ranked.length) {
+    grid.innerHTML = '<div class="loading">Nessun creatore ancora in classifica.</div>';
     return;
   }
 
-  filtered.forEach(game => {
+  const medals = ['🥇', '🥈', '🥉', '⭐', '⭐', '⭐'];
+  grid.innerHTML = ranked.map((c, idx) => {
+    const href = `${import.meta.env.BASE_URL}showcase.html?${c.uid ? `uid=${encodeURIComponent(c.uid)}&` : ''}dev=${encodeURIComponent(c.name)}`;
+    const sampleTitles = c.games.slice(0, 2).map((g) => g.title).filter(Boolean).join(', ');
+    const coverImg = getAssetUrl(c.games[0]?.imageUrl || '/images/placeholder.png');
+    return `
+      <div class="creator-rank-card">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+          <div style="display:flex; align-items:center; gap:10px; min-width:0;">
+            <span style="font-size:1.35rem;">${medals[idx] || '⭐'}</span>
+            <div style="min-width:0;">
+              <div style="font-weight:900; color:white; font-size:0.95rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${c.name}</div>
+              <div style="font-size:0.74rem; color:#38bdf8; font-weight:700;">${c.games.length} ${c.games.length === 1 ? 'titolo pubblicato' : 'titoli pubblicati'}</div>
+            </div>
+          </div>
+          <img src="${coverImg}" alt="${c.name}" style="width:48px; height:36px; object-fit:cover; border-radius:6px; border:1px solid rgba(255,255,255,0.15);" onerror="this.src='/images/placeholder.png'">
+        </div>
+        <div style="font-size:0.76rem; color:#94a3b8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+          <i class="fas fa-gamepad" style="color:#64748b;"></i> ${sampleTitles || 'Giochi Indie'}
+        </div>
+        <a href="${href}" class="btn btn-prime-outline" style="text-decoration:none; padding:0.48rem 0.85rem; font-size:0.76rem; font-weight:800; justify-content:center; text-align:center;">
+          <i class="fas fa-store"></i> Visita Spazio Social &amp; Giochi
+        </a>
+      </div>
+    `;
+  }).join('');
+}
+
+function applyCatalogFilters() {
+  if (!gameList) return;
+  const genreMap = {
+    'genre_fight': ['picchiaduro', 'fighting'],
+    'genre_amiga': ['amiga', 'retro'],
+    'genre_action': ['azione', 'avventura', 'action', 'adventure'],
+    'genre_platform': ['platform', 'piattaforme'],
+    'genre_horror': ['horror', 'survival'],
+    'genre_puzzle': ['puzzle', 'rompicapo'],
+    'genre_rpg': ['gdr', 'rpg', 'ruolo'],
+    'genre_fps': ['sparatutto', 'fps', 'shooter'],
+    'genre_race': ['corse', 'racing', 'volo'],
+    'genre_strategy': ['strategia', 'simulazione', 'strategy', 'simulation'],
+    'genre_sport': ['sport', 'sports'],
+    'genre_family': ['bambini', 'famiglia', 'indie', 'carte', 'arcade', 'casual']
+  };
+
+  const wishSet = new Set(getWishlist());
+  let list = [...globalAllGames];
+
+  if (catalogFilterState.genreKey && catalogFilterState.genreKey !== 'all') {
+    const tokens = genreMap[catalogFilterState.genreKey] || [catalogFilterState.genreKey.toLowerCase()];
+    list = list.filter((g) => {
+      const cat = String(g.category || '').toLowerCase();
+      return tokens.some((tk) => cat.includes(tk));
+    });
+  }
+
+  if (catalogFilterState.price === 'free') {
+    list = list.filter((g) => g.price === 'FREE' || g.price === '0' || !g.price || Number(g.price) === 0);
+  } else if (catalogFilterState.price === 'paid') {
+    list = list.filter((g) => g.price && g.price !== 'FREE' && Number(g.price) > 0);
+  }
+
+  if (catalogFilterState.platform !== 'all') {
+    const pf = catalogFilterState.platform;
+    list = list.filter((g) => {
+      const typeStr = String(g.type || '').toLowerCase();
+      const platStr = `${g.platform || ''} ${g.platforms || ''} ${g.os || ''} ${g.downloadUrl || ''}`.toLowerCase();
+      if (pf === 'web') return typeStr.includes('web') || typeStr.includes('html') || platStr.includes('web') || platStr.includes('browser') || Boolean(g.gameUrl);
+      if (pf === 'windows') return platStr.includes('win') || platStr.includes('.exe') || platStr.includes('.zip') || typeStr === 'download';
+      if (pf === 'mac') return platStr.includes('mac') || platStr.includes('osx') || platStr.includes('.dmg');
+      if (pf === 'android') return platStr.includes('android') || platStr.includes('.apk');
+      return true;
+    });
+  }
+
+  if (catalogFilterState.wishlistOnly) {
+    list = list.filter((g) => wishSet.has(String(g.id)));
+  }
+
+  if (catalogFilterState.search) {
+    const q = catalogFilterState.search;
+    list = list.filter((g) => {
+      const hay = `${g.title || ''} ${g.developer || ''} ${g.author || ''} ${g.category || ''} ${g.desc || ''}`.toLowerCase();
+      return hay.includes(q);
+    });
+  }
+
+  if (catalogFilterState.sort === 'popular') {
+    list.sort((a, b) => (Number(b.downloads || 0) + Number(b.views || 0)) - (Number(a.downloads || 0) + Number(a.views || 0)));
+  } else if (catalogFilterState.sort === 'rated') {
+    list.sort((a, b) => (Number(b.rating || 0) + Number(b.likes || 0)) - (Number(a.rating || 0) + Number(a.likes || 0)));
+  }
+
+  const isAnyFilterActive =
+    catalogFilterState.genreKey !== 'all' ||
+    catalogFilterState.price !== 'all' ||
+    catalogFilterState.platform !== 'all' ||
+    catalogFilterState.sort !== 'recent' ||
+    catalogFilterState.wishlistOnly ||
+    Boolean(catalogFilterState.search);
+
+  const resetBtn = document.getElementById('filter-reset-btn');
+  const summaryEl = document.getElementById('catalog-active-summary');
+  const headingEl = document.getElementById('main-catalog-heading');
+
+  if (resetBtn) resetBtn.classList.toggle('hidden', !isAnyFilterActive);
+  gameList.classList.toggle('filtered-grid-mode', isAnyFilterActive);
+  loadMoreBtn?.classList.add('hidden');
+
+  if (headingEl) {
+    if (catalogFilterState.wishlistOnly) {
+      headingEl.textContent = `❤️ La mia Wishlist (${list.length})`;
+    } else if (catalogFilterState.genreLabel && catalogFilterState.genreKey !== 'all') {
+      headingEl.textContent = `${catalogFilterState.genreLabel} (${list.length})`;
+    } else if (catalogFilterState.search) {
+      headingEl.textContent = `Risultati per "${catalogFilterState.search}" (${list.length})`;
+    } else {
+      const lang = getLanguage();
+      const dict = translations[lang] || translations['en'];
+      headingEl.textContent = dict.title_added || 'Aggiunti di recente su IndiePlay';
+    }
+  }
+
+  if (summaryEl) {
+    if (isAnyFilterActive) {
+      summaryEl.classList.remove('hidden');
+      summaryEl.textContent = `Trovati ${list.length} titoli con i filtri selezionati.`;
+    } else {
+      summaryEl.classList.add('hidden');
+    }
+  }
+
+  gameList.innerHTML = '';
+  if (list.length === 0) {
+    gameList.innerHTML = '<div class="loading" style="grid-column:1/-1; padding:2rem;">Nessun gioco corrisponde ai filtri selezionati. Prova ad azzerare i filtri.</div>';
+    return;
+  }
+
+  (isAnyFilterActive ? list : list.slice(0, PAGE_SIZE)).forEach((game) => {
     gameList.appendChild(createGameCard(game));
   });
 }
 
-async function resetStoreGrid() {
-  if (!gameList) return;
-  gameList.innerHTML = '';
-  lastVisibleGameDoc = null;
-  await fetchNextGamesPage();
+function initCategoryFilters() {
+  const row = document.getElementById('genre-row-scroll') || document.querySelector('.genre-row');
+  const leftBtn = document.getElementById('genre-scroll-left');
+  const rightBtn = document.getElementById('genre-scroll-right');
+  const expandBtn = document.getElementById('genre-expand-btn');
+  const cards = document.querySelectorAll('.genre-card');
+
+  if (row && leftBtn && rightBtn) {
+    leftBtn.onclick = () => row.scrollBy({ left: -340, behavior: 'smooth' });
+    rightBtn.onclick = () => row.scrollBy({ left: 340, behavior: 'smooth' });
+    row.addEventListener('wheel', (e) => {
+      if (!row.classList.contains('expanded-grid') && Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+        e.preventDefault();
+        row.scrollLeft += e.deltaY;
+      }
+    }, { passive: false });
+  }
+
+  if (row && expandBtn) {
+    expandBtn.onclick = () => {
+      const expanded = row.classList.toggle('expanded-grid');
+      expandBtn.classList.toggle('active', expanded);
+      expandBtn.innerHTML = expanded ? '<i class="fas fa-compress-alt"></i> Compatta' : '<i class="fas fa-th-large"></i> Tutte';
+    };
+  }
+
+  cards.forEach((card) => {
+    card.addEventListener('click', () => {
+      const dataGenre = card.getAttribute('data-genre');
+      const span = card.querySelector('span span');
+      const i18nKey = span ? span.getAttribute('data-i18n') : null;
+
+      cards.forEach((c) => c.classList.remove('active', 'active-genre'));
+      card.classList.add('active', 'active-genre');
+
+      if (dataGenre === 'all' || !i18nKey) {
+        catalogFilterState.genreKey = 'all';
+        catalogFilterState.genreLabel = '';
+      } else {
+        catalogFilterState.genreKey = i18nKey;
+        catalogFilterState.genreLabel = span.textContent.trim();
+      }
+      applyCatalogFilters();
+    });
+  });
+
+  document.querySelectorAll('[data-price]').forEach((btn) => {
+    btn.onclick = () => {
+      document.querySelectorAll('[data-price]').forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+      catalogFilterState.price = btn.getAttribute('data-price') || 'all';
+      applyCatalogFilters();
+    };
+  });
+
+  const platformSel = document.getElementById('filter-platform-select');
+  if (platformSel) {
+    platformSel.onchange = (e) => {
+      catalogFilterState.platform = e.target.value;
+      applyCatalogFilters();
+    };
+  }
+
+  const sortSel = document.getElementById('filter-sort-select');
+  if (sortSel) {
+    sortSel.onchange = (e) => {
+      catalogFilterState.sort = e.target.value;
+      applyCatalogFilters();
+    };
+  }
+
+  const wishFilterBtn = document.getElementById('filter-wishlist-btn');
+  if (wishFilterBtn) {
+    wishFilterBtn.onclick = () => {
+      catalogFilterState.wishlistOnly = !catalogFilterState.wishlistOnly;
+      wishFilterBtn.classList.toggle('active', catalogFilterState.wishlistOnly);
+      applyCatalogFilters();
+    };
+  }
+
+  const resetBtn = document.getElementById('filter-reset-btn');
+  if (resetBtn) {
+    resetBtn.onclick = () => {
+      catalogFilterState.genreKey = 'all';
+      catalogFilterState.genreLabel = '';
+      catalogFilterState.price = 'all';
+      catalogFilterState.platform = 'all';
+      catalogFilterState.sort = 'recent';
+      catalogFilterState.wishlistOnly = false;
+      catalogFilterState.search = '';
+      cards.forEach((c) => c.classList.remove('active', 'active-genre'));
+      document.querySelector('.genre-card[data-genre="all"]')?.classList.add('active-genre');
+      document.querySelectorAll('[data-price]').forEach((b) => b.classList.toggle('active', b.getAttribute('data-price') === 'all'));
+      if (platformSel) platformSel.value = 'all';
+      if (sortSel) sortSel.value = 'recent';
+      if (wishFilterBtn) wishFilterBtn.classList.remove('active');
+      const searchInput = document.querySelector('.search-bar input');
+      if (searchInput) searchInput.value = '';
+      applyCatalogFilters();
+    };
+  }
 }
 
-// Global Search functionality
 function initSearchFilter() {
   const searchInput = document.querySelector('.search-bar input');
   if (!searchInput) return;
@@ -783,52 +1058,24 @@ function initSearchFilter() {
   searchInput.addEventListener('input', (e) => {
     clearTimeout(debounceTimeout);
     const query = e.target.value.trim().toLowerCase();
-
     debounceTimeout = setTimeout(() => {
-      executeSearch(query);
-    }, 300);
+      catalogFilterState.search = query;
+      applyCatalogFilters();
+    }, 220);
   });
 
-  // Check for search parameter in URL
   const urlParams = new URLSearchParams(window.location.search);
   const searchQuery = urlParams.get('search');
   if (searchQuery) {
     searchInput.value = searchQuery;
+    catalogFilterState.search = searchQuery.trim().toLowerCase();
     const checkInterval = setInterval(() => {
       if (globalAllGames && globalAllGames.length > 0) {
         clearInterval(checkInterval);
-        executeSearch(searchQuery.trim().toLowerCase());
+        applyCatalogFilters();
       }
     }, 100);
   }
-}
-
-function executeSearch(query) {
-  if (!gameList) return;
-  
-  if (!query) {
-    resetStoreGrid();
-    return;
-  }
-
-  gameList.innerHTML = '';
-  loadMoreBtn?.classList.add('hidden');
-
-  const filtered = globalAllGames.filter(g => {
-    const title = (g.title || '').toLowerCase();
-    const dev = (g.developer || '').toLowerCase();
-    const cat = (g.category || '').toLowerCase();
-    return title.includes(query) || dev.includes(query) || cat.includes(query);
-  });
-
-  if (filtered.length === 0) {
-    gameList.innerHTML = '<div class="loading">Nessun risultato trovato per la tua ricerca.</div>';
-    return;
-  }
-
-  filtered.forEach(game => {
-    gameList.appendChild(createGameCard(game));
-  });
 }
 
 // Help and About Modals
