@@ -11,6 +11,7 @@ import {
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, collection, getDocs, addDoc } from 'firebase/firestore';
 import { sha256Hex } from './security';
+import { syncModerationStateFromCloud, isUserBanned } from './moderation';
 
 export const ADMIN_NOTIFICATION_EMAIL = 'devindieplay@gmail.com';
 const STORAGE_KEY_VIP_SESSION = 'indieplay_vip_seller_session_v1';
@@ -491,8 +492,28 @@ export const loginUser = async (email, password) => {
     }
   }
 
+  await syncModerationStateFromCloud();
+  if (isUserBanned('', cleanEmail)) {
+    throw new Error('Questo account è stato sospeso dalla moderazione di INDIE PLAY X per violazione delle linee guida.');
+  }
+
   const userCredential = await signInWithEmailAndPassword(auth, String(email || '').trim(), password);
   localStorage.removeItem(STORAGE_KEY_VIP_SESSION);
+
+  // Controllo ban su UID e documento Firestore
+  if (isUserBanned(userCredential.user.uid, cleanEmail)) {
+    try { await signOut(auth); } catch (e) {}
+    throw new Error('Questo account è stato sospeso dalla moderazione di INDIE PLAY X per violazione delle linee guida.');
+  }
+  try {
+    const uSnap = await getDoc(doc(db, 'users', userCredential.user.uid));
+    if (uSnap.exists() && uSnap.data()?.banned === true) {
+      try { await signOut(auth); } catch (e) {}
+      throw new Error('Questo account è stato sospeso dalla moderazione di INDIE PLAY X per violazione delle linee guida.');
+    }
+  } catch (banErr) {
+    if (String(banErr?.message || '').includes('sospeso')) throw banErr;
+  }
   return userCredential.user;
 };
 

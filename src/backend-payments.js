@@ -4,6 +4,8 @@ import { getLanguage, autoTranslateDOM } from './i18n';
 import { escapeHTML, safeUrl, sha256Hex, checkRateLimit, resetRateLimit } from './security';
 import { getSubscribersDatabase, syncSubscribersDatabaseFromCloud, exportSubscribersDatabaseCSV, checkAndSendDailySubscribersDigest, getDailySubscribersStats, getActiveUser, ADMIN_NOTIFICATION_EMAIL } from './auth';
 import { initWoxlyticsTracker } from './woxlytics-tracker';
+import { syncModerationStateFromCloud } from './moderation';
+import { mountBitmemeModerationPanel } from './moderation-ui';
 
 // Hash SHA-256 verificati nativamente via Web Crypto API (zero password in chiaro nel bundle)
 const MAGAZINE_PASSWORD_HASH = 'f5cc70f88b12210cbd1758da2ba5e8de99787c31e70930538d0436be9756470a';
@@ -1409,6 +1411,7 @@ function openMagazineCmsModal(articleToEdit = null) {
 export function initBackendSystem() {
   syncPaymentConfigFromCloud();
   syncPortalNewsFromCloud();
+  syncModerationStateFromCloud();
   injectBackendModals();
   injectPortalNewsModals();
   initExpress1ClickSystem();
@@ -3344,6 +3347,7 @@ export async function initBitmemeAdminHub() {
         </div>
       </div>
 
+      ${isBeUnlocked ? '<div id="bm-moderation-panel-root"></div>' : ''}
       ${(isBeUnlocked || isMagUnlocked) ? renderPrivateAnalyticsDashboardHTML() : ''}
     `;
 
@@ -3549,6 +3553,10 @@ export async function initBitmemeAdminHub() {
         renderHub();
         if (window.showToast) window.showToast('Sessione Backend chiusa.', 'info');
       };
+    }
+
+    if (isBeUnlocked) {
+      mountBitmemeModerationPanel('bm-moderation-panel-root');
     }
   };
 

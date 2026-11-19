@@ -764,10 +764,32 @@
         import { subscribeToAuthChanges, logoutUser, isVipSellerEmail, getActiveUser } from './src/auth';
         import { initLanguageSelectors, translations, getLanguage, autoTranslateDOM } from './src/i18n';
         import { initBackendSystem, getPaymentConfig, calculateSplitPayment, validateCardLuhn, recordSplitTransaction, openQuickBuyModal, addToQuickCart, isGameOwnedExpress } from './src/backend-payments';
+        import { syncModerationStateFromCloud, isGameModerated } from './src/moderation';
 
         // Initialize i18n
         initLanguageSelectors();
         initBackendSystem();
+
+        // Check if this game was removed by moderation
+        (async () => {
+            const p = new URLSearchParams(window.location.search);
+            const gid = p.get('id');
+            if (!gid) return;
+            await syncModerationStateFromCloud();
+            if (isGameModerated(gid)) {
+                const mainEl = document.querySelector('main') || document.body;
+                mainEl.innerHTML = `
+                    <div style="max-width:620px; margin:6rem auto; padding:2.5rem; text-align:center; background:rgba(15,23,34,0.96); border:1px solid rgba(239,68,68,0.45); border-radius:18px; color:white;">
+                        <i class="fas fa-ban" style="font-size:3rem; color:#f87171; margin-bottom:1rem;"></i>
+                        <h1 style="margin:0 0 0.7rem; font-size:1.6rem;">Contenuto Rimosso dalla Moderazione</h1>
+                        <p style="color:#94a3b8; font-size:0.95rem; line-height:1.5; margin-bottom:1.5rem;">
+                            Questo gioco non è più disponibile su INDIE PLAY X perché rimosso dallo staff per violazione delle linee guida del portale.
+                        </p>
+                        <a href="/" class="btn btn-prime" style="text-decoration:none; padding:0.8rem 1.4rem;">Torna al Catalogo</a>
+                    </div>
+                `;
+            }
+        })();
         window.addEventListener('indieplay:purchasecomplete', () => {
             loadGameDetails();
         });

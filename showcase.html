@@ -612,6 +612,28 @@
         import { subscribeToAuthChanges } from './src/auth';
         import { initLanguageSelectors, translations, getLanguage, autoTranslateDOM } from './src/i18n';
         import { initBackendSystem, getPaymentConfig, recordSplitTransaction } from './src/backend-payments';
+        import { syncModerationStateFromCloud, isUserBanned } from './src/moderation';
+
+        // Check if this user profile is banned/removed by moderation
+        (async () => {
+            const p = new URLSearchParams(window.location.search);
+            const uParam = p.get('uid') || '';
+            const dParam = p.get('dev') || '';
+            await syncModerationStateFromCloud();
+            if (isUserBanned(uParam, dParam)) {
+                const mainEl = document.querySelector('main') || document.body;
+                mainEl.innerHTML = `
+                    <div style="max-width:620px; margin:6rem auto; padding:2.5rem; text-align:center; background:rgba(15,23,34,0.96); border:1px solid rgba(239,68,68,0.45); border-radius:18px; color:white;">
+                        <i class="fas fa-user-slash" style="font-size:3rem; color:#f87171; margin-bottom:1rem;"></i>
+                        <h1 style="margin:0 0 0.7rem; font-size:1.6rem;">Profilo Sospeso o Rimosso</h1>
+                        <p style="color:#94a3b8; font-size:0.95rem; line-height:1.5; margin-bottom:1.5rem;">
+                            Questo spazio social non è più accessibile perché il profilo è stato rimosso dalla moderazione di INDIE PLAY X per violazione delle linee guida.
+                        </p>
+                        <a href="/" class="btn btn-prime" style="text-decoration:none; padding:0.8rem 1.4rem;">Torna alla Homepage</a>
+                    </div>
+                `;
+            }
+        })();
 
         const getAssetUrl = (path) => {
             if (!path) return '';

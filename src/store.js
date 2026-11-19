@@ -8,6 +8,7 @@ import {
   limit,
   startAfter
 } from "firebase/firestore";
+import { filterModeratedGames, syncModerationStateFromCloud } from './moderation';
 
 const GAMES_COLLECTION = 'games';
 const FAST_CACHE_KEY = 'indieplay_fast_games_v3';
@@ -17,7 +18,7 @@ export function getCachedGamesSync() {
     const raw = localStorage.getItem(FAST_CACHE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed) && parsed.length > 0) return filterModeratedGames(parsed);
     }
   } catch (e) {}
   return null;
@@ -80,7 +81,7 @@ export const getGamesPaged = async (pageSize = 12, lastDoc = null) => {
     querySnapshot.forEach((doc) => {
       games.push({ id: doc.id, ...doc.data() });
     });
-    return { games, lastVisible };
+    return { games: filterModeratedGames(games), lastVisible };
   } catch (error) {
     console.error("Error getting paged games: ", error);
     return { games: [], lastVisible: null };
@@ -88,6 +89,7 @@ export const getGamesPaged = async (pageSize = 12, lastDoc = null) => {
 };
 
 export const getGames = async () => {
+  await syncModerationStateFromCloud();
   try {
     const q = query(collection(db, GAMES_COLLECTION), orderBy('createdAt', 'desc'));
     const querySnapshot = await getDocs(q);
@@ -95,9 +97,10 @@ export const getGames = async () => {
     querySnapshot.forEach((doc) => {
       games.push({ id: doc.id, ...doc.data() });
     });
-    if (games.length > 0) {
-      setCachedGamesSync(games);
-      return games;
+    const cleanGames = filterModeratedGames(games);
+    if (cleanGames.length > 0) {
+      setCachedGamesSync(cleanGames);
+      return cleanGames;
     }
   } catch (error) {
     console.error("Error getting games from Firestore: ", error);
@@ -107,7 +110,7 @@ export const getGames = async () => {
   try {
     const res = await fetch(`${import.meta.env.BASE_URL}games-fast-cache.json`);
     if (res.ok) {
-      const staticGames = await res.json();
+      const staticGames = filterModeratedGames(await res.json());
       if (Array.isArray(staticGames) && staticGames.length > 0) {
         setCachedGamesSync(staticGames);
         return staticGames;
