@@ -3406,6 +3406,25 @@ export async function initBitmemeAdminHub() {
                 </button>
               </div>
 
+              <!-- Interruttore Official IndiePlay Merchandising (Homepage + Navbar) -->
+              <div style="background: ${cfg.merchEnabled !== false ? 'rgba(245, 158, 11, 0.1)' : 'rgba(100, 116, 139, 0.12)'}; border: 1px solid ${cfg.merchEnabled !== false ? 'rgba(251, 191, 36, 0.45)' : 'rgba(148, 163, 184, 0.35)'}; border-radius: 12px; padding: 1rem;">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 0.65rem; flex-wrap: wrap;">
+                  <div style="font-size: 0.84rem; font-weight: 900; color: ${cfg.merchEnabled !== false ? '#fbbf24' : '#94a3b8'};">
+                    <i class="fas fa-shirt"></i> Official IndiePlay Merchandising
+                  </div>
+                  <span style="padding: 3px 9px; border-radius: 999px; font-size: 0.7rem; font-weight: 900; background: ${cfg.merchEnabled !== false ? '#d97706' : '#475569'}; color: white;">
+                    ${cfg.merchEnabled !== false ? 'ATTIVO IN HOMEPAGE' : 'DISATTIVATO'}
+                  </span>
+                </div>
+                <p style="margin: 0 0 0.75rem; font-size: 0.76rem; color: #cbd5e1; line-height: 1.4;">
+                  Mostra o nasconde la sezione Merchandising Ufficiale IndiePlay in Homepage e la relativa voce nel menu in alto.
+                </p>
+                <button type="button" id="bm-toggle-merch-btn" class="btn" style="width: 100%; padding: 0.72rem 0.9rem; font-weight: 900; font-size: 0.8rem; border-radius: 8px; border: none; cursor: pointer; justify-content: center; display: inline-flex; align-items: center; gap: 7px; background: ${cfg.merchEnabled !== false ? '#475569' : '#f59e0b'}; color: ${cfg.merchEnabled !== false ? 'white' : '#0f172a'};">
+                  <i class="fas ${cfg.merchEnabled !== false ? 'fa-eye-slash' : 'fa-eye'}"></i>
+                  ${cfg.merchEnabled !== false ? 'Disattiva Official Merchandising' : 'Attiva Official Merchandising'}
+                </button>
+              </div>
+
               <div style="display: flex; gap: 8px;">
                 <button type="button" id="bm-open-be-console-btn" class="btn btn-prime" style="flex: 1; padding: 0.9rem 1rem; font-weight: 900; background: #f59e0b; color: #0f172a; border: none; justify-content: center; font-size: 0.86rem;">
                   <i class="fas fa-sliders-h"></i> Apri Pannello Completo Backend (10 Voci & Pagamenti)
@@ -3598,6 +3617,25 @@ export async function initBitmemeAdminHub() {
             nextState
               ? '🟢 Bacheca Commenti & Consigli ATTIVATA in Homepage!'
               : '⏸️ Bacheca Commenti & Consigli DISATTIVATA (nascosta in Homepage).',
+            nextState ? 'success' : 'info'
+          );
+        }
+      };
+    }
+
+    // Wire Official Merchandising 1-Click Toggle
+    const toggleMerchBtn = document.getElementById('bm-toggle-merch-btn');
+    if (toggleMerchBtn) {
+      toggleMerchBtn.onclick = async () => {
+        const nextState = getPaymentConfig().merchEnabled === false;
+        toggleMerchBtn.disabled = true;
+        await savePaymentConfig({ merchEnabled: nextState });
+        renderHub();
+        if (window.showToast) {
+          window.showToast(
+            nextState
+              ? '🟢 Official IndiePlay Merchandising ATTIVATO in Homepage e Navbar!'
+              : '⏸️ Official IndiePlay Merchandising DISATTIVATO (nascosto in Homepage e Navbar).',
             nextState ? 'success' : 'info'
           );
         }
