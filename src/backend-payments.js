@@ -8,6 +8,7 @@ import { syncModerationStateFromCloud } from './moderation';
 import { mountBitmemeModerationPanel } from './moderation-ui';
 import { submitWaitlistEmail } from './community-features';
 import { initSupportWidget, renderBitmemeSupportPanel } from './support-center';
+import { renderCommunityBoardSection } from './community-board';
 
 // Hash SHA-256 verificati nativamente via Web Crypto API (zero password in chiaro nel bundle)
 const MAGAZINE_PASSWORD_HASH = 'f5cc70f88b12210cbd1758da2ba5e8de99787c31e70930538d0436be9756470a';
@@ -24,6 +25,7 @@ const DEFAULT_PAYMENT_CONFIG = {
   splitPaymentEnabled: false,       // 2. Split-Payment Automatico verso Sviluppatori (Default: DISATTIVATO)
   strictIbanValidation: false,      // 3. Verifica Matematica IBAN Modulo-97 (Default: DISATTIVATO per test)
   merchEnabled: true,               // 4. Sezione & Acquisti Merchandising Ufficiale (Default: ATTIVO)
+  communityBoardEnabled: true,      // Bacheca Commenti & Consigli Community (Default: ATTIVO)
   magazineVisible: true,            // 5. Sezione IndiePlay Magazine in Homepage (Default: ATTIVO)
   reviewsEnabled: true,             // 6. Invio Nuove Recensioni Utenti (Default: ATTIVO)
   sellerRegistrationEnabled: true,  // 7. Registrazione Venditori & Pubblicazione Giochi (Default: ATTIVO)
@@ -1420,6 +1422,10 @@ export function initBackendSystem() {
   initSpecialProjectsSections();
   initFirstVisitLegalConsentModal();
   initSupportWidget();
+  renderCommunityBoardSection(getPaymentConfig().communityBoardEnabled !== false);
+  window.addEventListener('indieplay:paymentconfigchange', () => {
+    renderCommunityBoardSection(getPaymentConfig().communityBoardEnabled !== false);
+  });
   trackPrivatePageView();
   initWoxlyticsTracker(getLanguage);
   setTimeout(() => {
@@ -3381,6 +3387,25 @@ export async function initBitmemeAdminHub() {
                 </div>
               </div>
 
+              <!-- Interruttore Bacheca Commenti & Consigli Community (sotto Indieplay TV) -->
+              <div style="background: ${cfg.communityBoardEnabled !== false ? 'rgba(16, 185, 129, 0.1)' : 'rgba(100, 116, 139, 0.12)'}; border: 1px solid ${cfg.communityBoardEnabled !== false ? 'rgba(52, 211, 153, 0.45)' : 'rgba(148, 163, 184, 0.35)'}; border-radius: 12px; padding: 1rem;">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 0.65rem; flex-wrap: wrap;">
+                  <div style="font-size: 0.84rem; font-weight: 900; color: ${cfg.communityBoardEnabled !== false ? '#34d399' : '#94a3b8'};">
+                    <i class="fas fa-comments"></i> Bacheca Commenti &amp; Consigli (sotto Indieplay TV)
+                  </div>
+                  <span style="padding: 3px 9px; border-radius: 999px; font-size: 0.7rem; font-weight: 900; background: ${cfg.communityBoardEnabled !== false ? '#059669' : '#475569'}; color: white;">
+                    ${cfg.communityBoardEnabled !== false ? 'ATTIVA IN HOMEPAGE' : 'DISATTIVATA'}
+                  </span>
+                </div>
+                <p style="margin: 0 0 0.75rem; font-size: 0.76rem; color: #cbd5e1; line-height: 1.4;">
+                  Consente agli utenti registrati di pubblicare commenti, consigli e richieste giochi direttamente nella bacheca sotto Indieplay TV.
+                </p>
+                <button type="button" id="bm-toggle-community-board-btn" class="btn" style="width: 100%; padding: 0.72rem 0.9rem; font-weight: 900; font-size: 0.8rem; border-radius: 8px; border: none; cursor: pointer; justify-content: center; display: inline-flex; align-items: center; gap: 7px; background: ${cfg.communityBoardEnabled !== false ? '#475569' : '#10b981'}; color: white;">
+                  <i class="fas ${cfg.communityBoardEnabled !== false ? 'fa-eye-slash' : 'fa-eye'}"></i>
+                  ${cfg.communityBoardEnabled !== false ? 'Disattiva Bacheca Commenti' : 'Attiva Bacheca Commenti'}
+                </button>
+              </div>
+
               <div style="display: flex; gap: 8px;">
                 <button type="button" id="bm-open-be-console-btn" class="btn btn-prime" style="flex: 1; padding: 0.9rem 1rem; font-weight: 900; background: #f59e0b; color: #0f172a; border: none; justify-content: center; font-size: 0.86rem;">
                   <i class="fas fa-sliders-h"></i> Apri Pannello Completo Backend (10 Voci & Pagamenti)
@@ -3554,6 +3579,25 @@ export async function initBitmemeAdminHub() {
             nextState
               ? '🟢 Woxlytics ATTIVATO! Tracciamento e dashboard operativi su /woxlytics.'
               : '⏸️ Woxlytics DISATTIVATO! Il tracciamento visite è in pausa.',
+            nextState ? 'success' : 'info'
+          );
+        }
+      };
+    }
+
+    // Wire Community Board 1-Click Toggle
+    const toggleBoardBtn = document.getElementById('bm-toggle-community-board-btn');
+    if (toggleBoardBtn) {
+      toggleBoardBtn.onclick = async () => {
+        const nextState = getPaymentConfig().communityBoardEnabled === false;
+        toggleBoardBtn.disabled = true;
+        await savePaymentConfig({ communityBoardEnabled: nextState });
+        renderHub();
+        if (window.showToast) {
+          window.showToast(
+            nextState
+              ? '🟢 Bacheca Commenti & Consigli ATTIVATA in Homepage!'
+              : '⏸️ Bacheca Commenti & Consigli DISATTIVATA (nascosta in Homepage).',
             nextState ? 'success' : 'info'
           );
         }

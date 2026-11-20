@@ -5,6 +5,7 @@ import { doc, getDoc, collection, getDocs, query, orderBy, limit } from "firebas
 import { initLanguageSelectors, translations, getLanguage, autoTranslateDOM, translatePage } from './src/i18n';
 import { renderVersionBadge } from './src/version';
 import { initMagazineSystem, initBackendSystem, getPaymentConfig, openQuickBuyModal, addToQuickCart, isGameOwnedExpress, getPortalNews, openPortalNewsReaderModal } from './src/backend-payments';
+import { renderCommunityBoardSection } from './src/community-board';
 import { isInWishlist, toggleWishlist, getWishlist, syncWishlistFromCloud, getNewGamesFromFollowedCreators, markFollowedGamesSeen, initPwaSupport } from './src/community-features';
 initPwaSupport();
 
@@ -580,6 +581,7 @@ const loadGames = async () => {
 
 // State Subscription
 subscribeToAuthChanges(async (user) => {
+  renderCommunityBoardSection(getPaymentConfig().communityBoardEnabled !== false);
   const sellLink = document.getElementById('sell-link');
   if (user) {
     loginBtn.classList.add('hidden');

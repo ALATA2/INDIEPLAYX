@@ -1739,3 +1739,12 @@ input:focus {
   color: #7dd3fc;
   text-decoration: underline;
 }
+
+/* Community Comment Board Section */
+.community-board-card {
+  padding: 1.5rem 1.65rem;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(13, 27, 46, 0.92) 0%, rgba(10, 18, 32, 0.95) 100%);
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.35);
+}
