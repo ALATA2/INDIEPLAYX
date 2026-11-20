@@ -1703,3 +1703,33 @@ input:focus {
   letter-spacing: 0.4px;
   backdrop-filter: blur(4px);
 }
+
+/* Footer Support Email Box */
+.footer-support-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0.9rem auto 1rem;
+  padding: 0.55rem 1.15rem;
+  border-radius: 999px;
+  background: rgba(0, 168, 225, 0.1);
+  border: 1px solid rgba(0, 168, 225, 0.32);
+  color: #cbd5e1;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.footer-support-box i {
+  color: var(--prime-blue, #00a8e1);
+}
+.footer-support-box a {
+  color: #38bdf8;
+  font-weight: 800;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.footer-support-box a:hover {
+  color: #7dd3fc;
+  text-decoration: underline;
+}

@@ -1,5 +1,15 @@
 [
   {
+    "version": "Version 1.11297",
+    "timestamp": "2026-11-20T18:26:57.144Z",
+    "message": "feat(Version 1.11297): spazio email assistenza nel footer su tutte le pagine",
+    "targets": [
+      "Hard Disk (c:\\\\Users\\\\green\\\\Desktop\\\\INDIE-PLAY-X + /dist)",
+      "GitHub (https://github.com/ALATA2/INDIEPLAYX - main)",
+      "Cloudflare Pages & Vercel Hosting (Auto-Deploy su push main)"
+    ]
+  },
+  {
     "version": "Version 1.11296",
     "timestamp": "2026-11-20T17:51:23.598Z",
     "message": "feat(Version 1.11296): sezione Mobile Android (APK) e piattaforme Amiga / Commodore 64",
@@ -483,16 +493,6 @@
     "version": "Version 1.11272",
     "timestamp": "2026-11-17T20:44:23.442Z",
     "message": "feat(Version 1.11272): aggiornamento credenziali amministratore",
-    "targets": [
-      "Hard Disk (c:\\Users\\green\\Desktop\\INDIE-PLAY-X + /dist)",
-      "GitHub (https://github.com/ALATA2/INDIEPLAYX - main)",
-      "Cloudflare Pages & Vercel Hosting (Auto-Deploy su push main)"
-    ]
-  },
-  {
-    "version": "Version 1.11271",
-    "timestamp": "2026-11-17T16:54:09.885Z",
-    "message": "feat(Version 1.11271): aggiornamento simultaneo Hard Disk, GitHub e Hosting",
     "targets": [
       "Hard Disk (c:\\Users\\green\\Desktop\\INDIE-PLAY-X + /dist)",
       "GitHub (https://github.com/ALATA2/INDIEPLAYX - main)",
