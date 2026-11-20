@@ -932,7 +932,7 @@ function applyCatalogFilters() {
       if (pf === 'mac') return platStr.includes('mac') || platStr.includes('osx') || platStr.includes('.dmg');
       if (pf === 'linux') {
         const linuxStr = `${platStr} ${g.fileFormat || ''}`.toLowerCase();
-        return linuxStr.includes('linux') || linuxStr.includes('steamos') || linuxStr.includes('steam deck') || linuxStr.includes('.appimage') || linuxStr.includes('.deb') || linuxStr.includes('.tar.gz');
+        return linuxStr.includes('linux') || linuxStr.includes('.appimage') || linuxStr.includes('.deb') || linuxStr.includes('.tar.gz');
       }
       if (pf === 'android') return isAndroidGame(g);
       if (pf === 'amiga') {
