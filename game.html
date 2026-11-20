@@ -609,7 +609,7 @@
                 <ul style="margin-left: 1.2rem; margin-bottom: 0.5rem; list-style-type: disc;">
                     <li><strong>Esecuzione a proprio rischio:</strong> Il download e l'esecuzione dell'eseguibile avvengono sotto la tua esclusiva responsabilità.</li>
                     <li><strong>Esonero da responsabilità:</strong> IndiePlay declina ogni responsabilità per eventuali bug, incompatibilità con il tuo sistema operativo, perdite di dati o malfunzionamenti hardware/software.</li>
-                    <li><strong>Consiglio di sicurezza:</strong> Assicurati di disporre di un software antivirus aggiornato prima di estrarre l'archivio ZIP.</li>
+                    <li><strong>Consiglio di sicurezza:</strong> Assicurati di disporre di un software antivirus aggiornato prima di estrarre l'archivio ZIP o installare un pacchetto APK su Android.</li>
                 </ul>
             </div>
 
@@ -968,7 +968,7 @@ async function loadGameDetails() {
                         "@type": "VideoGame",
                         "name": game.title || "Indie Game",
                         "genre": game.category || "Indie",
-                        "gamePlatform": ["PC", "Web Browser"],
+                        "gamePlatform": (game.type === 'android' || String(game.platform || '').toLowerCase().includes('android')) ? ["Android", "Mobile"] : (String(game.platform || '').toLowerCase().includes('amiga') ? ["Amiga"] : (String(game.platform || '').toLowerCase().includes('c64') || String(game.platform || '').toLowerCase().includes('commodore') ? ["Commodore 64"] : ["PC", "Web Browser"])),
                         "author": { "@type": "Organization", "name": game.developer || "IndiePlay-X" },
                         "description": game.desc || "Videogioco indipendente su INDIE PLAY X",
                         "offers": {
@@ -1032,16 +1032,30 @@ async function loadGameDetails() {
                     const isFree = game.price === 'FREE' || game.price === '0' || !game.price;
                     const priceLabel = isFree ? 'GRATIS' : `€${game.price}`;
 
-                    const hasDownload = game.type === 'download' || game.type === 'both' || (game.content && !game.content.startsWith('http')) || game.downloadUrl;
+                    const isAndroidGame = game.type === 'android' ||
+                        String(game.platform || '').toLowerCase().includes('android') ||
+                        String(game.category || '').toLowerCase().includes('android') ||
+                        String(game.fileFormat || '').toLowerCase().includes('apk') ||
+                        String(game.downloadUrl || game.content || '').toLowerCase().includes('.apk') ||
+                        String(game.downloadUrl || game.content || '').toLowerCase().includes('.xapk');
+                    const isAmigaGame = String(game.platform || '').toLowerCase().includes('amiga') ||
+                        String(game.category || '').toLowerCase().includes('amiga') ||
+                        /\.(adf|lha|dms|hdf)$/i.test(String(game.downloadUrl || game.content || ''));
+                    const isC64Game = String(game.platform || '').toLowerCase().includes('c64') ||
+                        String(game.platform || '').toLowerCase().includes('commodore') ||
+                        String(game.category || '').toLowerCase().includes('c64') ||
+                        String(game.category || '').toLowerCase().includes('commodore') ||
+                        /\.(d64|prg|crt|t64|tap)$/i.test(String(game.downloadUrl || game.content || ''));
+                    const hasDownload = game.type === 'download' || game.type === 'android' || game.type === 'both' || (game.content && !game.content.startsWith('http')) || game.downloadUrl;
                     const hasOnline = game.type === 'online' || game.type === 'browser' || game.type === 'both' || game.onlineUrl || (game.content && game.content.startsWith('http'));
                     const onlineUrl = game.onlineUrl || (game.content && game.content.startsWith('http') ? game.content : 'https://miogioco.com/play-demo-simulated');
-                    const downloadPath = (game.content && !game.content.startsWith('http')) ? game.content : (game.downloadUrl || `games/${gameId}/game.zip`);
+                    const downloadPath = (game.content && !game.content.startsWith('http')) ? game.content : (game.downloadUrl || `games/${gameId}/${isAndroidGame ? 'game.apk' : 'game.zip'}`);
 
                     const lang = getLanguage();
                     const dict = translations[lang] || translations['en'];
 
-                    let modalityLabel = 'Download';
-                    if (hasOnline && hasDownload) modalityLabel = 'Online + Download';
+                    let modalityLabel = isAndroidGame ? 'Mobile Android (APK)' : 'Download';
+                    if (hasOnline && hasDownload) modalityLabel = isAndroidGame ? 'Online + Android APK' : 'Online + Download';
                     else if (hasOnline) modalityLabel = 'Online Cloud';
 
                     // Update Meta info
@@ -1051,6 +1065,9 @@ async function loadGameDetails() {
                     metaSection.innerHTML = `
                         <span class="prime-badge-large">${dict.game_included}</span>
                         <span>${game.category || 'Azione'} • ${modalityLabel}</span>
+                        ${isAndroidGame ? '<span style="background:rgba(61,220,132,0.16); border:1px solid rgba(61,220,132,0.45); color:#3ddc84; padding:2px 9px; border-radius:999px; font-size:0.78rem; font-weight:800;"><i class="fab fa-android"></i> Android APK</span>' : ''}
+                        ${isAmigaGame ? '<span style="background:rgba(251,191,36,0.16); border:1px solid rgba(251,191,36,0.45); color:#fbbf24; padding:2px 9px; border-radius:999px; font-size:0.78rem; font-weight:800;"><i class="fas fa-floppy-disk"></i> Amiga</span>' : ''}
+                        ${isC64Game ? '<span style="background:rgba(56,189,248,0.16); border:1px solid rgba(56,189,248,0.45); color:#38bdf8; padding:2px 9px; border-radius:999px; font-size:0.78rem; font-weight:800;"><i class="fas fa-floppy-disk"></i> Commodore 64</span>' : ''}
                         <span style="font-weight: bold; color: var(--prime-blue);">${priceLabel}</span>
                         <span>Sviluppatore: <a href="${devLink}" style="color: var(--prime-blue); font-weight: 700; text-decoration: none;">${devName}</a></span>
                     `;
@@ -1093,7 +1110,7 @@ async function loadGameDetails() {
                                 extraDownloadBtn.style.marginLeft = '10px';
                                 actionBar.appendChild(extraDownloadBtn);
                             }
-                            extraDownloadBtn.innerHTML = `<i class="fas fa-download"></i> ${dict.game_download}`;
+                            extraDownloadBtn.innerHTML = isAndroidGame ? `<i class="fab fa-android"></i> ${dict.game_download_apk || 'Scarica APK (Android)'}` : `<i class="fas fa-download"></i> ${dict.game_download}`;
                             extraDownloadBtn.onclick = () => {
                                 openDisclaimerModal(downloadPath, game.title);
                             };
@@ -1105,7 +1122,7 @@ async function loadGameDetails() {
                             };
                         } else {
                             if (extraDownloadBtn) extraDownloadBtn.remove();
-                            playBtn.innerHTML = `<i class="fas fa-download"></i> ${dict.game_download}`;
+                            playBtn.innerHTML = isAndroidGame ? `<i class="fab fa-android"></i> ${dict.game_download_apk || 'Scarica APK (Android)'}` : `<i class="fas fa-download"></i> ${dict.game_download}`;
                             playBtn.onclick = () => {
                                 openDisclaimerModal(downloadPath, game.title);
                             };
@@ -1579,7 +1596,10 @@ async function loadGameDetails() {
                     const link = document.createElement('a');
                     link.href = downloadUrl;
                     link.setAttribute('target', '_blank');
-                    link.setAttribute('download', `${pendingDownload.title.replace(/\s+/g, '_')}.zip`);
+                    const lowerPath = String(pendingDownload.filePath || '').toLowerCase();
+                    const knownExts = ['apk', 'xapk', 'adf', 'lha', 'dms', 'hdf', 'd64', 'prg', 'crt', 't64', 'tap', 'zip'];
+                    const fileExt = knownExts.find((e) => lowerPath.endsWith('.' + e)) || 'zip';
+                    link.setAttribute('download', `${pendingDownload.title.replace(/\s+/g, '_')}.${fileExt}`);
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);

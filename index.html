@@ -112,6 +112,7 @@
                 </a>
                 <ul class="nav-links">
                     <li><a href="#store" class="active" data-i18n="nav_home">Home</a></li>
+                    <li><a href="#android-section" data-i18n="nav_android" style="color: #3ddc84; font-weight: 800;"><i class="fab fa-android" style="font-size: 0.9rem; margin-right: 4px;"></i>Mobile Android</a></li>
                     <li><a href="#merch-section" data-i18n="nav_merch">Merchandising</a></li>
                     <li><a href="#magazine-section" data-i18n="nav_magazine">Magazine</a></li>
                     <li><a href="#bitbonk-section" data-i18n="nav_bitbonk" style="color: #f472b6; font-weight: 800;"><i class="fas fa-clone" style="font-size: 0.8rem; margin-right: 4px;"></i>BitBonk</a></li>
@@ -215,6 +216,10 @@
                         <i class="fas fa-border-all"></i>
                         <span>Tutti i Giochi</span>
                     </div>
+                    <div class="genre-card genre-card-android" data-genre="Mobile Android">
+                        <i class="fab fa-android" style="color: #3ddc84;"></i>
+                        <span><span data-i18n="genre_android">Mobile Android (APK)</span> &gt;</span>
+                    </div>
                     <div class="genre-card" data-genre="Picchiaduro">
                         <i class="fas fa-hand-fist"></i>
                         <span><span data-i18n="genre_fight">Picchiaduro</span> &gt;</span>
@@ -281,7 +286,9 @@
                         <option value="web">Web / Browser</option>
                         <option value="windows">Windows PC</option>
                         <option value="mac">macOS</option>
-                        <option value="android">Android</option>
+                        <option value="android">Mobile Android (APK)</option>
+                        <option value="amiga">Amiga</option>
+                        <option value="c64">Commodore 64</option>
                     </select>
                 </div>
                 <div class="filter-group">
@@ -314,6 +321,37 @@
             </div>
             <div style="text-align: center; margin-top: 1.5rem;">
                 <button id="load-more-btn" class="btn btn-prime-outline hidden" style="padding: 0.8rem 2.5rem;" data-i18n="btn_load_more">Carica Altri</button>
+            </div>
+        </section>
+
+        <!-- Sezione Dedicata Videogiochi Mobile Android (APK) -->
+        <section class="game-section android-mobile-section" id="android-section">
+            <div class="section-header" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+                <div>
+                    <span class="android-section-badge">
+                        <i class="fab fa-android"></i> MOBILE ANDROID • FORMATO .APK
+                    </span>
+                    <h2 style="margin:6px 0 0; display:flex; align-items:center; gap:10px;">
+                        <span data-i18n="title_android">Videogiochi Mobile Android</span>
+                    </h2>
+                </div>
+                <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                    <button type="button" id="filter-android-shortcut-btn" class="btn btn-prime-outline" style="font-size:0.82rem; padding:0.55rem 1.05rem; border-color:rgba(61,220,132,0.45); color:#86efac;">
+                        <i class="fas fa-filter"></i> Filtra nel Catalogo
+                    </button>
+                    <a href="account.html?tab=publish&platform=android" class="btn btn-prime" style="text-decoration:none; font-size:0.82rem; padding:0.55rem 1.15rem; background:linear-gradient(135deg, #16a34a, #22c55e); border:none; color:#04120a; font-weight:800;">
+                        <i class="fab fa-android"></i> Pubblica Gioco Android (.APK)
+                    </a>
+                </div>
+            </div>
+            <div class="android-info-strip">
+                <i class="fas fa-mobile-screen-button" style="color:#3ddc84; font-size:1.15rem; flex-shrink:0;"></i>
+                <div>
+                    <strong>Distribuzione diretta in formato <code>.APK</code> (Android Package):</strong> scarica il pacchetto sul tuo smartphone o tablet Android e avvia l'installazione diretta (abilitando <em>"Installa app sconosciute"</em> dalle impostazioni se richiesto). Supportati anche archivi <code>.XAPK</code> e <code>.ZIP</code>.
+                </div>
+            </div>
+            <div id="android-games-grid" class="game-row">
+                <div class="loading">Caricamento giochi Mobile Android...</div>
             </div>
         </section>
 
@@ -506,7 +544,7 @@
         <section id="seo-about-portal" class="game-section" style="margin-top: 2rem; padding: 1.6rem 5%; border-top: 1px solid rgba(255,255,255,0.06); color: #8197a4; font-size: 0.85rem; line-height: 1.65;">
             <h2 style="font-size: 1.05rem; color: #cbd5e1; font-weight: 800; margin-bottom: 0.5rem;">INDIE PLAY X: Il Portale Alternativo per Scaricare Videogiochi Indie e Scoprire Nuove Realtà</h2>
             <p style="margin: 0;">
-                Su <strong>INDIE PLAY X</strong> puoi trovare e <strong>scaricare videogiochi indie per PC</strong>, giocare subito a <strong>browser game gratis</strong> senza installazione e riscoprire titoli <strong>retro Amiga</strong>, action cyberpunk, roguelike e avventure create da studi indipendenti e nuovi talenti. Un <strong>portale alternativo</strong> aperto a tutti gli sviluppatori per pubblicare giochi, condividere progetti nella community social, leggere l'<strong>IndiePlay Magazine</strong> e sostenere i creator indipendenti.
+                Su <strong>INDIE PLAY X</strong> puoi trovare e <strong>scaricare videogiochi indie per PC</strong>, <strong>giochi Mobile Android (.APK)</strong>, giocare subito a <strong>browser game gratis</strong> senza installazione e riscoprire titoli <strong>retro Amiga</strong>, action cyberpunk, roguelike e avventure create da studi indipendenti e nuovi talenti. Un <strong>portale alternativo</strong> aperto a tutti gli sviluppatori per pubblicare giochi, condividere progetti nella community social, leggere l'<strong>IndiePlay Magazine</strong> e sostenere i creator indipendenti.
             </p>
         </section>
     </main>

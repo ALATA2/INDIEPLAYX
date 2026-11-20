@@ -250,6 +250,23 @@ logoutBtn.onclick = async () => {
 };
 
 // Store Handlers
+function isAndroidGame(game) {
+    if (!game) return false;
+    const typeStr = String(game.type || '').toLowerCase();
+    const catStr = String(game.category || '').toLowerCase();
+    const fmtStr = String(game.fileFormat || '').toLowerCase();
+    const platStr = `${game.platform || ''} ${game.platforms || ''} ${game.os || ''} ${game.downloadUrl || ''} ${game.content || ''}`.toLowerCase();
+    return (
+        typeStr === 'android' ||
+        fmtStr.includes('apk') ||
+        platStr.includes('android') ||
+        platStr.includes('.apk') ||
+        platStr.includes('.xapk') ||
+        catStr.includes('android') ||
+        catStr.includes('mobile')
+    );
+}
+
 function createGameCard(game) {
     const lang = getLanguage();
     const dict = translations[lang] || translations['en'];
@@ -266,10 +283,12 @@ function createGameCard(game) {
     const isFree = game.price === 'FREE' || game.price === '0' || !game.price;
     const isOwned = isGameOwnedExpress(game.id);
     const inWish = isInWishlist(game.id);
+    const isAndroid = isAndroidGame(game);
     const authorName = (game.developer || game.author || 'IndiePlay Creator').trim();
     const authorUid = game.sellerId || game.authorUid || game.userId || '';
     const showcaseHref = `${import.meta.env.BASE_URL}showcase.html?${authorUid ? `uid=${encodeURIComponent(authorUid)}&` : ''}dev=${encodeURIComponent(authorName)}`;
     card.innerHTML = `
+        ${isAndroid ? '<span class="card-android-badge" title="Videogioco Mobile Android (.APK)"><i class="fab fa-android"></i> APK</span>' : ''}
         <button type="button" class="card-wishlist-btn ${inWish ? 'saved' : ''}" title="${inWish ? 'Rimuovi dalla Wishlist' : 'Salva nella Wishlist'}" aria-label="Wishlist">
             <i class="${inWish ? 'fas' : 'far'} fa-heart"></i>
         </button>
@@ -341,6 +360,35 @@ const newsGrid = document.getElementById('news-grid');
 const bestsellersGrid = document.getElementById('bestsellers-grid');
 const dealsGrid = document.getElementById('deals-grid');
 const recentGamesGrid = document.getElementById('recent-games-grid');
+const androidGamesGrid = document.getElementById('android-games-grid');
+
+function renderAndroidGamesSection(allGames) {
+    if (!androidGamesGrid) return;
+    const androidGames = (Array.isArray(allGames) ? allGames : []).filter(isAndroidGame);
+    androidGamesGrid.innerHTML = '';
+    if (androidGames.length === 0) {
+        androidGamesGrid.innerHTML = `
+            <div class="android-empty-card">
+                <div style="display:flex; align-items:center; gap:14px; min-width:240px; flex:1;">
+                    <div style="width:48px; height:48px; border-radius:12px; background:rgba(61,220,132,0.14); border:1px solid rgba(61,220,132,0.4); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                        <i class="fab fa-android" style="color:#3ddc84; font-size:1.6rem;"></i>
+                    </div>
+                    <div>
+                        <div style="font-weight:900; color:white; font-size:1rem; margin-bottom:3px;">Sezione Mobile Android pronta per i primi titoli!</div>
+                        <div style="font-size:0.84rem; color:#94a3b8;">Sei uno sviluppatore Android? Carica il tuo videogioco in formato <strong>.APK</strong> (o <strong>.XAPK/.ZIP</strong>) direttamente dal tuo pannello Creator.</div>
+                    </div>
+                </div>
+                <a href="account.html?tab=publish&platform=android" class="btn btn-prime" style="text-decoration:none; background:linear-gradient(135deg, #16a34a, #22c55e); border:none; color:#04120a; font-weight:800; white-space:nowrap;">
+                    <i class="fas fa-upload"></i> Carica il primo APK
+                </a>
+            </div>
+        `;
+        return;
+    }
+    androidGames.forEach((game) => {
+        androidGamesGrid.appendChild(createGameCard(game));
+    });
+}
 
 let globalAllGames = [];
 let lastVisibleGameDoc = null;
@@ -451,6 +499,7 @@ const loadGames = async () => {
     gameList.innerHTML = '';
     lastVisibleGameDoc = null;
     allGames.slice(0, PAGE_SIZE).forEach(game => gameList.appendChild(createGameCard(game)));
+    renderAndroidGamesSection(allGames);
     renderTopCreatorsLeaderboard(allGames);
     renderFollowedUpdatesBanner(allGames);
     updateWishlistBadgeUI();
@@ -835,8 +884,9 @@ function renderTopCreatorsLeaderboard(allGames) {
 function applyCatalogFilters() {
   if (!gameList) return;
   const genreMap = {
+    'genre_android': ['android', 'mobile', 'apk'],
     'genre_fight': ['picchiaduro', 'fighting'],
-    'genre_amiga': ['amiga', 'retro'],
+    'genre_amiga': ['amiga', 'retro', 'c64', 'commodore'],
     'genre_action': ['azione', 'avventura', 'action', 'adventure'],
     'genre_platform': ['platform', 'piattaforme'],
     'genre_horror': ['horror', 'survival'],
@@ -853,11 +903,15 @@ function applyCatalogFilters() {
   let list = [...globalAllGames];
 
   if (catalogFilterState.genreKey && catalogFilterState.genreKey !== 'all') {
-    const tokens = genreMap[catalogFilterState.genreKey] || [catalogFilterState.genreKey.toLowerCase()];
-    list = list.filter((g) => {
-      const cat = String(g.category || '').toLowerCase();
-      return tokens.some((tk) => cat.includes(tk));
-    });
+    if (catalogFilterState.genreKey === 'genre_android') {
+      list = list.filter((g) => isAndroidGame(g));
+    } else {
+      const tokens = genreMap[catalogFilterState.genreKey] || [catalogFilterState.genreKey.toLowerCase()];
+      list = list.filter((g) => {
+        const cat = String(g.category || '').toLowerCase();
+        return tokens.some((tk) => cat.includes(tk));
+      });
+    }
   }
 
   if (catalogFilterState.price === 'free') {
@@ -874,7 +928,15 @@ function applyCatalogFilters() {
       if (pf === 'web') return typeStr.includes('web') || typeStr.includes('html') || platStr.includes('web') || platStr.includes('browser') || Boolean(g.gameUrl);
       if (pf === 'windows') return platStr.includes('win') || platStr.includes('.exe') || platStr.includes('.zip') || typeStr === 'download';
       if (pf === 'mac') return platStr.includes('mac') || platStr.includes('osx') || platStr.includes('.dmg');
-      if (pf === 'android') return platStr.includes('android') || platStr.includes('.apk');
+      if (pf === 'android') return isAndroidGame(g);
+      if (pf === 'amiga') {
+        const amigaStr = `${platStr} ${g.category || ''} ${g.fileFormat || ''}`.toLowerCase();
+        return amigaStr.includes('amiga') || amigaStr.includes('.adf') || amigaStr.includes('.lha') || amigaStr.includes('.dms') || amigaStr.includes('.hdf');
+      }
+      if (pf === 'c64') {
+        const c64Str = `${platStr} ${g.category || ''} ${g.fileFormat || ''}`.toLowerCase();
+        return c64Str.includes('c64') || c64Str.includes('commodore') || c64Str.includes('.d64') || c64Str.includes('.prg') || c64Str.includes('.crt') || c64Str.includes('.t64') || c64Str.includes('.tap');
+      }
       return true;
     });
   }
@@ -1007,6 +1069,16 @@ function initCategoryFilters() {
     platformSel.onchange = (e) => {
       catalogFilterState.platform = e.target.value;
       applyCatalogFilters();
+    };
+  }
+
+  const androidShortcutBtn = document.getElementById('filter-android-shortcut-btn');
+  if (androidShortcutBtn) {
+    androidShortcutBtn.onclick = () => {
+      catalogFilterState.platform = 'android';
+      if (platformSel) platformSel.value = 'android';
+      applyCatalogFilters();
+      document.getElementById('store')?.scrollIntoView({ behavior: 'smooth' });
     };
   }
 

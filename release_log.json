@@ -1,5 +1,15 @@
 [
   {
+    "version": "Version 1.11296",
+    "timestamp": "2026-11-20T17:51:23.598Z",
+    "message": "feat(Version 1.11296): sezione Mobile Android (APK) e piattaforme Amiga / Commodore 64",
+    "targets": [
+      "Hard Disk (c:\\\\Users\\\\green\\\\Desktop\\\\INDIE-PLAY-X + /dist)",
+      "GitHub (https://github.com/ALATA2/INDIEPLAYX - main)",
+      "Cloudflare Pages & Vercel Hosting (Auto-Deploy su push main)"
+    ]
+  },
+  {
     "version": "Version 1.11295",
     "timestamp": "2026-11-19T22:30:18.343Z",
     "message": "feat(Version 1.11295): categorie scorrevoli+espandibili e filtri avanzati, autore visibile e altri giochi del creatore, classifica Top Indie Creators, Wishlist+notifiche, SEO/OG/sitemap/PWA, referral UTM e waitlist email BITBONK e MEME CONSOLE",
@@ -482,16 +492,6 @@
   {
     "version": "Version 1.11271",
     "timestamp": "2026-11-17T16:54:09.885Z",
-    "message": "feat(Version 1.11271): aggiornamento simultaneo Hard Disk, GitHub e Hosting",
-    "targets": [
-      "Hard Disk (c:\\Users\\green\\Desktop\\INDIE-PLAY-X + /dist)",
-      "GitHub (https://github.com/ALATA2/INDIEPLAYX - main)",
-      "Cloudflare Pages & Vercel Hosting (Auto-Deploy su push main)"
-    ]
-  },
-  {
-    "version": "Version 1.11271",
-    "timestamp": "2026-11-17T16:53:00.801Z",
     "message": "feat(Version 1.11271): aggiornamento simultaneo Hard Disk, GitHub e Hosting",
     "targets": [
       "Hard Disk (c:\\Users\\green\\Desktop\\INDIE-PLAY-X + /dist)",

@@ -655,9 +655,11 @@
                             <label>Categoria</label>
                             <select id="game-category" style="width: 100%; padding: 12px; background: #2a343f; border: 1px solid #3a444f; color: white; border-radius: 4px;">
                                 <option value="Azione">Azione</option>
+                                <option value="Mobile Android">Mobile Android (APK)</option>
                                 <option value="Avventura">Avventura</option>
                                 <option value="Picchiaduro">Picchiaduro</option>
                                 <option value="Amiga">Amiga / Retro Amiga</option>
+                                <option value="Commodore 64">Commodore 64 / Retro C64</option>
                                 <option value="GDR">GDR / Giochi di Ruolo</option>
                                 <option value="Sparatutto">Sparatutto / FPS</option>
                                 <option value="Platform">Platform</option>
@@ -676,7 +678,8 @@
                         <div class="form-group" style="flex: 1;">
                             <label>Modalità di Fruizione</label>
                             <select id="game-type" style="width: 100%; padding: 12px; background: #2a343f; border: 1px solid #3a444f; color: white; border-radius: 4px;">
-                                <option value="download">Solo Download (File ZIP)</option>
+                                <option value="download">Solo Download PC (File ZIP)</option>
+                                <option value="android">Mobile Android (File APK)</option>
                                 <option value="online">Solo Gioca Online (Cloud URL)</option>
                                 <option value="browser">Solo Browser Game (HTML5 URL)</option>
                                 <option value="both">Download & Gioca Online (Entrambi)</option>
@@ -684,12 +687,29 @@
                         </div>
                     </div>
 
+                    <div class="form-group">
+                        <label>Piattaforma di Destinazione</label>
+                        <select id="game-platform" style="width: 100%; padding: 12px; background: #2a343f; border: 1px solid #3a444f; color: white; border-radius: 4px;">
+                            <option value="pc">PC (Windows / macOS / Linux)</option>
+                            <option value="android">Mobile Android (APK)</option>
+                            <option value="amiga">Amiga (ADF / LHA / WHDLoad / ZIP)</option>
+                            <option value="c64">Commodore 64 (D64 / PRG / CRT / T64 / ZIP)</option>
+                            <option value="web">Web / Browser (HTML5)</option>
+                            <option value="multi">Multi-piattaforma (PC + Android)</option>
+                        </select>
+                    </div>
+
                     <div id="game-content-download" class="form-group">
-                        <label>Carica il Gioco (Archivio ZIP)</label>
+                        <label id="game-download-label">Carica il Gioco (Archivio ZIP)</label>
                         <div class="upload-box" onclick="document.getElementById('game-zip').click()">
-                            <i class="fas fa-file-archive" style="font-size: 1.5rem; margin-bottom: 8px; display: block;"></i>
+                            <i id="game-upload-icon" class="fas fa-file-archive" style="font-size: 1.5rem; margin-bottom: 8px; display: block;"></i>
                             <span id="zip-name">Seleziona il file .zip del gioco</span>
-                            <input type="file" id="game-zip" hidden accept=".zip">
+                            <input type="file" id="game-zip" hidden accept=".zip,.apk,.xapk">
+                        </div>
+                        <div id="android-apk-hint" class="hidden" style="margin-top: 8px; font-size: 0.78rem; color: #86efac; background: rgba(61, 220, 132, 0.1); border: 1px solid rgba(61, 220, 132, 0.35); padding: 8px 11px; border-radius: 6px; line-height: 1.4;">
+                            <i class="fab fa-android" style="color: #3ddc84;"></i> <strong>Formato Android consigliato: <code>.APK</code></strong> (Android Package) — installabile direttamente su smartphone e tablet Android. Supportati anche <code>.XAPK</code> e <code>.ZIP</code>. <em>(Nota: il formato <code>.AAB</code> è solo per Google Play Store e non è installabile direttamente dagli utenti.)</em>
+                        </div>
+                        <div style="display:none;">
                         </div>
                     </div>
 
@@ -1312,6 +1332,11 @@
             galleryPreviews.innerHTML = '';
             zipName.innerText = 'Seleziona il file .zip del gioco';
             gameZip.value = '';
+            const gpEl = document.getElementById('game-platform');
+            if (gpEl) gpEl.value = 'pc';
+            const gtEl = document.getElementById('game-type');
+            if (gtEl) gtEl.value = 'download';
+            if (typeof updateGameTypeFields === 'function') updateGameTypeFields();
             const publishInputs = document.querySelectorAll('#publish-section input, #publish-section textarea');
             publishInputs.forEach(input => {
                 if (input.type === 'checkbox') input.checked = false;
@@ -1346,10 +1371,14 @@
                 document.getElementById('game-desc').value = game.desc || '';
                 document.getElementById('game-category').value = game.category || 'Azione';
                 document.getElementById('game-type').value = game.type || 'download';
+                const editPlatformEl = document.getElementById('game-platform');
+                if (editPlatformEl) {
+                    editPlatformEl.value = game.platform || (game.type === 'android' ? 'android' : (game.type === 'browser' || game.type === 'online' ? 'web' : 'pc'));
+                }
                 document.getElementById('game-merch').value = game.merch || '';
 
                 // Handle game content URL & ZIP
-                if (game.type === 'download') {
+                if (game.type === 'download' || game.type === 'android') {
                     contentDownload.classList.remove('hidden');
                     contentUrl.classList.add('hidden');
                     zipName.innerText = game.content ? `File precedentemente caricato: ${game.content}` : 'Seleziona il file .zip del gioco';
@@ -1749,6 +1778,15 @@
                         showDashboardBtn.click();
                     } else if (tabParam === 'publish' || tabParam === 'pubblica') {
                         showPublishBtn.click();
+                        if ((urlParams.get('platform') || '').toLowerCase() === 'android') {
+                            const gpEl = document.getElementById('game-platform');
+                            const gtEl = document.getElementById('game-type');
+                            const gcEl = document.getElementById('game-category');
+                            if (gpEl) gpEl.value = 'android';
+                            if (gtEl) gtEl.value = 'android';
+                            if (gcEl) gcEl.value = 'Mobile Android';
+                            if (typeof updateGameTypeFields === 'function') updateGameTypeFields();
+                        }
                     } else if (tabParam === 'payments' || tabParam === 'pagamenti') {
                         showPaymentsBtn.click();
                     } else if (tabParam === 'profile' || tabParam === 'profilo') {
@@ -2068,6 +2106,10 @@
         };
 
         const gameType = document.getElementById('game-type');
+        const gamePlatform = document.getElementById('game-platform');
+        const gameDownloadLabel = document.getElementById('game-download-label');
+        const gameUploadIcon = document.getElementById('game-upload-icon');
+        const androidApkHint = document.getElementById('android-apk-hint');
         const gameZip = document.getElementById('game-zip');
         const zipName = document.getElementById('zip-name');
         const contentDownload = document.getElementById('game-content-download');
@@ -2076,7 +2118,10 @@
 
         const updateGameTypeFields = () => {
             const val = gameType.value;
-            if (val === 'download') {
+            const platVal = gamePlatform ? gamePlatform.value : 'pc';
+            const isAndroidMode = val === 'android' || platVal === 'android';
+
+            if (val === 'download' || val === 'android') {
                 contentDownload.classList.remove('hidden');
                 contentUrl.classList.add('hidden');
             } else if (val === 'online' || val === 'browser') {
@@ -2086,8 +2131,72 @@
                 contentDownload.classList.remove('hidden');
                 contentUrl.classList.remove('hidden');
             }
+
+            if (isAndroidMode) {
+                if (gameDownloadLabel) gameDownloadLabel.innerText = 'Carica il Gioco Mobile Android (File .APK consigliato)';
+                if (gameUploadIcon) {
+                    gameUploadIcon.className = 'fab fa-android';
+                    gameUploadIcon.style.color = '#3ddc84';
+                }
+                if (gameZip) gameZip.setAttribute('accept', '.apk,.xapk,.zip');
+                if (zipName && !gameZip.files[0] && !zipName.innerText.startsWith('File precedentemente')) {
+                    zipName.innerText = 'Seleziona il file .apk (o .xapk / .zip) del gioco Android';
+                }
+                if (androidApkHint) androidApkHint.classList.remove('hidden');
+            } else if (platVal === 'amiga') {
+                if (gameDownloadLabel) gameDownloadLabel.innerText = 'Carica il Gioco Amiga (ADF / LHA / HDF / ZIP)';
+                if (gameUploadIcon) {
+                    gameUploadIcon.className = 'fas fa-floppy-disk';
+                    gameUploadIcon.style.color = '#fbbf24';
+                }
+                if (gameZip) gameZip.setAttribute('accept', '.adf,.lha,.dms,.hdf,.zip');
+                if (zipName && !gameZip.files[0] && !zipName.innerText.startsWith('File precedentemente')) {
+                    zipName.innerText = 'Seleziona il file .adf, .lha, .hdf o .zip per Amiga';
+                }
+                if (androidApkHint) androidApkHint.classList.add('hidden');
+            } else if (platVal === 'c64') {
+                if (gameDownloadLabel) gameDownloadLabel.innerText = 'Carica il Gioco Commodore 64 (D64 / PRG / CRT / T64 / ZIP)';
+                if (gameUploadIcon) {
+                    gameUploadIcon.className = 'fas fa-floppy-disk';
+                    gameUploadIcon.style.color = '#38bdf8';
+                }
+                if (gameZip) gameZip.setAttribute('accept', '.d64,.prg,.crt,.t64,.tap,.zip');
+                if (zipName && !gameZip.files[0] && !zipName.innerText.startsWith('File precedentemente')) {
+                    zipName.innerText = 'Seleziona il file .d64, .prg, .crt, .t64 o .zip per C64';
+                }
+                if (androidApkHint) androidApkHint.classList.add('hidden');
+            } else {
+                if (gameDownloadLabel) gameDownloadLabel.innerText = 'Carica il Gioco (Archivio ZIP)';
+                if (gameUploadIcon) {
+                    gameUploadIcon.className = 'fas fa-file-archive';
+                    gameUploadIcon.style.color = '';
+                }
+                if (gameZip) gameZip.setAttribute('accept', '.zip,.apk,.xapk');
+                if (zipName && !gameZip.files[0] && !zipName.innerText.startsWith('File precedentemente')) {
+                    zipName.innerText = 'Seleziona il file .zip del gioco';
+                }
+                if (androidApkHint) androidApkHint.classList.add('hidden');
+            }
         };
-        gameType.onchange = updateGameTypeFields;
+        if (gamePlatform) {
+            gamePlatform.onchange = () => {
+                if (gamePlatform.value === 'android' && gameType.value === 'download') {
+                    gameType.value = 'android';
+                } else if ((gamePlatform.value === 'pc' || gamePlatform.value === 'amiga' || gamePlatform.value === 'c64') && gameType.value === 'android') {
+                    gameType.value = 'download';
+                } else if (gamePlatform.value === 'web' && (gameType.value === 'download' || gameType.value === 'android')) {
+                    gameType.value = 'browser';
+                }
+                updateGameTypeFields();
+            };
+        }
+        gameType.onchange = () => {
+            if (gamePlatform) {
+                if (gameType.value === 'android') gamePlatform.value = 'android';
+                else if (gameType.value === 'browser' || gameType.value === 'online') gamePlatform.value = 'web';
+            }
+            updateGameTypeFields();
+        };
 
         gameZip.onchange = (e) => {
             if (e.target.files[0]) {
@@ -2202,20 +2311,34 @@
                 let onlineLink = gameExternalUrl.value.trim() || existingOnlineUrl;
 
                 // Handle file upload if present
-                if ((type === 'download' || type === 'both') && gameZip.files[0]) {
+                const platform = (document.getElementById('game-platform')?.value) || (type === 'android' ? 'android' : (type === 'online' || type === 'browser' ? 'web' : 'pc'));
+                let detectedFormat = type === 'android' || platform === 'android' ? 'APK' : (type === 'download' || type === 'both' ? 'ZIP' : 'WEB');
+                if ((type === 'download' || type === 'both' || type === 'android') && gameZip.files[0]) {
                     const file = gameZip.files[0];
-                    const storageRef = ref(storage, `games/${targetDocRef.id}/game.zip`);
-                    showToast('Caricamento archivio ZIP del gioco in corso...', 'info');
+                    const lowerName = (file.name || '').toLowerCase();
+                    let ext = (type === 'android' || platform === 'android') ? 'apk' : 'zip';
+                    const allowedExts = ['apk', 'xapk', 'zip', 'adf', 'lha', 'dms', 'hdf', 'd64', 'prg', 'crt', 't64', 'tap'];
+                    const matchedExt = allowedExts.find((e) => lowerName.endsWith('.' + e));
+                    if (matchedExt) ext = matchedExt;
+                    detectedFormat = ext.toUpperCase();
+                    const storagePath = `games/${targetDocRef.id}/game.${ext}`;
+                    const storageRef = ref(storage, storagePath);
+                    showToast(`Caricamento pacchetto .${ext.toUpperCase()} del gioco in corso...`, 'info');
                     try {
                         await uploadBytes(storageRef, file);
                     } catch (storageErr) {
                         console.warn('Storage upload fallback:', storageErr);
                     }
-                    downloadFilePath = `games/${targetDocRef.id}/game.zip`;
+                    downloadFilePath = storagePath;
+                } else if (downloadFilePath) {
+                    const lowerExisting = downloadFilePath.toLowerCase();
+                    if (lowerExisting.endsWith('.apk')) detectedFormat = 'APK';
+                    else if (lowerExisting.endsWith('.xapk')) detectedFormat = 'XAPK';
+                    else if (lowerExisting.endsWith('.zip')) detectedFormat = 'ZIP';
                 }
 
                 let gameContentUrl = '';
-                if (type === 'download') {
+                if (type === 'download' || type === 'android') {
                     gameContentUrl = downloadFilePath;
                 } else if (type === 'online' || type === 'browser') {
                     gameContentUrl = onlineLink;
@@ -2232,6 +2355,8 @@
                     desc, 
                     category, 
                     type,
+                    platform,
+                    fileFormat: detectedFormat,
                     header: finalHeader,
                     gallery: finalGallery,
                     sellerId: currentUser.uid,
