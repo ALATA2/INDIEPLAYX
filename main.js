@@ -2,7 +2,7 @@ import { registerUser, loginUser, logoutUser, resetUserPassword, subscribeToAuth
 import { getGames, getGamesPaged, getCachedGamesSync } from './src/store';
 import { db, auth } from './src/firebase';
 import { doc, getDoc, collection, getDocs, query, orderBy, limit } from "firebase/firestore";
-import { initLanguageSelectors, translations, getLanguage, autoTranslateDOM } from './src/i18n';
+import { initLanguageSelectors, translations, getLanguage, autoTranslateDOM, translatePage } from './src/i18n';
 import { renderVersionBadge } from './src/version';
 import { initMagazineSystem, initBackendSystem, getPaymentConfig, openQuickBuyModal, addToQuickCart, isGameOwnedExpress, getPortalNews, openPortalNewsReaderModal } from './src/backend-payments';
 import { isInWishlist, toggleWishlist, getWishlist, syncWishlistFromCloud, getNewGamesFromFollowedCreators, markFollowedGamesSeen, initPwaSupport } from './src/community-features';
@@ -300,15 +300,15 @@ function createGameCard(game) {
                 <i class="fas fa-user-astronaut" style="color:#38bdf8; font-size:0.7rem;"></i> by ${authorName}
             </a>
             <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: 6px;">
-                <div class="price" style="margin: 0;">${isFree ? 'GRATIS' : '€' + game.price}</div>
+                <div class="price" style="margin: 0;">${isFree ? (dict.free_label || 'GRATIS') : '€' + game.price}</div>
                 <div class="card-quick-buy-bar" style="display: flex; align-items: center; gap: 5px;">
                     ${isOwned ? `
                         <button type="button" class="card-1click-btn owned" title="Già nella tua Libreria">
-                            <i class="fas fa-check-circle"></i> Gioca
+                            <i class="fas fa-check-circle"></i> ${dict.card_play || 'Gioca'}
                         </button>
                     ` : isFree ? `
                         <button type="button" class="card-1click-btn free" title="Sblocca subito con 1-Click">
-                            <i class="fas fa-bolt"></i> Ottieni
+                            <i class="fas fa-bolt"></i> ${dict.card_get || 'Ottieni'}
                         </button>
                     ` : `
                         <button type="button" class="card-1click-btn" title="Acquisto Immediato 1-Click (Stile Amazon)">
@@ -896,7 +896,9 @@ function applyCatalogFilters() {
     'genre_race': ['corse', 'racing', 'volo'],
     'genre_strategy': ['strategia', 'simulazione', 'strategy', 'simulation'],
     'genre_sport': ['sport', 'sports'],
-    'genre_family': ['bambini', 'famiglia', 'indie', 'carte', 'arcade', 'casual']
+    'genre_roguelike': ['roguelike', 'roguelite', 'rogue'],
+    'genre_cards': ['carte', 'card', 'deckbuilding', 'deck'],
+    'genre_family': ['bambini', 'famiglia', 'indie', 'arcade', 'casual']
   };
 
   const wishSet = new Set(getWishlist());
@@ -928,6 +930,10 @@ function applyCatalogFilters() {
       if (pf === 'web') return typeStr.includes('web') || typeStr.includes('html') || platStr.includes('web') || platStr.includes('browser') || Boolean(g.gameUrl);
       if (pf === 'windows') return platStr.includes('win') || platStr.includes('.exe') || platStr.includes('.zip') || typeStr === 'download';
       if (pf === 'mac') return platStr.includes('mac') || platStr.includes('osx') || platStr.includes('.dmg');
+      if (pf === 'linux') {
+        const linuxStr = `${platStr} ${g.fileFormat || ''}`.toLowerCase();
+        return linuxStr.includes('linux') || linuxStr.includes('steamos') || linuxStr.includes('steam deck') || linuxStr.includes('.appimage') || linuxStr.includes('.deb') || linuxStr.includes('.tar.gz');
+      }
       if (pf === 'android') return isAndroidGame(g);
       if (pf === 'amiga') {
         const amigaStr = `${platStr} ${g.category || ''} ${g.fileFormat || ''}`.toLowerCase();
@@ -1239,6 +1245,7 @@ initModals();
 renderVersionBadge();
 initMagazineSystem();
 initBackendSystem();
+setTimeout(() => translatePage(), 500);
 
 window.addEventListener('indieplay:purchasecomplete', () => {
   loadGames();
@@ -1246,6 +1253,8 @@ window.addEventListener('indieplay:purchasecomplete', () => {
 
 window.addEventListener('indieplay:langchange', (e) => {
   const lang = e.detail?.lang || getLanguage();
+  applyCatalogFilters();
+  renderAndroidGamesSection(globalAllGames);
   loadNewsFeed();
   autoTranslateDOM(lang);
 });

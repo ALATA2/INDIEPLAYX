@@ -7,6 +7,7 @@ import { initWoxlyticsTracker } from './woxlytics-tracker';
 import { syncModerationStateFromCloud } from './moderation';
 import { mountBitmemeModerationPanel } from './moderation-ui';
 import { submitWaitlistEmail } from './community-features';
+import { initSupportWidget, renderBitmemeSupportPanel } from './support-center';
 
 // Hash SHA-256 verificati nativamente via Web Crypto API (zero password in chiaro nel bundle)
 const MAGAZINE_PASSWORD_HASH = 'f5cc70f88b12210cbd1758da2ba5e8de99787c31e70930538d0436be9756470a';
@@ -1418,6 +1419,7 @@ export function initBackendSystem() {
   initExpress1ClickSystem();
   initSpecialProjectsSections();
   initFirstVisitLegalConsentModal();
+  initSupportWidget();
   trackPrivatePageView();
   initWoxlyticsTracker(getLanguage);
   setTimeout(() => {
@@ -1978,7 +1980,7 @@ function injectHeaderCartButton() {
   btn.style.cssText = 'position: relative; padding: 6px 12px; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px; font-size: 0.84rem; font-weight: 800; border-color: rgba(245, 158, 11, 0.55); color: #fbbf24; background: rgba(245, 158, 11, 0.1); cursor: pointer;';
   btn.innerHTML = `
     <i class="fas fa-shopping-cart"></i>
-    <span class="cart-label-text" style="display: inline;">Carrello</span>
+    <span class="cart-label-text" data-i18n="nav_cart" style="display: inline;">Carrello</span>
     <span id="ipx-cart-count-badge" style="display: none; background: #f59e0b; color: #0f172a; font-size: 0.72rem; font-weight: 900; min-width: 19px; height: 19px; border-radius: 999px; align-items: center; justify-content: center; padding: 0 5px;">0</span>
   `;
   btn.onclick = () => openQuickCartDrawer();
@@ -3408,6 +3410,7 @@ export async function initBitmemeAdminHub() {
         </div>
       </div>
 
+      ${(isBeUnlocked || isMagUnlocked) ? '<div id="bm-support-panel-root"></div>' : ''}
       ${isBeUnlocked ? '<div id="bm-moderation-panel-root"></div>' : ''}
       ${(isBeUnlocked || isMagUnlocked) ? renderPrivateAnalyticsDashboardHTML() : ''}
     `;
@@ -3618,6 +3621,9 @@ export async function initBitmemeAdminHub() {
 
     if (isBeUnlocked) {
       mountBitmemeModerationPanel('bm-moderation-panel-root');
+    }
+    if (isBeUnlocked || isMagUnlocked) {
+      renderBitmemeSupportPanel('bm-support-panel-root');
     }
   };
 

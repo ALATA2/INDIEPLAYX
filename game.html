@@ -718,8 +718,10 @@
         </div>
         <div class="footer-support-box" id="footer-support-box">
             <i class="fas fa-headset"></i>
-            <span>Assistenza &amp; Supporto:</span>
-            <a id="footer-support-email-link" href="mailto:assistenza@indieplayx.com">assistenza@indieplayx.com</a>
+            <span data-i18n="footer_support_label">Hai bisogno di aiuto?</span>
+            <button type="button" id="open-support-modal-btn" class="open-support-modal-btn btn btn-prime" style="padding: 0.42rem 0.95rem; font-size: 0.8rem; font-weight: 800; border-radius: 999px;">
+                <i class="fas fa-envelope-open-text"></i> <span data-i18n="footer_support_btn">Contatta l'Assistenza</span>
+            </button>
         </div>
         <div class="footer-legal" data-i18n="footer_rights">
             © 2026 IndiePlay-X. Tutti i diritti riservati.
@@ -1051,6 +1053,9 @@ async function loadGameDetails() {
                         String(game.category || '').toLowerCase().includes('c64') ||
                         String(game.category || '').toLowerCase().includes('commodore') ||
                         /\.(d64|prg|crt|t64|tap)$/i.test(String(game.downloadUrl || game.content || ''));
+                    const isLinuxGame = String(game.platform || '').toLowerCase().includes('linux') ||
+                        String(game.platform || '').toLowerCase().includes('steamos') ||
+                        /\.(appimage|deb|tar\.gz)$/i.test(String(game.downloadUrl || game.content || ''));
                     const hasDownload = game.type === 'download' || game.type === 'android' || game.type === 'both' || (game.content && !game.content.startsWith('http')) || game.downloadUrl;
                     const hasOnline = game.type === 'online' || game.type === 'browser' || game.type === 'both' || game.onlineUrl || (game.content && game.content.startsWith('http'));
                     const onlineUrl = game.onlineUrl || (game.content && game.content.startsWith('http') ? game.content : 'https://miogioco.com/play-demo-simulated');
@@ -1073,6 +1078,7 @@ async function loadGameDetails() {
                         ${isAndroidGame ? '<span style="background:rgba(61,220,132,0.16); border:1px solid rgba(61,220,132,0.45); color:#3ddc84; padding:2px 9px; border-radius:999px; font-size:0.78rem; font-weight:800;"><i class="fab fa-android"></i> Android APK</span>' : ''}
                         ${isAmigaGame ? '<span style="background:rgba(251,191,36,0.16); border:1px solid rgba(251,191,36,0.45); color:#fbbf24; padding:2px 9px; border-radius:999px; font-size:0.78rem; font-weight:800;"><i class="fas fa-floppy-disk"></i> Amiga</span>' : ''}
                         ${isC64Game ? '<span style="background:rgba(56,189,248,0.16); border:1px solid rgba(56,189,248,0.45); color:#38bdf8; padding:2px 9px; border-radius:999px; font-size:0.78rem; font-weight:800;"><i class="fas fa-floppy-disk"></i> Commodore 64</span>' : ''}
+                        ${isLinuxGame ? '<span style="background:rgba(249,115,22,0.16); border:1px solid rgba(249,115,22,0.45); color:#fb923c; padding:2px 9px; border-radius:999px; font-size:0.78rem; font-weight:800;"><i class="fab fa-linux"></i> Linux / SteamOS</span>' : ''}
                         <span style="font-weight: bold; color: var(--prime-blue);">${priceLabel}</span>
                         <span>Sviluppatore: <a href="${devLink}" style="color: var(--prime-blue); font-weight: 700; text-decoration: none;">${devName}</a></span>
                     `;
@@ -1602,7 +1608,7 @@ async function loadGameDetails() {
                     link.href = downloadUrl;
                     link.setAttribute('target', '_blank');
                     const lowerPath = String(pendingDownload.filePath || '').toLowerCase();
-                    const knownExts = ['apk', 'xapk', 'adf', 'lha', 'dms', 'hdf', 'd64', 'prg', 'crt', 't64', 'tap', 'zip'];
+                    const knownExts = ['apk', 'xapk', 'adf', 'lha', 'dms', 'hdf', 'd64', 'prg', 'crt', 't64', 'tap', 'appimage', 'deb', 'gz', 'zip'];
                     const fileExt = knownExts.find((e) => lowerPath.endsWith('.' + e)) || 'zip';
                     link.setAttribute('download', `${pendingDownload.title.replace(/\s+/g, '_')}.${fileExt}`);
                     document.body.appendChild(link);

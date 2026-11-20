@@ -690,7 +690,8 @@
                     <div class="form-group">
                         <label>Piattaforma di Destinazione</label>
                         <select id="game-platform" style="width: 100%; padding: 12px; background: #2a343f; border: 1px solid #3a444f; color: white; border-radius: 4px;">
-                            <option value="pc">PC (Windows / macOS / Linux)</option>
+                            <option value="pc">PC (Windows / macOS)</option>
+                            <option value="linux">Linux / SteamOS (AppImage / tar.gz / ZIP)</option>
                             <option value="android">Mobile Android (APK)</option>
                             <option value="amiga">Amiga (ADF / LHA / WHDLoad / ZIP)</option>
                             <option value="c64">Commodore 64 (D64 / PRG / CRT / T64 / ZIP)</option>
@@ -997,8 +998,10 @@
         </div>
         <div class="footer-support-box" id="footer-support-box">
             <i class="fas fa-headset"></i>
-            <span>Assistenza &amp; Supporto:</span>
-            <a id="footer-support-email-link" href="mailto:assistenza@indieplayx.com">assistenza@indieplayx.com</a>
+            <span data-i18n="footer_support_label">Hai bisogno di aiuto?</span>
+            <button type="button" id="open-support-modal-btn" class="open-support-modal-btn btn btn-prime" style="padding: 0.42rem 0.95rem; font-size: 0.8rem; font-weight: 800; border-radius: 999px;">
+                <i class="fas fa-envelope-open-text"></i> <span data-i18n="footer_support_btn">Contatta l'Assistenza</span>
+            </button>
         </div>
         <div class="footer-legal" data-i18n="footer_rights">
             © 2026 IndiePlay-X. Tutti i diritti riservati.
@@ -2322,7 +2325,7 @@
                     const file = gameZip.files[0];
                     const lowerName = (file.name || '').toLowerCase();
                     let ext = (type === 'android' || platform === 'android') ? 'apk' : 'zip';
-                    const allowedExts = ['apk', 'xapk', 'zip', 'adf', 'lha', 'dms', 'hdf', 'd64', 'prg', 'crt', 't64', 'tap'];
+                    const allowedExts = ['apk', 'xapk', 'zip', 'adf', 'lha', 'dms', 'hdf', 'd64', 'prg', 'crt', 't64', 'tap', 'appimage', 'deb', 'gz'];
                     const matchedExt = allowedExts.find((e) => lowerName.endsWith('.' + e));
                     if (matchedExt) ext = matchedExt;
                     detectedFormat = ext.toUpperCase();

@@ -1,5 +1,15 @@
 [
   {
+    "version": "Version 1.11298",
+    "timestamp": "2026-11-20T21:55:55.775Z",
+    "message": "feat(Version 1.11298): navbar pulita, 7a piattaforma Linux/SteamOS, categorie Roguelike/Carte, Centro Assistenza in /bitmeme e traduzione completa",
+    "targets": [
+      "Hard Disk (c:\\\\Users\\\\green\\\\Desktop\\\\INDIE-PLAY-X + /dist)",
+      "GitHub (https://github.com/ALATA2/INDIEPLAYX - main)",
+      "Cloudflare Pages & Vercel Hosting (Auto-Deploy su push main)"
+    ]
+  },
+  {
     "version": "Version 1.11297",
     "timestamp": "2026-11-20T18:26:57.144Z",
     "message": "feat(Version 1.11297): spazio email assistenza nel footer su tutte le pagine",
@@ -482,16 +492,6 @@
   {
     "version": "Version 1.11272",
     "timestamp": "2026-11-17T20:44:58.232Z",
-    "message": "feat(Version 1.11272): aggiornamento credenziali amministratore",
-    "targets": [
-      "Hard Disk (c:\\Users\\green\\Desktop\\INDIE-PLAY-X + /dist)",
-      "GitHub (https://github.com/ALATA2/INDIEPLAYX - main)",
-      "Cloudflare Pages & Vercel Hosting (Auto-Deploy su push main)"
-    ]
-  },
-  {
-    "version": "Version 1.11272",
-    "timestamp": "2026-11-17T20:44:23.442Z",
     "message": "feat(Version 1.11272): aggiornamento credenziali amministratore",
     "targets": [
       "Hard Disk (c:\\Users\\green\\Desktop\\INDIE-PLAY-X + /dist)",

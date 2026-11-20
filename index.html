@@ -112,7 +112,6 @@
                 </a>
                 <ul class="nav-links">
                     <li><a href="#store" class="active" data-i18n="nav_home">Home</a></li>
-                    <li><a href="#android-section" data-i18n="nav_android" style="color: #3ddc84; font-weight: 800;"><i class="fab fa-android" style="font-size: 0.9rem; margin-right: 4px;"></i>Mobile Android</a></li>
                     <li><a href="#merch-section" data-i18n="nav_merch">Merchandising</a></li>
                     <li><a href="#magazine-section" data-i18n="nav_magazine">Magazine</a></li>
                     <li><a href="#bitbonk-section" data-i18n="nav_bitbonk" style="color: #f472b6; font-weight: 800;"><i class="fas fa-clone" style="font-size: 0.8rem; margin-right: 4px;"></i>BitBonk</a></li>
@@ -175,14 +174,14 @@
                     <img src="/images/placeholder.png" alt="Rogue Like">
                     <div class="hero-overlay-sub">
                         <h3 id="hero-side-title-1">Rogue Like</h3>
-                        <span class="prime-tag">Incluso con IndiePlay</span>
+                        <span class="prime-tag" data-i18n="game_included_short">Incluso con IndiePlay</span>
                     </div>
                 </div>
                 <div class="hero-sub" id="hero-side-2" data-index="2">
                     <img src="/images/placeholder.png" alt="Serpe">
                     <div class="hero-overlay-sub">
                         <h3 id="hero-side-title-2">Serpe</h3>
-                        <span class="prime-tag">Incluso con IndiePlay</span>
+                        <span class="prime-tag" data-i18n="game_included_short">Incluso con IndiePlay</span>
                     </div>
                 </div>
             </div>
@@ -206,7 +205,7 @@
                         <i class="fas fa-chevron-right"></i>
                     </button>
                     <button type="button" id="genre-expand-btn" class="genre-expand-btn" title="Mostra tutte le categorie in griglia">
-                        <i class="fas fa-th-large"></i> Tutte
+                        <i class="fas fa-th-large"></i> <span data-i18n="btn_all_categories">Tutte</span>
                     </button>
                 </div>
             </div>
@@ -214,7 +213,7 @@
                 <div class="genre-row" id="genre-row-scroll">
                     <div class="genre-card active-genre" data-genre="all">
                         <i class="fas fa-border-all"></i>
-                        <span>Tutti i Giochi</span>
+                        <span data-i18n="genre_all">Tutti i Giochi</span>
                     </div>
                     <div class="genre-card genre-card-android" data-genre="Mobile Android">
                         <i class="fab fa-android" style="color: #3ddc84;"></i>
@@ -264,6 +263,14 @@
                         <i class="fas fa-basketball"></i>
                         <span><span data-i18n="genre_sport">Sport</span> &gt;</span>
                     </div>
+                    <div class="genre-card" data-genre="Roguelike">
+                        <i class="fas fa-skull-crossbones"></i>
+                        <span><span data-i18n="genre_roguelike">Roguelike / Roguelite</span> &gt;</span>
+                    </div>
+                    <div class="genre-card" data-genre="Carte">
+                        <i class="fas fa-clone"></i>
+                        <span><span data-i18n="genre_cards">Carte e Deckbuilding</span> &gt;</span>
+                    </div>
                     <div class="genre-card" data-genre="Famiglia">
                         <i class="fas fa-face-smile"></i>
                         <span><span data-i18n="genre_family">Bambini e famiglia</span> &gt;</span>
@@ -274,37 +281,38 @@
             <!-- Barra Ricerca & Filtri Avanzati Catalogo -->
             <div class="catalog-filter-bar" id="catalog-filter-bar">
                 <div class="filter-group">
-                    <span class="filter-label"><i class="fas fa-tag"></i> Prezzo:</span>
-                    <button type="button" class="filter-chip active" data-price="all">Tutti</button>
-                    <button type="button" class="filter-chip" data-price="free">Gratis</button>
-                    <button type="button" class="filter-chip" data-price="paid">A Pagamento</button>
+                    <span class="filter-label"><i class="fas fa-tag"></i> <span data-i18n="filter_price">Prezzo:</span></span>
+                    <button type="button" class="filter-chip active" data-price="all" data-i18n="filter_all">Tutti</button>
+                    <button type="button" class="filter-chip" data-price="free" data-i18n="filter_free">Gratis</button>
+                    <button type="button" class="filter-chip" data-price="paid" data-i18n="filter_paid">A Pagamento</button>
                 </div>
                 <div class="filter-group">
-                    <span class="filter-label"><i class="fas fa-desktop"></i> Piattaforma:</span>
+                    <span class="filter-label"><i class="fas fa-desktop"></i> <span data-i18n="filter_platform">Piattaforma:</span></span>
                     <select id="filter-platform-select" class="filter-select">
-                        <option value="all">Tutte</option>
+                        <option value="all" data-i18n="filter_all_fem">Tutte</option>
                         <option value="web">Web / Browser</option>
                         <option value="windows">Windows PC</option>
                         <option value="mac">macOS</option>
+                        <option value="linux">Linux / SteamOS</option>
                         <option value="android">Mobile Android (APK)</option>
                         <option value="amiga">Amiga</option>
                         <option value="c64">Commodore 64</option>
                     </select>
                 </div>
                 <div class="filter-group">
-                    <span class="filter-label"><i class="fas fa-arrow-down-wide-short"></i> Ordina:</span>
+                    <span class="filter-label"><i class="fas fa-arrow-down-wide-short"></i> <span data-i18n="filter_sort">Ordina:</span></span>
                     <select id="filter-sort-select" class="filter-select">
-                        <option value="recent">Più Recenti</option>
-                        <option value="popular">Più Scaricati / Popolari</option>
-                        <option value="rated">Più Votati</option>
+                        <option value="recent" data-i18n="sort_recent">Più Recenti</option>
+                        <option value="popular" data-i18n="sort_popular">Più Scaricati / Popolari</option>
+                        <option value="rated" data-i18n="sort_rated">Più Votati</option>
                     </select>
                 </div>
                 <div class="filter-group" style="margin-left: auto;">
                     <button type="button" id="filter-wishlist-btn" class="filter-chip wishlist-chip">
-                        <i class="fas fa-heart"></i> Wishlist (<span id="wishlist-count-badge">0</span>)
+                        <i class="fas fa-heart"></i> <span data-i18n="filter_wishlist">Wishlist</span> (<span id="wishlist-count-badge">0</span>)
                     </button>
                     <button type="button" id="filter-reset-btn" class="filter-chip hidden" style="border-color: rgba(239,68,68,0.45); color:#fca5a5;">
-                        <i class="fas fa-times"></i> Azzera
+                        <i class="fas fa-times"></i> <span data-i18n="filter_reset">Azzera</span>
                     </button>
                 </div>
             </div>
@@ -690,15 +698,17 @@
         </div>
         <div class="footer-support-box" id="footer-support-box">
             <i class="fas fa-headset"></i>
-            <span>Assistenza &amp; Supporto:</span>
-            <a id="footer-support-email-link" href="mailto:assistenza@indieplayx.com">assistenza@indieplayx.com</a>
+            <span data-i18n="footer_support_label">Hai bisogno di aiuto?</span>
+            <button type="button" id="open-support-modal-btn" class="open-support-modal-btn btn btn-prime" style="padding: 0.42rem 0.95rem; font-size: 0.8rem; font-weight: 800; border-radius: 999px;">
+                <i class="fas fa-envelope-open-text"></i> <span data-i18n="footer_support_btn">Contatta l'Assistenza</span>
+            </button>
         </div>
         <div class="footer-legal" data-i18n="footer_rights">
             © 2026 IndiePlay-X. Tutti i diritti riservati.
         </div>
-        <div id="footer-version-label" style="text-align: left; font-size: 0.75rem; color: rgba(255,255,255,0.55); font-weight: 600; margin-top: 0.8rem;">Version 1.11297</div>
+        <div id="footer-version-label" style="text-align: left; font-size: 0.75rem; color: rgba(255,255,255,0.55); font-weight: 600; margin-top: 0.8rem;">Version 1.11298</div>
     </footer>
-    <div id="indieplay-version-badge" class="indieplay-version-badge">Version 1.11297</div>
+    <div id="indieplay-version-badge" class="indieplay-version-badge">Version 1.11298</div>
 
     <!-- Login Modal -->
     <div id="login-modal" class="modal">

@@ -1,6 +1,6 @@
 // Versionamento centrale di INDIE PLAY X
 // Incrementare ad ogni aggiornamento
-export const APP_VERSION = 'Version 1.11297';
+export const APP_VERSION = 'Version 1.11298';
 
 export function renderVersionBadge() {
   let badge = document.getElementById('indieplay-version-badge');
