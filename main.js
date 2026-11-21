@@ -312,7 +312,7 @@ function createGameCard(game) {
                             <i class="fas fa-bolt"></i> ${dict.card_get || 'Ottieni'}
                         </button>
                     ` : `
-                        <button type="button" class="card-1click-btn" title="Acquisto Immediato 1-Click (Stile Amazon)">
+                        <button type="button" class="card-1click-btn" title="Acquisto Immediato 1-Click">
                             <i class="fas fa-bolt"></i> 1-Click
                         </button>
                         <button type="button" class="card-cart-btn" title="Aggiungi al Carrello Rapido">

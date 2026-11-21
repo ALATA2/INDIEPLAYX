@@ -1,5 +1,15 @@
 [
   {
+    "version": "Version 1.11302",
+    "timestamp": "2026-11-21T12:52:18.422Z",
+    "message": "chore(Version 1.11302): rimossi riferimenti Steam/Amazon e aggiunta nota legale marchi nel footer",
+    "targets": [
+      "Hard Disk (c:\\\\Users\\\\green\\\\Desktop\\\\INDIE-PLAY-X + /dist)",
+      "GitHub (https://github.com/ALATA2/INDIEPLAYX - main)",
+      "Cloudflare Pages & Vercel Hosting (Auto-Deploy su push main)"
+    ]
+  },
+  {
     "version": "Version 1.11301",
     "timestamp": "2026-11-20T22:28:06.180Z",
     "message": "feat(Version 1.11301): pulsante 1-Click Attiva/Disattiva Official IndiePlay Merchandising in /bitmeme",
@@ -482,16 +492,6 @@
   {
     "version": "Version 1.11274",
     "timestamp": "2026-11-17T21:05:26.173Z",
-    "message": "feat(Version 1.11274): spostamento IndiePlay Magazine sotto Merchandising",
-    "targets": [
-      "Hard Disk (c:\\Users\\green\\Desktop\\INDIE-PLAY-X + /dist)",
-      "GitHub (https://github.com/ALATA2/INDIEPLAYX - main)",
-      "Cloudflare Pages & Vercel Hosting (Auto-Deploy su push main)"
-    ]
-  },
-  {
-    "version": "Version 1.11274",
-    "timestamp": "2026-11-17T21:04:57.192Z",
     "message": "feat(Version 1.11274): spostamento IndiePlay Magazine sotto Merchandising",
     "targets": [
       "Hard Disk (c:\\Users\\green\\Desktop\\INDIE-PLAY-X + /dist)",
